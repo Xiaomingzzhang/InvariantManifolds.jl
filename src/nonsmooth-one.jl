@@ -135,8 +135,11 @@ end
     result
 end
 
+"""
+    InvariantManifolds.initialise_curve(points, tmap)
 
-
+Initialise the curve of ODE's time-T-map.
+"""
 function initialise_curve(points, tmap)
     map = x -> tmap(State(x, 0))
     n = length(points)
