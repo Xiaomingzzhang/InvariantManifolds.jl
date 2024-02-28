@@ -1,10 +1,10 @@
 # Home
 
 ```@docs
-segment(point, direction, n, d)
+segment
 ```
 
 ```@docs
-initialise_curve(points, map, parameters)
+initialise_curve
 ```
 

@@ -42,7 +42,6 @@ seg = segment(SA[0.6313544770895048, 0.18940634312685142], SA[-0.988057755994704
 result = generate_curves(henonmap, SA[1.4, 0.3], seg, 0.005, 13)
 plot(result)
 ```
-![fig](/exampleplot.svg)
 
 You can use `Plotly` backends to see the details of manifolds. To do this, just define
 ```julia
@@ -67,9 +66,9 @@ See more exmples in document.
 
 # Invariant manifold of the saddle for ODE with imoacts -->
 ```@docs
-segment(point, direction, n, d)
+segment
 ```
 
 ```@docs
-initialise_curve(points, map, parameters)
+initialise_curve
 ```
