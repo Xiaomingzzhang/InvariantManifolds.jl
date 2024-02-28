@@ -1,14 +1,10 @@
-```@meta
-CurrentModule = InvariantManifolds
+# Home
+
+```@docs
+segment(point, direction, n, d)
 ```
 
-# InvariantManifolds
-
-Documentation for [InvariantManifolds](https://github.com/Xiaomingzzhang/InvariantManifolds.jl).
-
-```@index
+```@docs
+initialise_curve(points, map, parameters)
 ```
 
-```@autodocs
-Modules = [InvariantManifolds]
-```
