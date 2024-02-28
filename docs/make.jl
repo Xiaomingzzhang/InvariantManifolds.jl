@@ -12,12 +12,16 @@ makedocs(;
         edit_link="master",
         assets=String[],
     ),
-    pages=[
-        "Home" => "index.md",
-    ],
+    pages = [
+        "index.md",
+        "state.md",
+        "smooth.md",
+        "nonsmooth.md",
+        "api.md"
+    ]
 )
 
 deploydocs(;
     repo="github.com/Xiaomingzzhang/InvariantManifolds.jl",
-    devbranch="master",
+    devbranch="main",
 )
