@@ -1,11 +1,20 @@
-struct SFillippoV
+"""
+    SFilippovV
+
+`SFilippovV` means simple Fillippov vector fields, which means that there only exists one hypersurface to separate the phase space. Fields:
+- `fs` vector fields in two sides of hypersurface. The slide vector field can be generated automatically.
+- `hyper` hypersurface.
+- `dhyper` grad of hypersurface. Warn!!! The grad must point to the second of `fs`.
+- `exit` conditions to exit the hypersurface, which can also be generated automatically
+"""
+struct SFilippovV
     fs::SVector{3,Function}
     hyper
     dhyper
     exit
 end
 
-function SFillippoV(fs, h, ∇h)
+function SFilippovV(fs, h, ∇h)
     f1 = fs[1]
     f2 = fs[2]
     function sv(x, p, t)
@@ -15,15 +24,15 @@ function SFillippoV(fs, h, ∇h)
     function exit(x, p, t)
         dot(∇h(x, p, t), f2(x, p, t)) * dot(∇h(x, p, t), f1(x, p, t))
     end
-    SFillippoV(SA[f1, f2, sv], h, ∇h, exit)
+    SFilippovV(SA[f1, f2, sv], h, ∇h, exit)
 end
 
-function (v::SFillippoV)(x, p, t)
+function (v::SFilippovV)(x, p, t)
     n = convert(Int, p[end])
     v.fs[n](x, p, t)
 end
 
-function gen_prob(v::SFillippoV, x, timespan, para)
+function gen_prob(v::SFilippovV, x, timespan, para)
     f1 = v.fs[1]
     f2 = v.fs[2]
     if v.hyper(x, para, timespan[1]) < 0
@@ -70,7 +79,7 @@ end
 
 
 
-function setmap(v::SFillippoV, para, timespan, alg; extra...)
+function setmap(v::SFilippovV, para, timespan, alg; extra...)
     ctimes = zeros(Int, 3)
     f1 = v.fs[1]
     f2 = v.fs[2]

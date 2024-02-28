@@ -13,11 +13,11 @@ makedocs(;
         assets=String[],
     ),
     pages = [
-        "index.md",
-        "state.md",
-        "smooth.md",
-        "nonsmooth.md",
-        "api.md"
+        "Home"=>"index.md",
+        "State of art"=>"state.md",
+        "Smooth mapping"=>"smooth.md",
+        "Time-T-map of non-smooth ODE"=>"nonsmooth.md",
+        "API"=>"api.md"
     ]
 )
 

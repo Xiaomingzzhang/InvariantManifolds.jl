@@ -8,7 +8,7 @@ import Plots.plot
 
 export State, IterationCurve, show, segment, generate_curves, plot
 
-export PiecewiseV, BilliardV, SFillippoV, NSState, NSSetUp, setmap, gen_prob
+export PiecewiseV, BilliardV, SFilippovV, NSState, NSSetUp, setmap, gen_prob
 
 # the one dimensional smooth manifold algorithm
 include("smooth-one.jl")

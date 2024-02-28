@@ -66,7 +66,7 @@ function paramise(image)
 end
 
 """
-    initialise_curve(points, map, parameters)
+    InvariantManifolds.initialise_curve(points, map, parameters)
 
 This is a function to get the iteration curve. From `[p0,...,pn]`, where `p0` is the
 saddle point, to get `[pn,...,f(pn)]`.
@@ -107,10 +107,10 @@ function myinsert!(a::Array{T,1}, i::Integer, b::Array{S,1}) where {T,S}
 end
 
 """
-    addpoints(f, p, ic1::IterationCurve{N,T}, min) where{N, T}
+    InvariantManifolds.addpoints(f, p, ic1::IterationCurve{N,T}, min)
+    
 `addpoints` will add enough points from `ic1` so that its image of points are
-dense, i.e., the distance of nearby points will less than `min`. `data` is the
-distance of the initial `ic1` 
+dense, i.e., the distance of nearby points will less than `min`.
 """
 @inline function addpoints(f, p, ic1::IterationCurve{N,T}, min) where{N, T}
     n = length(ic1.states)

@@ -1,10 +1,10 @@
 """
     BilliardV
+
 The struct `BilliardV` has three fields:
 - `f` is the vector field, of type `f(x,p,t)`, and its output is a SVector;
 - `hypers` is vector of hypersurfaces:`[h1,h2,...]`, `h1(x,p,t)`;
-- `irules` is vector of rules on hypersurfaces:`[r1,r2,r3,...]`; the rules must be
-independent of time `t`, i.e., `r1(x,p)`.
+- `irules` is vector of rules on hypersurfaces:`[r1,r2,r3,...]`; the rules must be independent of time `t`, i.e., `r1(x,p)`.
 """
 struct BilliardV
     f

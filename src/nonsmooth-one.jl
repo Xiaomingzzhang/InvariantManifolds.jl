@@ -135,6 +135,8 @@ end
     result
 end
 
+
+
 function initialise_curve(points, tmap)
     map = x -> tmap(State(x, 0))
     n = length(points)

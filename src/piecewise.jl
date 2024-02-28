@@ -1,3 +1,11 @@
+"""
+    PiecewiseV
+
+Piecewise smooth vector field. Fields:
+- `fs` is a vector of smooth vector fields in different regions.
+- `regions` is a vector of the region functions: `[r1,r2,...]`, where `r1(x,p,t)` should return a Bool value to indicate that `x` is in this region or not.
+- `hypers` is a vector of the hypersurfaces separating the regions.
+"""
 struct PiecewiseV
     fs::Vector{Function}
     regions::Vector{Function}
@@ -9,6 +17,17 @@ function (v::PiecewiseV)(x, p, t)
     v.fs[n](x, p, t)
 end
 
+
+"""
+    NSSetUp{T}
+
+`NSSetUp` is a struct to contatin all the information needed in continuing the manifold. Fields:
+- `f::T` the Non-smooth vector field, like `PiecewiseV`;
+- `p` the parameter;
+- `timespan` the time span of time-T-map;
+- `timetmap` the time-t-map of nonsmooth ODE, which maps a `State` to a `NSState`;
+- `alg` algorithm used to solve ODE.
+"""
 struct NSSetUp{T}
     f::T
     p
@@ -40,16 +59,9 @@ end
 
 
 """
-    timetmap(vecs,hypers,map,timespan)
-This is the function to generate a time-T-map from a piecewise smooth ODE system.
-The output of this function is a function, whose input is the state in state space,
-output is the image of the time-T-map and the integer vector to represent the cross times with
-hypersurfaces.
-- `vecs`, vector of ODE functions, with type f(x,p,t);
-- `hypers`, hypersurfaces of switch surface; if `vecs=[f1,f2,f3]` and `hypers=[h1,h2,h3]`,
-it is assumed that `f1` is at h1<0, `f2` is at 0<h1 and h2<0, `f3` is at h2>0;
-- `map`, vector of mapping function on hypersurfaces;
-- `timespan`, the timespan of time-T-map.
+    setmap(v::PiecewiseV, para, timespan, alg; region_detect=_region_detect, extra...)
+
+Function to get a `NSSetUp`.
 """
 function setmap(v::PiecewiseV, para, timespan, alg; region_detect=_region_detect, extra...)
     nn = length(v.hypers)
