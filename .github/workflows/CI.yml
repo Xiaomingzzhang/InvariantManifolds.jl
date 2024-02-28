@@ -41,6 +41,12 @@ jobs:
   docs:
     name: Documentation
     runs-on: ubuntu-latest
+    on:
+      push:
+        branches:
+          - master # update to match your development branch (master, main, dev, trunk, ...)
+    tags: '1.0.0'
+  pull_request:
     permissions:
       actions: write # needed to allow julia-actions/cache to proactively delete old caches that it has created
       contents: write
