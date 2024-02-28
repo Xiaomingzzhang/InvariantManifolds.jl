@@ -1,7 +1,6 @@
 # InvariantManifolds
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Xiaomingzzhang.github.io/InvariantManifolds.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Xiaomingzzhang.github.io/InvariantManifolds.jl/dev/)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://xiaomingzzhang.github.io/InvariantManifolds.jl-Docs/)
 [![Build Status](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 
 This is a package to compute the invariant manifolds of a dynamcal system. Currently, I am still work on the one-dimensional manifolds of saddle points.
