@@ -1,0 +1,13 @@
+name = "InvariantManifolds"
+uuid = "8e6e46ff-12cc-43ef-8840-ba5cab270546"
+authors = ["XiaomingZhang"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
