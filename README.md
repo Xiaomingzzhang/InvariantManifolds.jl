@@ -1,20 +1,15 @@
 # InvariantManifolds
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://xiaomingzzhang.github.io/InvariantManifolds.jl-Docs/)
+[![](https://img.shields.io/badge/docs-online-blue.svg)](https://Xiaomingzzhang.github.io/InvariantManifolds.jl/dev/)
 [![Build Status](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 
-This is a package to compute the invariant manifolds of a dynamcal system. Currently, I am still work on the one-dimensional manifolds of saddle points.
+This is a package to compute the one-dimensional invariant manifolds of saddle points for nonlinear mappings.
 
-Things have been done:
+Main features:
 
 - Compute saddles' one-dimensional manifolds of smooth mapping;
 - Compute these manifolds in any precisions;
-- Compute saddles' one-dimensional manifolds of non-smooth mapping: these mapping are the time-T-map of a non-smooth ODE systems, e.g., impact systems, piecewise smooth systems, and simple Fillippov systems;
-
-Things haven't been done:
-
-- Compute saddles' high-dimensional manifolds of smooth mapping;
-- Compute invariant tori.
+- Compute saddles' one-dimensional manifolds of non-smooth mapping: these mapping are the time-T-map of a non-smooth ODE systems, e.g., impact systems, piecewise smooth systems, and simple Filippov systems.
 
 # Basic example: Unstable manifold of Henon map
 Consider the Henon map:
@@ -27,10 +22,9 @@ $$
 where $\alpha=1.4,\beta=0.3$. This map has a saddle located at $(0.6313544770895048, 0.18940634312685142)$, and its unstable eigenvector is $(-0.9880577559947047, 0.15408397327012555)$. 
 
 To compute the unstable manifolds of the saddle numerically, InvariantManifolds.jl just needs a segment of unstable manifold, whose start point is the saddle.
-It's resonable to choose a short unstable eigenvector as the segment. You don't have to shorten the eigenvector started at the saddle yourself. We provide a function `segment` to do this automatically. The `segment` can generate equal distributed `n` points at one point, with given length and direction.
+It's reasonable to choose a short unstable eigenvector as the segment. You don't have to shorten the eigenvector started at the saddle yourself. We provide a function `segment` to do this automatically. The `segment` can generate equal distributed `n` points at one point, with given length and direction.
 ```julia
-
-using InvaraiantManifolds, StaticArrays, Plots
+using InvariantManifolds, StaticArrays, Plots
 
 function henonmap(x, p)
     y1 = 1 - p[1] * x[1]^2 + x[2]
@@ -42,7 +36,7 @@ seg = segment(SA[0.6313544770895048, 0.18940634312685142], SA[-0.988057755994704
 result = generate_curves(henonmap, SA[1.4, 0.3], seg, 0.005, 13)
 plot(result)
 ```
-![fig](/exampleplot.svg)
+![henon](/docs/src/images/henon.svg)
 
 You can use `Plotly` backends to see the details of manifolds. To do this, just define
 ```julia
@@ -60,4 +54,9 @@ end
 ```
 Run `myplot(result)` to get the figure that can be zoom in.
 
-See more exmples in document.
+See more examples in document.
+
+These features may be added in the future:
+
+- Compute saddles' high-dimensional manifolds of smooth mapping;
+- Compute invariant tori.

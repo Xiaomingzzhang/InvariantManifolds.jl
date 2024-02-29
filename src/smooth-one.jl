@@ -171,7 +171,6 @@ function generate_curves(f, p, seg, d, n)
 end
 
 function plot(v::Vector{IterationCurve{N,T}}) where {N,T}
-    plotlyjs()
     figure = plot(; legend=false)
     for i in eachindex(v)
         nn = length(v[i].states)
