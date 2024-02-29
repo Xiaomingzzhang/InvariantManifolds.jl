@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+InvariantManifolds = "8e6e46ff-12cc-43ef-8840-ba5cab270546"
