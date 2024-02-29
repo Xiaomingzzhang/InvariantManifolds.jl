@@ -23,5 +23,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/Xiaomingzzhang/InvariantManifolds.jl",
-    devbranch="main"
+    devbranch="master"
 )
