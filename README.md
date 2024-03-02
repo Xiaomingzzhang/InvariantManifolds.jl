@@ -36,7 +36,7 @@ seg = segment(SA[0.6313544770895048, 0.18940634312685142], SA[-0.988057755994704
 result = generate_curves(henonmap, SA[1.4, 0.3], seg, 0.005, 13)
 plot(result)
 ```
-![henon](/docs/src/images/henon.svg)
+![henon](/docs/src/assets/henon.svg)
 
 You can use `Plotly` backends to see the details of manifolds. To do this, just define
 ```julia
