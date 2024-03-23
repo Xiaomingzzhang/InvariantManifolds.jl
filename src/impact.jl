@@ -61,5 +61,5 @@ function gen_prob(v::BilliardV, x, para, timespan)
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    ODEProblem(v, x, timespan, para, callback=vcb)
+    ODEProblem{false}(v, x, timespan, para, callback=vcb)
 end

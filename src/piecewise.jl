@@ -110,5 +110,5 @@ function gen_prob(v::PiecewiseV, x, para, timespan; region_detect=_region_detect
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
     para[end] = region_detect(v.regions, x, para, timespan[1])
-    ODEProblem(v, x, timespan, para, callback=vcb)
+    ODEProblem{false}(v, x, timespan, para, callback=vcb)
 end

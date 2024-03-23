@@ -74,7 +74,7 @@ function gen_prob(v::SFilippovV, x, timespan, para)
         end
     end
     cb = ContinuousCallback(condition, affect!)
-    ODEProblem(v, x, timespan, para, callback=cb)
+    ODEProblem{false}(v, x, timespan, para, callback=cb)
 end
 
 
@@ -138,7 +138,7 @@ function setmap(v::SFilippovV, para, timespan, alg; extra...)
         elseif dot(v.dhyper(x, para, timespan[1]), f1(x, para, timespan[1])) < 0 && dot(v.dhyper(v1, p0, t1), f2(x, para, timespan[1])) > 0
             error("The solution is not defined at $x")
         end
-        prob = ODEProblem(v, x, timespan, para)
+        prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=cb; extra...)
         newctimes = Vector{Int}(undef, 3)
         newctimes .= ctimes
