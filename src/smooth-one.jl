@@ -28,8 +28,8 @@ function take_state(x)
     x.state
 end
 
-function linear_interpolation(v::Vector{State{N,T}}) where {N,T<:Number} # Vector{T} 中的T必须是具体的
-    linear_interpolation(take_s.(v), take_state.(v))
+function LinearInterpolation(v::Vector{State{N,T}}) where {N,T<:Number} # Vector{T} 中的T必须是具体的
+    LinearInterpolation(take_state.(v), take_s.(v))
 end
 
 function -(a, b)
@@ -62,7 +62,7 @@ function paramise(image)
     @inbounds for q in 1:m
         final[q] = State(image[q], (q - 1) // (m - 1))
     end
-    IterationCurve(final, linear_interpolation(final))
+    IterationCurve(final, LinearInterpolation(final))
 end
 
 """
@@ -124,6 +124,7 @@ dense, i.e., the distance of nearby points will less than `min`.
     end
     curve = ic1.pcurve
     i = 1
+    newpara = T[0]
     @inbounds while i + 1 <= n
         dist = norm(ic2_states[i+1] - ic2_states[i])
         if dist > min
@@ -143,9 +144,15 @@ dense, i.e., the distance of nearby points will less than `min`.
             n = n + m - 1
         else
             i = i + 1
+            dd = newpara[end]
+            append!(newpara, [dd+dist])
         end
     end
-    IterationCurve(ic2_states, linear_interpolation(ic2_states))
+    newstates = similar(ic2_states)
+    for i in eachindex(newstates)
+        newstates[i] = State(ic2_states[i].state, newpara[i])
+    end
+    IterationCurve(newstates, LinearInterpolation(take_state.(ic2_states), newpara))
 end
 
 function iterate!(f, p, result, min, n)
@@ -170,13 +177,13 @@ function generate_curves(f, p, seg, d, n)
     result
 end
 
-function plot(v::Vector{IterationCurve{N,T}}) where {N,T}
-    figure = plot(; legend=false)
-    for i in eachindex(v)
-        nn = length(v[i].states)
-        id = range(0, 1, length=2 * nn)
-        data = v[i].pcurve.(id)
-        plot!(first.(data), last.(data))
-    end
-    figure
-end
+# function plot(v::Vector{IterationCurve{N,T}}) where {N,T}
+#     figure = plot(; legend=false)
+#     for i in eachindex(v)
+#         nn = length(v[i].states)
+#         id = range(0, 1, length=2 * nn)
+#         data = v[i].pcurve.(id)
+#         plot!(first.(data), last.(data))
+#     end
+#     figure
+# end

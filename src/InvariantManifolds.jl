@@ -1,12 +1,10 @@
 module InvariantManifolds
 
-using LinearAlgebra, StaticArrays, OrdinaryDiffEq, Plots
+using LinearAlgebra, StaticArrays, OrdinaryDiffEq, DataInterpolations
 
-import Interpolations.linear_interpolation
 import Base.-, Base.show
-import Plots.plot
 
-export State, IterationCurve, show, segment, generate_curves, plot
+export State, IterationCurve, show, segment, generate_curves, generate_surface
 
 export PiecewiseV, BilliardV, SFilippovV, NSState, NSSetUp, setmap, gen_prob
 
@@ -25,10 +23,7 @@ include("mixed.jl")
 # the one dimensional non-smooth manifold algorithm
 include("nonsmooth-one.jl")
 
-# simple Newton method to find the saddle
-include("newton.jl")
-
-# floquet theory to compute the jacobian matrix of time-T-map
-include("floq.jl")
+# vector fields's two dimesional manifolds
+include("smooth-two.jl")
 
 end
