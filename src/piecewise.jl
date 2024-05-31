@@ -1,50 +1,3 @@
-"""
-    PiecewiseV
-
-Piecewise smooth vector field. Fields:
-- `fs` is a vector of smooth vector fields in different regions.
-- `regions` is a vector of the region functions: `[r1,r2,...]`, where `r1(x,p,t)` should return a Bool value to indicate that `x` is in this region or not.
-- `hypers` is a vector of the hypersurfaces separating the regions.
-"""
-struct PiecewiseV
-    fs::Vector{Function}
-    regions::Vector{Function}
-    hypers::Vector{Function}
-end
-
-function (v::PiecewiseV)(x, p, t)
-    n = convert(Int, p[end])
-    v.fs[n](x, p, t)
-end
-
-
-"""
-    NSSetUp{T}
-
-`NSSetUp` is a struct to contatin all the information needed in continuing the manifold. Fields:
-- `f::T` the Non-smooth vector field, like `PiecewiseV`;
-- `p` the parameter;
-- `timespan` the time span of time-T-map;
-- `timetmap` the time-t-map of nonsmooth ODE, which maps a `State` to a `NSState`;
-- `alg` algorithm used to solve ODE.
-"""
-struct NSSetUp{T}
-    f::T
-    p
-    timespan
-    timetmap
-    alg
-end
-
-function show(io::IO, NS::NSSetUp{T}) where {T}
-    p = NS.p
-    timespan = NS.timespan
-    print(io,
-        "NSSetUp{$T}
-parameter:$p
-timespan:$timespan")
-end
-
 function _region_detect(regions, x, p, t)
     i = 1
     n = length(regions)
@@ -59,20 +12,38 @@ end
 
 
 """
-    setmap(v::PiecewiseV, para, timespan, alg; region_detect=_region_detect, extra...)
+    setmap(v::T, para, timespan, alg, N, T; region_detect=_region_detect, extra...)
 
-Function to get a `NSSetUp`.
+The function `setmap` is to get a `NSSetUp`.
+- `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
+- `para` the parameter of the vectorfield. Warn!!! In a `ContinuousVectorField`,
+this `para` must be long than the real parameter.
+For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
+The value of the last parameter is meaninglless, just for switching the vector fields.
+- `timespan` the time span of the time-T-map.
+- `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
+- `N` the dimension of the vector field.
+- `T` number type used in computation. Usually, `Float64` is enough.
+
+To ensure type stable, the numbers in `para` and `timespan` should be type of `T`.
+The last two parameters has to be specified, since we have to store the event data.
+You can also pass the keywords of `solve` of `OrdinaryDiffEq`, 
+except the `callback` and saving related keywords.
 """
-function setmap(v::PiecewiseV, para, timespan, alg; region_detect=_region_detect, extra...)
+function setmap(v::PiecewiseV, para, timespan, alg, N, T; region_detect=_region_detect, extra...)
     nn = length(v.hypers)
-    ctimes = zeros(Int, nn)
+    event_at = Int[]
+    event_state = SVector{N,T}[]
+    event_t = T[]
     function affect!(integrator, idx)
         t0 = integrator.t + 1 // 20
         p = integrator.p
         u0 = integrator.sol(t0)
-        i = region_detect(v.regions, u0, p, t0 + 1 // 20)
+        i = region_detect(v.regions, u0, p, t0)
         p[end] = i
-        ctimes[idx] = ctimes[idx] + 1
+        append!(event_at, [idx])
+        append!(event_state, [integrator.u])
+        append!(event_t, [integrator.t])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -82,25 +53,44 @@ function setmap(v::PiecewiseV, para, timespan, alg; region_detect=_region_detect
     vcb = VectorContinuousCallback(condition, affect!, nn)
     function tmap(State::State{N,T}) where {N,T}
         x = State.state
-        ss = State.s
         para[end] = region_detect(v.regions, x, para, timespan[1])
-        prob = ODEProblem(v, x, timespan, para)
+        prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
-        newctimes = Vector{Int}(undef, nn)
-        newctimes .= ctimes
-        ctimes .= zeros(Int, nn)
-        NSState(sol[end], newctimes, ss)
+        newv_event_at = copy(event_at)
+        newv_event_t = copy(event_t)
+        newv_event_state = copy(event_state)
+        empty!(event_at)
+        empty!(event_t)
+        empty!(event_state)
+        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
     end
     NSSetUp(v, para, timespan, tmap, alg)
 end
 
-function gen_prob(v::PiecewiseV, x, para, timespan; region_detect=_region_detect)
+"""
+    timetmap(v::T, para, timespan, alg; region_detect=_region_detect, extra...)
+
+The function `timetmap` is similar to `setmap`. The output of this function is a function
+which maps a `SVector` to a `SVector`, i.e. the time-T-map.
+- `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
+- `para` the parameter of the vectorfield. Warn!!! In a `ContinuousVectorField`,
+this `para` must be long than the real parameter.
+For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
+The value of the last parameter is meaninglless, just for switching the vector fields.
+- `timespan` the time span of the time-T-map.
+- `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
+
+To ensure type stable, the numbers `timespan` should be type of `T`.
+You can also pass the keywords of `solve` of `OrdinaryDiffEq`, 
+except the `callback` and saving related keywords.
+"""
+function timetmap(v::PiecewiseV, para, timespan, alg ;region_detect=_region_detect, extra...)
     nn = length(v.hypers)
     function affect!(integrator, idx)
         t0 = integrator.t + 1 // 20
         p = integrator.p
         u0 = integrator.sol(t0)
-        i = region_detect(v.regions, u0, p, t0 + 1 // 20)
+        i = region_detect(v.regions, u0, p, t0)
         p[end] = i
     end
     function condition(out, u, t, integrator)
@@ -109,6 +99,65 @@ function gen_prob(v::PiecewiseV, x, para, timespan; region_detect=_region_detect
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    para[end] = region_detect(v.regions, x, para, timespan[1])
-    ODEProblem{false}(v, x, timespan, para, callback=vcb)
+    function tmap(x)
+        para[end] = region_detect(v.regions, x, para, timespan[1])
+        prob = ODEProblem{false}(v, x, timespan, para)
+        sol = solve(prob, alg, callback=vcb; extra...)
+        sol[end]
+    end
+end
+
+"""
+    ns_solver(v::T, para, timespan, alg, N, T)
+
+The function `ns_solver` is similar to `timetmap`. The output of this function is a function
+which maps a `SVector` to a `NSSolution`. This `NSSolution` contain all data of an non-smooth ODE solution.
+- `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
+- `para` the parameter of the vectorfield. Warn!!! In a `ContinuousVectorField`,
+this `para` must be long than the real parameter.
+For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
+The value of the last parameter is meaninglless, just for switching the vector fields.
+- `timespan` the time span of the time-T-map.
+- `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
+- `N` the dimension of the vector field.
+- `T` number type used in computation.
+
+To ensure type stable, the numbers in `para` and `timespan` should be type of `T`.
+The last two parameters has to be specified, since we have to store the event data.
+You can also pass the keywords of `solve` of `OrdinaryDiffEq`, 
+except the `callback` and saving related keywords.
+"""
+function ns_solver(v::PiecewiseV, para, timespan, alg, N, T;region_detect=_region_detect, extra...)
+    nn = length(v.hypers)
+    event_at = Int[]
+    event_state = SVector{N,T}[]
+    event_t = T[]
+    function affect!(integrator, idx)
+        t0 = integrator.t + 1 // 20
+        p = integrator.p
+        u0 = integrator.sol(t0)
+        i = region_detect(v.regions, u0, p, t0)
+        p[end] = i
+        append!(event_at, [idx])
+        append!(event_state, [integrator.u])
+        append!(event_t, [integrator.t])
+    end
+    function condition(out, u, t, integrator)
+        for i in eachindex(v.hypers)
+            out[i] = v.hypers[i](u, integrator.p, t)
+        end
+    end
+    vcb = VectorContinuousCallback(condition, affect!, nn)
+    function tmap(x)
+        para[end] = region_detect(v.regions, x, para, timespan[1])
+        prob = ODEProblem{false}(v, x, timespan, para)
+        sol = solve(prob, alg, callback=vcb; extra...)
+        newv_event_at = copy(event_at)
+        newv_event_t = copy(event_t)
+        newv_event_state = copy(event_state)
+        empty!(event_at)
+        empty!(event_t)
+        empty!(event_state)
+        NSSolution(sol, newv_event_t, newv_event_state, newv_event_at)
+    end
 end

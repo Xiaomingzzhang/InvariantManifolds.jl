@@ -1,41 +1,3 @@
-struct State{N,T<:Number}
-    state::SVector{N,T}
-    s::T
-end
-
-function State(v::SVector{N,T}, t::M) where {M<:Number,N,T<:Number}
-    datetype = promote_type(M, T)
-    newv = convert(SVector{N,datetype}, v)
-    newt = convert(datetype, t)
-    State(newv, newt)
-end
-
-struct IterationCurve{N,T<:Number}
-    states::Vector{State{N,T}}
-    pcurve
-end
-
-function show(io::IO, v::IterationCurve{N,T}) where {N,T<:Number}
-    n = length(v.states)
-    print(io, "IterationCurve{$N,$T} with $n points")
-end
-
-function take_s(x)
-    x.s
-end
-
-function take_state(x)
-    x.state
-end
-
-function LinearInterpolation(v::Vector{State{N,T}}) where {N,T<:Number} # Vector{T} 中的T必须是具体的
-    LinearInterpolation(take_state.(v), take_s.(v))
-end
-
-function -(a, b)
-    a.state - b.state
-end
-
 """
     segment(point, direction, n, d)
 
@@ -94,7 +56,7 @@ function initialise_curve(points, map, parameters)
 end
 
 
-function myinsert!(a::Array{T,1}, i::Integer, b::Array{S,1}) where {T,S}
+function insert!(a::Array{T,1}, i::Integer, b::Array{S,1}) where {T,S}
     # Throw convert error before changing the shape of the array
     _b = S == T ? b : convert(Array{T,1}, b)::Array{T,1}
     n = length(b)
@@ -110,7 +72,8 @@ end
     InvariantManifolds.addpoints(f, p, ic1::IterationCurve{N,T}, min)
     
 `addpoints` will add enough points from `ic1` so that its image of points are
-dense, i.e., the distance of nearby points will less than `min`.
+dense, i.e., the distance of nearby points will less than `min`. 
+This function will also delete extra points so that the distance of nearby points aren't two small.
 """
 @inline function addpoints(f, p, ic1::IterationCurve{N,T}, min) where{N, T}
     n = length(ic1.states)
@@ -140,7 +103,7 @@ dense, i.e., the distance of nearby points will less than `min`.
             for j in 1:m-1
                 addps[j] = State(f(curve(paras[j]), p), paras[j])
             end
-            myinsert!(ic2_states, i + 1, addps)
+            insert!(ic2_states, i + 1, addps)
             n = n + m - 1
         else
             i = i + 1
@@ -176,14 +139,3 @@ function generate_curves(f, p, seg, d, n)
     end
     result
 end
-
-# function plot(v::Vector{IterationCurve{N,T}}) where {N,T}
-#     figure = plot(; legend=false)
-#     for i in eachindex(v)
-#         nn = length(v[i].states)
-#         id = range(0, 1, length=2 * nn)
-#         data = v[i].pcurve.(id)
-#         plot!(first.(data), last.(data))
-#     end
-#     figure
-# end

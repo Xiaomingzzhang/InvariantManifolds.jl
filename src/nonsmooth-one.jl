@@ -1,22 +1,3 @@
-struct NSState{N,T<:Number}
-    state::SVector{N,T}
-    ctimes::Vector{Int}
-    s::T
-end
-
-function NSState(v::SVector{N,T}, ct, t::M) where {M<:Number,N,T<:Number}
-    datetype = promote_type(M, T)
-    newv = convert(SVector{N,datetype}, v)
-    newt = convert(datetype, t)
-    NSState(newv, ct, newt)
-end
-
-function show(io::IO, v::NSState{N,T}) where {N,T<:Number}
-    a = v.state
-    b = v.ctimes
-    print(io, "Point $a with event $b")
-end
-
 function show(io::IO, v::Vector{IterationCurve{N,T}}) where {N,T}
     n = 0
     for i in eachindex(v)
@@ -25,30 +6,18 @@ function show(io::IO, v::Vector{IterationCurve{N,T}}) where {N,T}
     print(io, "Vector of IterationCurve{$N,$T} with total $n points")
 end
 
-function id(x, p)
-    x
-end
-
-function genid(m)
-    a = Function[]
-    for i in 1:m
-        append!(a, [id])
-    end
-    a
-end
-
 function partition(v::Vector{NSState{N,T}}) where {N,T}
-    ctime1 = v[1].ctimes
+    ctime1 = v[1].event_at
     n = length(v)
     a0 = NSState{N,T}[]
     result = Vector{NSState{N,T}}[]
     for j in 1:n
-        if v[j].ctimes == ctime1
+        if v[j].event_at == ctime1
             append!(a0, [v[j]])
         else
             append!(result, [a0])
             a0 = [v[j]]
-            ctime1 = v[j].ctimes
+            ctime1 = v[j].event_at
         end
     end
     append!(result, [a0])
@@ -56,12 +25,12 @@ function partition(v::Vector{NSState{N,T}}) where {N,T}
 end
 
 function ispartitioned(v::Vector{NSState{N,T}}) where {N,T}
-    ctime1 = v[1].ctimes
+    ctime1 = v[1].event_at
     n = length(v)
     result = true
     j = 1
     while j <= n && result
-        result = v[j].ctimes == ctime1
+        result = v[j].event_at == ctime1
         j = j + 1
     end
     result
@@ -78,22 +47,23 @@ end
 #     return a
 # end
 
-@inline function nsnorm(a::NSState{N,T}, b::NSState{N,T}, rules, p, ntimes) where {N,T}
-    actimes = a.ctimes
-    bctimes = b.ctimes
-    d = bctimes - actimes
-    dis = convert(Integer, norm(d))
-    if dis == 0
+@inline function nsnorm(a::NSState{N,T}, b::NSState{N,T}, rules, p, time_end, ntimes) where {N,T}
+    if a.event_at == b.event_at
         norm(a - b)
-    elseif dis == 1
-        n = findfirst(x -> x == 1 || x == -1, d)
-        norm(rules[n](a.state, p) - b.state) * ntimes
-    elseif dis >= 2
-        2.0
+    elseif abs(length(a.event_at) - length(b.event_at)) == 1
+        if a.event_at == b.event_at[1:end-1]
+            norm(rules[b.event_at[end]](a.state, p, time_end) - b.state) * ntimes
+        elseif a.event_at[1:end-1] == b.event_at
+            norm(rules[a.event_at[end]](b.state, p, time_end) - a.state) * ntimes
+        else
+            T(2)
+        end
+    else
+        T(2)
     end
 end
 
-@inline function addpoints(f, p, nic::Vector{IterationCurve{N,T}}, rules, min, ntimes) where {N,T}
+@inline function addpoints(f, p, nic::Vector{IterationCurve{N,T}}, rules, time_end, min, ntimes) where {N,T}
     result = IterationCurve{N,T}[]
     @inbounds for j in eachindex(nic)
         n = length(nic[j].states)
@@ -103,8 +73,9 @@ end
         end
         curve = nic[j].pcurve
         i = 1
+        newpara = T[0]
         while i + 1 <= n
-            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, p, ntimes)
+            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, time_end, p, ntimes)
             if dist > min
                 m = ceil(Int, dist / min)
                 if m == 1
@@ -118,17 +89,29 @@ end
                 for kk in 1:m-1
                     addps[kk] = f(State(curve(paras[kk]), paras[kk]))
                 end
-                myinsert!(ic2_states, i + 1, addps)
+                insert!(ic2_states, i + 1, addps)
                 n = n + m - 1
             else
                 i = i + 1
+                dd = newpara[end]
+                append!(newpara, [dd + dist])
             end
         end
         __result = partition(ic2_states)
         mm = length(__result)
         _result = Vector{IterationCurve{N,T}}(undef, mm)
-        for k in eachindex(_result)
-            _result[k] = paramise(take_state.(__result[k]))
+        l0 = 1
+        lend = length(__result[1])
+        for k in 1:mm
+            newstates = Vector{State{N,T}}(undef, length(__result[k]))
+            for i in eachindex(newstates)
+                newstates[i] = State(__result[k][i].state, newpara[l0+i-1])
+            end
+            _result[k] = IterationCurve(newstates, LinearInterpolation(take_state.(__result[k]), newpara[l0:lend]))
+            if k <= mm - 1
+                l0 = lend + 1
+                lend = lend + length(__result[k+1])
+            end
         end
         append!(result, _result)
     end
@@ -167,7 +150,9 @@ function initialise_curve(points, tmap)
 end
 
 
-function generate_curves(v::NSSetUp{PiecewiseV}, seg, d, n; ntimes=100)
+ID(x, p, t) = x
+
+function generate_curves(v::NSSetUp{S}, seg, d, n; ntimes=100) where {S<:ContinuousVectorField}
     N = length(seg[1])
     T = typeof(seg[1][1])
     m = length(v.f.hypers)
@@ -176,13 +161,13 @@ function generate_curves(v::NSSetUp{PiecewiseV}, seg, d, n; ntimes=100)
     result[1] = [paramise(seg)]
     result[2] = [_seg]
     for i in 1:n
-        seg2 = addpoints(v.timetmap, v.p, result[end], genid(m), d, ntimes)
+        seg2 = addpoints(v.timetmap, v.p, result[end], fill(ID, m), v.timespan[end], d, ntimes)
         append!(result, [seg2])
     end
     result
 end
 
-function generate_curves(v::NSSetUp{BilliardV}, seg, d, n; ntimes=100)
+function generate_curves(v::NSSetUp{S}, seg, d, n; ntimes=100) where {S<:JumpVectorField}
     N = length(seg[1])
     T = typeof(seg[1][1])
     result = Vector{Vector{IterationCurve{N,T}}}(undef, 2)
@@ -190,7 +175,7 @@ function generate_curves(v::NSSetUp{BilliardV}, seg, d, n; ntimes=100)
     result[1] = [paramise(seg)]
     result[2] = [_seg]
     for i in 1:n
-        seg2 = addpoints(v.timetmap, v.p, result[end], v.f.rules, d, ntimes)
+        seg2 = addpoints(v.timetmap, v.p, result[end], v.f.rules, v.timespan[end], d, ntimes)
         append!(result, [seg2])
     end
     result

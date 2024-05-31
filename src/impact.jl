@@ -1,29 +1,15 @@
-"""
-    BilliardV
-
-The struct `BilliardV` has three fields:
-- `f` is the vector field, of type `f(x,p,t)`, and its output is a SVector;
-- `hypers` is vector of hypersurfaces:`[h1,h2,...]`, `h1(x,p,t)`;
-- `irules` is vector of rules on hypersurfaces:`[r1,r2,r3,...]`; the rules must be independent of time `t`, i.e., `r1(x,p)`.
-"""
-struct BilliardV
-    f
-    hypers::Vector{Function}
-    irules::Vector{Function}
-end
-
-function (v::BilliardV)(x, p, t)
-    v.f(x, p, t)
-end
-
-function setmap(v::BilliardV, para, timespan, alg; extra...)
+function setmap(v::BilliardV, para, timespan, alg, N, T; extra...)
     nn = length(v.hypers)
-    ctimes = zeros(Int, nn)
+    event_at = Int[]
+    event_state = SVector{N,T}[]
+    event_t = T[]
     function affect!(integrator, idx)
         p0 = integrator.p
         u0 = integrator.u
-        u0 .= v.irules[idx](u0, p0)
-        ctimes[idx] = ctimes[idx] + 1
+        integrator.u = v.rules[idx](u0, p0, integrator.t)
+        append!(event_at, [idx])
+        append!(event_state, [integrator.u])
+        append!(event_t, [integrator.t])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -31,29 +17,27 @@ function setmap(v::BilliardV, para, timespan, alg; extra...)
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    function tmap(State)
+    function tmap(State::State{N,T}) where {N,T}
         x = State.state
-        ss = State.s
-        prob = ODEProblem(v, x, timespan, para)
+        prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
-        newctimes = Vector{Int}(undef, nn)
-        newctimes .= ctimes
-        ctimes .= zeros(Int, nn)
-        NSState(sol[end], newctimes, ss)
+        newv_event_at = copy(event_at)
+        newv_event_t = copy(event_t)
+        newv_event_state = copy(event_state)
+        empty!(event_at)
+        empty!(event_t)
+        empty!(event_state)
+        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
     end
     NSSetUp(v, para, timespan, tmap, alg)
 end
 
-function gen_prob(v::BilliardV, x, para, timespan)
+function timetmap(v::BilliardV, para, timespan, alg;extra...)
     nn = length(v.hypers)
     function affect!(integrator, idx)
         p0 = integrator.p
         u0 = integrator.u
-        type = typeof(u0[1])
-        n0 = length(u0)
-        newu0 = Vector{type}(undef, n0)
-        newu0 .= v.irules[idx](u0, p0)
-        integrator.u = SVector{n0}(newu0)
+        integrator.u = v.rules[idx](u0, p0, integrator.t)
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -61,5 +45,41 @@ function gen_prob(v::BilliardV, x, para, timespan)
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    ODEProblem{false}(v, x, timespan, para, callback=vcb)
+    function tmap(x)
+        prob = ODEProblem{false}(v, x, timespan, para)
+        sol = solve(prob, alg, callback=vcb; extra...)
+        sol[end]
+    end
+end
+
+function ns_solver(v::BilliardV, para, timespan, alg, N, T;extra...)
+    nn = length(v.hypers)
+    event_at = Int[]
+    event_state = SVector{N,T}[]
+    event_t = T[]
+    function affect!(integrator, idx)
+        p0 = integrator.p
+        u0 = integrator.u
+        integrator.u = v.rules[idx](u0, p0, integrator.t)
+        append!(event_at, [idx])
+        append!(event_state, [integrator.u])
+        append!(event_t, [integrator.t])
+    end
+    function condition(out, u, t, integrator)
+        for i in eachindex(v.hypers)
+            out[i] = v.hypers[i](u, integrator.p, t)
+        end
+    end
+    vcb = VectorContinuousCallback(condition, affect!, nn)
+    function tmap(x)
+        prob = ODEProblem{false}(v, x, timespan, para)
+        sol = solve(prob, alg, callback=vcb; extra...)
+        newv_event_at = copy(event_at)
+        newv_event_t = copy(event_t)
+        newv_event_state = copy(event_state)
+        empty!(event_at)
+        empty!(event_t)
+        empty!(event_state)
+        NSSolution(sol, newv_event_t, newv_event_state, newv_event_at)
+    end
 end

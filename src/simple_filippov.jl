@@ -1,49 +1,9 @@
-"""
-    SFilippovV
-
-`SFilippovV` means simple Fillippov vector fields, which means that there only exists one hypersurface to separate the phase space. Fields:
-- `fs` vector fields in two sides of hypersurface. The slide vector field can be generated automatically.
-- `hyper` hypersurface.
-- `dhyper` grad of hypersurface. Warn!!! The grad must point to the second of `fs`.
-- `exit` conditions to exit the hypersurface, which can also be generated automatically
-"""
-struct SFilippovV
-    fs::SVector{3,Function}
-    hyper
-    dhyper
-    exit
-end
-
-function SFilippovV(fs, h, ∇h)
-    f1 = fs[1]
-    f2 = fs[2]
-    function sv(x, p, t)
-        α = dot(∇h(x, p, t), f1(x, p, t)) / dot(∇h(x, p, t), f1(x, p, t) - f2(x, p, t))
-        (1 - α) * f1(x, p, t) + α * f2(x, p, t)
-    end
-    function exit(x, p, t)
-        dot(∇h(x, p, t), f2(x, p, t)) * dot(∇h(x, p, t), f1(x, p, t))
-    end
-    SFilippovV(SA[f1, f2, sv], h, ∇h, exit)
-end
-
-function (v::SFilippovV)(x, p, t)
-    n = convert(Int, p[end])
-    v.fs[n](x, p, t)
-end
-
-function gen_prob(v::SFilippovV, x, timespan, para)
+function setmap(v::SFilippovV, para, timespan, alg, N, T;; extra...)
     f1 = v.fs[1]
     f2 = v.fs[2]
-    if v.hyper(x, para, timespan[1]) < 0
-        para[end] = 1
-    elseif v.hyper(x, para, timespan[1]) > 0
-        para[end] = 2
-    elseif dot(v.dhyper(x, para, timespan[1]), f1(x, para, timespan[1])) > 0 && dot(v.dhyper(v1, p0, t1), f2(x, para, timespan[1])) < 0
-        para[end] = 3
-    elseif dot(v.dhyper(x, para, timespan[1]), f1(x, para, timespan[1])) < 0 && dot(v.dhyper(v1, p0, t1), f2(x, para, timespan[1])) > 0
-        error("The solution is not defined at $x")
-    end
+    event_at = Int[]
+    event_state = SVector{N,T}[]
+    event_t = T[]
     function affect!(integrator)
         v1 = integrator.u
         t1 = integrator.t
@@ -74,7 +34,27 @@ function gen_prob(v::SFilippovV, x, timespan, para)
         end
     end
     cb = ContinuousCallback(condition, affect!)
-    ODEProblem{false}(v, x, timespan, para, callback=cb)
+    function tmap(State::State{N,T}) where {N,T}
+        x = State.state
+        if v.hyper(x, para, timespan[1]) < 0
+            para[end] = 1
+        elseif v.hyper(x, para, timespan[1]) > 0
+            para[end] = 2
+        elseif dot(v.dhyper(x, para, timespan[1]), f1(x, para, timespan[1])) > 0 && dot(v.dhyper(v1, p0, t1), f2(x, para, timespan[1])) < 0
+            para[end] = 3
+        elseif dot(v.dhyper(x, para, timespan[1]), f1(x, para, timespan[1])) < 0 && dot(v.dhyper(v1, p0, t1), f2(x, para, timespan[1])) > 0
+            error("The solution is not defined at $x")
+        end
+        prob = ODEProblem{false}(v, x, timespan, para)
+        sol = solve(prob, alg, callback=cb; extra...)
+        newv_event_at = copy(event_at)
+        newv_event_t = copy(event_t)
+        newv_event_state = copy(event_state)
+        empty!(event_at)
+        empty!(event_t)
+        empty!(event_state)
+        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
+    end
 end
 
 
