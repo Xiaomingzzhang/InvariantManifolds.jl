@@ -111,9 +111,9 @@ end
 end
 
 """
-    InvariantManifolds.initialise_curve(points, tmap)
+    InvariantManifolds.ns_initialise_curve(points, tmap, para)
 
-Initialise the curve of ODE's time-T-map.
+Initialise the curve of nonsmooth ODE's time-T-map.
 """
 function ns_initialise_curve(points, tmap, para)
     map = x -> tmap(State(x, 0), para)
@@ -142,7 +142,7 @@ function ns_initialise_curve(points, tmap, para)
 end
 
 
-ID(x, p, t) = x
+id(x, p, t) = x
 
 function generate_curves(v::NSSetUp{S}, para, seg, d, n; ntimes=100) where {S<:ContinuousVectorField}
     N = length(seg[1])
@@ -153,7 +153,7 @@ function generate_curves(v::NSSetUp{S}, para, seg, d, n; ntimes=100) where {S<:C
     result[1] = [paramise(seg)]
     result[2] = [_seg]
     for i in 1:n
-        seg2 = addpoints(v.timetmap, para, result[end], fill(ID, m), v.timespan[end], d, ntimes)
+        seg2 = addpoints(v.timetmap, para, result[end], fill(id, m), v.timespan[end], d, ntimes)
         append!(result, [seg2])
     end
     result

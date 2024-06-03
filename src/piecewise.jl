@@ -15,6 +15,8 @@ end
     setmap(v::T, timespan, alg, N, T; region_detect=_region_detect, extra...)
 
 The function `setmap` is to get a `NSSetUp`.
+
+# Parameters
 - `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
 - `timespan` the time span of the time-T-map.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
@@ -23,7 +25,7 @@ The function `setmap` is to get a `NSSetUp`.
 
 To ensure type stable, the numbers in `timespan` should be type of `T`.
 The last two parameters has to be specified, since we have to store the event data.
-You can also pass the keywords of `solve` of `OrdinaryDiffEq`, 
+You can also pass the keywords of `solve` of `OrdinaryDiffEq` to this function, 
 except the `callback` and saving related keywords.
 """
 function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect, extra...)
@@ -70,12 +72,14 @@ The function `timetmap` is similar to `setmap`. The output of this function is a
 which maps a `SVector` and parameters of ODE to a `SVector`, i.e. the time-T-map. Warn!!! In a `ContinuousVectorField`,this parameters must be long than the real parameter.
 For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
 The value of the last parameter is meaninglless, just for switching the vector fields.
+
+# Parameters
 - `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
 - `timespan` the time span of the time-T-map.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 
 To ensure type stable, the numbers `timespan` should be type of `T`.
-You can also pass the keywords of `solve` of `OrdinaryDiffEq`, 
+You can also pass the keywords of `solve` of `OrdinaryDiffEq` to this function, 
 except the `callback` and saving related keywords.
 """
 function timetmap(v::PiecewiseV, timespan, alg ;region_detect=_region_detect, extra...)
@@ -106,11 +110,10 @@ end
 
 The function `ns_solver` is similar to `timetmap`. The output of this function is a function
 which maps a `SVector` to a `NSSolution`. This `NSSolution` contain all data of an non-smooth ODE solution.
+
+# Parameters
 - `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
-- `para` the parameter of the vectorfield. Warn!!! In a `ContinuousVectorField`,
-this `para` must be long than the real parameter.
-For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
-The value of the last parameter is meaninglless, just for switching the vector fields.
+- `para` the parameter of the vectorfield.
 - `timespan` the time span of the time-T-map.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 - `N` the dimension of the vector field.
@@ -118,7 +121,7 @@ The value of the last parameter is meaninglless, just for switching the vector f
 
 To ensure type stable, the numbers in `para` and `timespan` should be type of `T`.
 The last two parameters has to be specified, since we have to store the event data.
-You can also pass the keywords of `solve` of `OrdinaryDiffEq`, 
+You can also pass the keywords of `solve` of `OrdinaryDiffEq` to this function, 
 except the `callback` and saving related keywords.
 """
 function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_detect, extra...)

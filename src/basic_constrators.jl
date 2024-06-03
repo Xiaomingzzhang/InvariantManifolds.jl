@@ -2,6 +2,8 @@
     State{N,T<:Number}
 
 `State` is a struct contain point data in a numerical manifold.
+
+# Fields
 - `state` a `SVector` reprents the point in phase space;
 - `s` the parameter of this point.
 """
@@ -31,6 +33,8 @@ end
     IterationCurve{N,T<:Number}
 
 `IterationCurve` is a struct that contains line data in a numerical manifold.
+
+# Fields
 - `states` a `Vector{State}` contains the points in phase space;
 - `pcurve` the paramtric curve of these `states`, which is a `LinearInterpolation`.
 """
@@ -62,9 +66,11 @@ end
 
 
 """
-    NSState
+    NSState{N,T<:Number}
 
 The struct `NSState` is to record the events data for a time-T-map.
+
+# Fields
 - `state` the final state of the time-T-map;
 - `event_t` the times when events happen;
 - `event_state` the solution's state when events happen;
@@ -104,9 +110,11 @@ function show(io::IO, m::MIME"text/plain", A::NSState{N,T}) where {N,T}
 end
 
 """
-    NSSolution
+    NSSolution{N,T<:Number}
 
 The `NSSolution` is a struct to contain all information of the solution of a nonsmooth ODE system.
+
+# Fields
 - `sol` `ODESolution` solved by `OrdinaryDiffEq`;
 - `event_t` the times when events happen;
 - `event_state` the solution's state when events happen;
@@ -140,14 +148,16 @@ abstract type JumpVectorField end
 """
     PiecewiseV
 
-Piecewise smooth vector field. Fields:
+Piecewise smooth vector field. 
+
+# Fields
 - `fs` is a vector of smooth vector fields in different regions.
 - `regions` is a vector of the region functions: `[r1,r2,...]`, where `r1(x,p,t)` should return a Bool value to indicate that `x` is in this region or not.
 - `hypers` is a vector of the hypersurfaces separating the regions.
 
 # Example
 
-```
+```julia
 using StaticArrays, InvariantManifolds
 f1(x,p,t)=SA[x[2],-2x[1]]
 f2(x,p,t)=SA[x[2],-x[1]]
@@ -187,7 +197,9 @@ end
 """
     BilliardV
 
-The struct `BilliardV` has three fields:
+A vector field with multiple hypersurfaces such that the flow jump when hits these hypersurfaces.
+
+# Fields
 - `f` is the vector field, of type `f(x,p,t)`, and its output is a SVector;
 - `hypers` is vector of hypersurfaces:`[h1,h2,...]`, `h1(x,p,t)`;
 - `irules` is vector of rules on hypersurfaces:`[r1,r2,r3,...]`; the rules must be independent of time `t`, i.e., `r1(x,p)`.
@@ -206,7 +218,9 @@ end
 """
     SFilippovV
 
-`SFilippovV` means simple Fillippov vector fields, which means that there only exists one hypersurface to separate the phase space. Fields:
+`SFilippovV` means simple Fillippov vector fields, which means that there only exists one hypersurface to separate the phase space.
+
+# Fields
 - `fs` vector fields in two sides of hypersurface. The slide vector field can be generated automatically.
 - `hyper` hypersurface.
 - `dhyper` grad of hypersurface. Warn!!! The grad must point to the second of `fs`.
@@ -241,11 +255,14 @@ end
 """
     NSSetUp{T}
 
-`NSSetUp` is a struct to contatin all the information needed in continuing the manifold of nonsmooth ODE. Fields:
+`NSSetUp` is a struct to contatin all the information needed in continuing the manifold of nonsmooth ODE.
+
+# Fields
 - `f::T` the Non-smooth vector field, like `PiecewiseV`;
 - `timespan` the time span of time-T-map;
 - `timetmap` the time-t-map of nonsmooth ODE, which maps a `State` and parameters of ODE to a `NSState`.
-Warn!!! In a `ContinuousVectorField`,this parameters must be long than the real parameter.
+# Warn
+In a `ContinuousVectorField`,this parameters must be long than the real parameter.
 For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
 The value of the last parameter is meaninglless, just for switching the vector fields.
 """

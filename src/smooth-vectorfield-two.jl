@@ -2,6 +2,8 @@
     AnnulusBoundaries
 
 A struct contains datas when generating the two dimensional manifold.
+
+# Fields
 - `inner` an `IterationCurve` reprents inner boundary;
 - `outer` an `IterationCurve` reprents outer boundary;
 """
@@ -76,7 +78,9 @@ end
 """
     generate_surface(f, p, saddle, v1, v2, N, r, δ)
 
-Function to generate the two dimension manifold of a vector field. Parameters:
+Function to generate the two dimension manifold of a vector field.
+
+# Parameters
 - `f` the time-T-map a the vector field;
 - `p` parameter of the system;
 - `saddle` saddle fixed point of the ODE system;
@@ -86,7 +90,7 @@ Function to generate the two dimension manifold of a vector field. Parameters:
 - `r` the raduis of origin disk to extend;
 - `δ` the max distance between points when iterating.
 
-Keyword argument:
+# Keyword arguments
 - `n=150` the number of points in the boundary of the origin disk to extend.
 """
 function generate_surface(f, p, saddle, v1, v2, N, r, δ; n=150)
