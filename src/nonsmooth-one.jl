@@ -1,11 +1,3 @@
-function show(io::IO, v::Vector{IterationCurve{N,T}}) where {N,T}
-    n = 0
-    for i in eachindex(v)
-        n = n + length(v[i].states)
-    end
-    print(io, "Vector of IterationCurve{$N,$T} with total $n points")
-end
-
 function partition(v::Vector{NSState{N,T}}) where {N,T}
     ctime1 = v[1].event_at
     n = length(v)
@@ -63,19 +55,19 @@ end
     end
 end
 
-@inline function addpoints(f, p, nic::Vector{IterationCurve{N,T}}, rules, time_end, min, ntimes) where {N,T}
+@inline function addpoints(f, para, nic::Vector{IterationCurve{N,T}}, rules, time_end, min, ntimes) where {N,T}
     result = IterationCurve{N,T}[]
     @inbounds for j in eachindex(nic)
         n = length(nic[j].states)
         ic2_states = Vector{NSState{N,T}}(undef, n)
         for k in eachindex(ic2_states)
-            ic2_states[k] = f(nic[j].states[k])
+            ic2_states[k] = f(nic[j].states[k],para)
         end
         curve = nic[j].pcurve
         i = 1
         newpara = T[0]
         while i + 1 <= n
-            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, time_end, p, ntimes)
+            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, time_end, para, ntimes)
             if dist > min
                 m = ceil(Int, dist / min)
                 if m == 1
@@ -87,7 +79,7 @@ end
                 paras = [s0 + plengh * i for i in 1:m-1]
                 addps = Vector{NSState{N,T}}(undef, m - 1)
                 for kk in 1:m-1
-                    addps[kk] = f(State(curve(paras[kk]), paras[kk]))
+                    addps[kk] = f(State(curve(paras[kk]), paras[kk]), para)
                 end
                 insert!(ic2_states, i + 1, addps)
                 n = n + m - 1
@@ -123,8 +115,8 @@ end
 
 Initialise the curve of ODE's time-T-map.
 """
-function initialise_curve(points, tmap)
-    map = x -> tmap(State(x, 0))
+function ns_initialise_curve(points, tmap, para)
+    map = x -> tmap(State(x, 0), para)
     n = length(points)
     m = length(points[1])
     type = typeof(points[1][1])
@@ -152,30 +144,30 @@ end
 
 ID(x, p, t) = x
 
-function generate_curves(v::NSSetUp{S}, seg, d, n; ntimes=100) where {S<:ContinuousVectorField}
+function generate_curves(v::NSSetUp{S}, para, seg, d, n; ntimes=100) where {S<:ContinuousVectorField}
     N = length(seg[1])
     T = typeof(seg[1][1])
     m = length(v.f.hypers)
     result = Vector{Vector{IterationCurve{N,T}}}(undef, 2)
-    _seg = initialise_curve(seg, v.timetmap)
+    _seg = ns_initialise_curve(seg, v.timetmap,para)
     result[1] = [paramise(seg)]
     result[2] = [_seg]
     for i in 1:n
-        seg2 = addpoints(v.timetmap, v.p, result[end], fill(ID, m), v.timespan[end], d, ntimes)
+        seg2 = addpoints(v.timetmap, para, result[end], fill(ID, m), v.timespan[end], d, ntimes)
         append!(result, [seg2])
     end
     result
 end
 
-function generate_curves(v::NSSetUp{S}, seg, d, n; ntimes=100) where {S<:JumpVectorField}
+function generate_curves(v::NSSetUp{S}, para, seg, d, n; ntimes=100) where {S<:JumpVectorField}
     N = length(seg[1])
     T = typeof(seg[1][1])
     result = Vector{Vector{IterationCurve{N,T}}}(undef, 2)
-    _seg = initialise_curve(seg, v.timetmap)
+    _seg = ns_initialise_curve(seg, v.timetmap,para)
     result[1] = [paramise(seg)]
     result[2] = [_seg]
     for i in 1:n
-        seg2 = addpoints(v.timetmap, v.p, result[end], v.f.rules, v.timespan[end], d, ntimes)
+        seg2 = addpoints(v.timetmap, para, result[end], v.f.rules, v.timespan[end], d, ntimes)
         append!(result, [seg2])
     end
     result

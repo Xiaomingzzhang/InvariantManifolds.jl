@@ -241,35 +241,28 @@ end
 """
     NSSetUp{T}
 
-`NSSetUp` is a struct to contatin all the information needed in continuing the manifold. Fields:
+`NSSetUp` is a struct to contatin all the information needed in continuing the manifold of nonsmooth ODE. Fields:
 - `f::T` the Non-smooth vector field, like `PiecewiseV`;
-- `p` the parameter;
 - `timespan` the time span of time-T-map;
-- `timetmap` the time-t-map of nonsmooth ODE, which maps a `State` to a `NSState`;
-- `alg` algorithm used to solve ODE.
+- `timetmap` the time-t-map of nonsmooth ODE, which maps a `State` and parameters of ODE to a `NSState`.
+Warn!!! In a `ContinuousVectorField`,this parameters must be long than the real parameter.
+For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
+The value of the last parameter is meaninglless, just for switching the vector fields.
 """
 struct NSSetUp{T}
     f::T
-    p
     timespan
     timetmap
-    alg
 end
 
-function show(io::IO, m::MIME"text/plain", A::NSSetUp{T})
+function show(io::IO, m::MIME"text/plain", A::NSSetUp{T}) where{T}
     println(io, "NSSetUp{$T}: ")
     print(io, "f: ")
     show(io, m, A.f)
-    println(io)
-    print(io, "p: ")
-    show(io, m, A.p)
     println(io)
     print(io, "timespan: ")
     show(io, m, A.timespan)
     println(io)
     print(io, "timetmap: ")
     show(io, m, A.timetmap)
-    println(io)
-    print(io, "alg: ")
-    show(io, m, A.alg)
 end
