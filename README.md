@@ -1,4 +1,4 @@
-# Home
+# InvariantManifolds.jl
 
 [![](https://img.shields.io/badge/docs-online-blue.svg)](https://Xiaomingzzhang.github.io/InvariantManifolds.jl/dev/)
 [![Build Status](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml?query=branch%3Amaster)
@@ -8,11 +8,13 @@ This is a package to compute the invariant manifolds of a dynamical system.
 Main features:
 
 - Compute saddles' one-dimensional manifolds of smooth mapping;
-- Compute saddles' one-dimensional manifolds of non-smooth mapping: these mapping are the time-T-map of a non-smooth ODE systems, e.g., impact systems, piecewise smooth systems, and simple Fillippov systems;
-- Compute saddles' two-dimensional manifolds of autonomous vector field.
+- Compute saddles' two-dimensional manifolds of autonomous vector field;
+- Compute saddles' one-dimensional manifolds of non-smooth mapping: these mapping are the time-T-map of a non-smooth ODE systems, e.g., impact systems, piecewise smooth systems, and simple Fillippov systems.
 
+To use this package, first install [julia](https://julialang.org/), than run 
+`using Pkg; Pkg.add("https://github.com/Xiaomingzzhang/InvariantManifolds.jl")`
 
-# Basic example: Unstable manifold of Henon map
+## Basic example: Unstable manifold of Henon map
 Consider the Henon map:
 
 $$
@@ -61,7 +63,7 @@ myplot(result)
 ```
 ![henon](/docs/src/assets/henon.png)
 
-# An advanced example: Unstable manifold of the periodic pertubed system:
+## An advanced example: Unstable manifold of the periodic pertubed system:
 
 ```julia
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
@@ -124,7 +126,7 @@ myplot(result)
 ```
 ![henon](/docs/src/assets/duffing.png)
 
-# Lorenz manifold:
+## Lorenz manifold:
 
 ```julia
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
