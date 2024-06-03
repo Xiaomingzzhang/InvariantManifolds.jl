@@ -5,16 +5,12 @@
 
 This is a package to compute the invariant manifolds of a dynamical system. Currently, I am still work on the one-dimensional manifolds of saddle points.
 
-Things have been done:
+Main features:
 
 - Compute saddles' one-dimensional manifolds of smooth mapping;
-- Compute these manifolds in any precisions;
 - Compute saddles' one-dimensional manifolds of non-smooth mapping: these mapping are the time-T-map of a non-smooth ODE systems, e.g., impact systems, piecewise smooth systems, and simple Fillippov systems;
+- Compute saddles' two-dimensional manifolds of autonomous vector field.
 
-Things haven't been done:
-
-- Compute saddles' high-dimensional manifolds of smooth mapping;
-- Compute invariant tori.
 
 # Basic example: Unstable manifold of Henon map
 Consider the Henon map:
@@ -26,39 +22,55 @@ y'&=\beta x,
 \end{aligned}
 ```
 
-where $\alpha=1.4,\beta=0.3$. This map has a saddle located at $(0.6313544770895048, 0.18940634312685142)$, and its unstable eigenvector is $(-0.9880577559947047, 0.15408397327012555)$. 
+where $\alpha=1.4,\beta=0.3$. This map has a saddle located at $(0.6313544770895048, 0.18940634312685142)$, and its unstable eigenvector is $(-6.412462860511356, 1.0)$. 
 
 To compute the unstable manifolds of the saddle numerically, InvariantManifolds.jl just needs a segment of unstable manifold, whose start point is the saddle.
 It's resonable to choose a short unstable eigenvector as the segment. You don't have to shorten the eigenvector started at the saddle yourself. We provide a function `segment` to do this automatically. The `segment` can generate equal distributed `n` points at one point, with given length and direction.
 ```julia
-
 using InvaraiantManifolds, StaticArrays, Plots
 
 function henonmap(x, p)
-    y1 = 1 - p[1] * x[1]^2 + x[2]
-    y2 = p[2] * x[1]
-    SA[y1, y2]
+    SA[1 - p[1] * x[1]^2 + x[2], p[2] * x[1]]
 end
 
-seg = segment(SA[0.6313544770895048, 0.18940634312685142], SA[-0.9880577559947047, 0.15408397327012555], 150, 0.01)
-result = generate_curves(henonmap, SA[1.4, 0.3], seg, 0.005, 13)
-plot(result)
+seg = segment(SA[0.6313544770895048, 0.18940634312685142], SA[-6.412462860511356, 1.0], 150, 0.01)
+result = generate_curves(henonmap, SA[1.4, 0.3], seg, 0.001, 8)
 ```
 
-You can use `Plotly` backends to see the details of manifolds. To do this, just define
+This package does not provide any function to plot the manifolds. However, it's simple to plot it using the stardard julia ploting library.
+
+To do this, just define
 ```julia
-function myplot(v::Vector{IterationCurve{N,T}}) where {N,T}
-    plotlyjs()
-    figure = plot(;legend=false)
-    for i in eachindex(v)
-        nn = length(v[i].states)
-        id = range(0, 1, length=2 * nn)
-        data = v[i].pcurve.(id)
-        plot!(first.(data), last.(data))
+using GLMakie
+
+function myplot(v::Vector{IterationCurve})
+    figure = Figure()
+    axes = Axis(figure[1,1])
+    for k in eachindex(v)
+        data = v[k].pcurve.u
+        lines!(axes, first.(data), last.(data))
     end
     figure
 end
-```
-Run `myplot(result)` to get the figure that can be zoom in.
 
-See more exmples in document.
+myplot(result)
+```
+![henon](/docs/src/assets/henon.png)
+
+# An advanced example: Unstable manifold of the periodic pertubed system:
+
+```julia
+using GLMakie
+
+function myplot(v::Vector{IterationCurve})
+    figure = Figure()
+    axes = Axis(figure[1,1])
+    for k in eachindex(v)
+        data = v[k].pcurve.u
+        lines!(axes, first.(data), last.(data))
+    end
+    figure
+end
+
+myplot(result)
+```
