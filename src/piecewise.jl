@@ -71,7 +71,7 @@ end
 The function `timetmap` is similar to `setmap`. The output of this function is a function
 which maps a `SVector` and parameters of ODE to a `SVector`, i.e. the time-T-map. Warn!!! In a `ContinuousVectorField`,this parameters must be long than the real parameter.
 For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
-The value of the last parameter is meaninglless, just for switching the vector fields.
+The value of the last parameter is meaningless, just for switching the vector fields.
 
 # Parameters
 - `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
@@ -113,7 +113,7 @@ which maps a `SVector` to a `NSSolution`. This `NSSolution` contain all data of 
 
 # Parameters
 - `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
-- `para` the parameter of the vectorfield.
+- `para` the parameter of the vector field.
 - `timespan` the time span of the time-T-map.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 - `N` the dimension of the vector field.

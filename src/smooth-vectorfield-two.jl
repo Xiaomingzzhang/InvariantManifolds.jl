@@ -1,11 +1,11 @@
 """
     AnnulusBoundaries
 
-A struct contains datas when generating the two dimensional manifold.
+A struct contains data when generating the two dimensional manifold.
 
 # Fields
-- `inner` an `IterationCurve` reprents inner boundary;
-- `outer` an `IterationCurve` reprents outer boundary;
+- `inner` an `IterationCurve` represents inner boundary;
+- `outer` an `IterationCurve` represents outer boundary;
 """
 struct AnnulusBoundaries
     inner
@@ -85,9 +85,9 @@ Function to generate the two dimension manifold of a vector field.
 - `p` parameter of the system;
 - `saddle` saddle fixed point of the ODE system;
 - `v1` an instable direction of the `saddle`;
-- `v2` anthor instable direction of the `saddle`;
+- `v2` another instable direction of the `saddle`;
 - `N` iteration times;
-- `r` the raduis of origin disk to extend;
+- `r` the radius of origin disk to extend;
 - `δ` the max distance between points when iterating.
 
 # Keyword arguments

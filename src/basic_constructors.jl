@@ -4,7 +4,7 @@
 `State` is a struct contain point data in a numerical manifold.
 
 # Fields
-- `state` a `SVector` reprents the point in phase space;
+- `state` a `SVector` represents the point in phase space;
 - `s` the parameter of this point.
 """
 struct State{N,T<:Number}
@@ -36,7 +36,7 @@ end
 
 # Fields
 - `states` a `Vector{State}` contains the points in phase space;
-- `pcurve` the paramtric curve of these `states`, which is a `LinearInterpolation`.
+- `pcurve` the parametric curve of these `states`, which is a `LinearInterpolation`.
 """
 struct IterationCurve{N,T<:Number}
     states::Vector{State{N,T}}
@@ -56,7 +56,7 @@ function take_state(x)
     x.state
 end
 
-function LinearInterpolation(v::Vector{State{N,T}}) where {N,T<:Number} # Vector{T} 中的T必须是具体的
+function LinearInterpolation(v::Vector{State{N,T}}) where {N,T<:Number}
     LinearInterpolation(take_state.(v), take_s.(v))
 end
 
@@ -79,9 +79,9 @@ The struct `NSState` is to record the events data for a time-T-map.
 
 The meaning of `event_at` in `PiecewiseV` and `BilliardV` systems is quite clear.
 For a simple Fillippov system `SFilippovV`, we record three events:
-- `1` reprents the event that flow enters the slding surface from `H<0` or `H>0`;
-- `2` reprents the event that flow cross the slding surface;
-- `3` reprents the event that flow slides out the slding surface from `H=0` to `H<0` or `H>0`.
+- `1` represents the event that flow enters the sliding surface from `H<0` or `H>0`;
+- `2` represents the event that flow cross the sliding surface;
+- `3` represents the event that flow slides out the sliding surface from `H=0` to `H<0` or `H>0`.
 """
 struct NSState{N,T<:Number}
     state::SVector{N,T}
@@ -112,7 +112,7 @@ end
 """
     NSSolution{N,T<:Number}
 
-The `NSSolution` is a struct to contain all information of the solution of a nonsmooth ODE system.
+The `NSSolution` is a struct to contain all information of the solution of a non-smooth ODE system.
 
 # Fields
 - `sol` `ODESolution` solved by `OrdinaryDiffEq`;
@@ -153,7 +153,7 @@ Piecewise smooth vector field.
 # Fields
 - `fs` is a vector of smooth vector fields in different regions.
 - `regions` is a vector of the region functions: `[r1,r2,...]`, where `r1(x,p,t)` should return a Bool value to indicate that `x` is in this region or not.
-- `hypers` is a vector of the hypersurfaces separating the regions.
+- `hypers` is a vector of the hyper surfaces separating the regions.
 
 # Example
 
@@ -168,7 +168,7 @@ PiecewiseV([f1,f2],[dom1,dom2],[hyper])
 ```
 
 The above codes generate a piecewise smooth vector field, which when `x[1]>0` is `f1`, and when `x[2]<0` is `f2`.
-The hypersurface separating these smooth vector fields is `x[1]=0`.
+The hyper surface separating these smooth vector fields is `x[1]=0`.
 """
 struct PiecewiseV <: ContinuousVectorField
     fs::Vector{Function}
@@ -197,12 +197,12 @@ end
 """
     BilliardV <: JumpVectorField
 
-A vector field with multiple hypersurfaces such that the flow jump when hits these hypersurfaces.
+A vector field with multiple hyper surfaces such that the flow jump when hits these hyper surfaces.
 
 # Fields
 - `f` is the vector field, of type `f(x,p,t)`, and its output is a SVector;
-- `hypers` is vector of hypersurfaces:`[h1,h2,...]`, `h1(x,p,t)`;
-- `irules` is vector of rules on hypersurfaces:`[r1,r2,r3,...]`; the rules must be independent of time `t`, i.e., `r1(x,p)`.
+- `hypers` is vector of hyper surfaces:`[h1,h2,...]`, `h1(x,p,t)`;
+- `irules` is vector of rules on hyper surfaces:`[r1,r2,r3,...]`; the rules must be independent of time `t`, i.e., `r1(x,p)`.
 """
 struct BilliardV <: JumpVectorField
     f
@@ -218,13 +218,13 @@ end
 """
     SFilippovV <: ContinuousVectorField
 
-`SFilippovV` means simple Fillippov vector fields, which means that there only exists one hypersurface to separate the phase space.
+`SFilippovV` means simple Fillippov vector fields, which means that there only exists one hyper surface to separate the phase space.
 
 # Fields
-- `fs` vector fields in two sides of hypersurface. The slide vector field can be generated automatically.
-- `hyper` hypersurface.
-- `dhyper` grad of hypersurface. Warn!!! The grad must point to the second of `fs`.
-- `exit` conditions to exit the hypersurface, which can also be generated automatically
+- `fs` vector fields in two sides of hyper surface. The slide vector field can be generated automatically.
+- `hyper` hyper surface.
+- `dhyper` grad of hyper surface. Warn!!! The grad must point to the second of `fs`.
+- `exit` conditions to exit the hyper surface, which can also be generated automatically
 """
 struct SFilippovV <: ContinuousVectorField
     fs::SVector{3,Function}
@@ -255,16 +255,16 @@ end
 """
     NSSetUp{T}
 
-`NSSetUp` is a struct to contatin all the information needed in continuing the manifold of nonsmooth ODE.
+`NSSetUp` is a struct to contain all the information needed in continuing the manifold of non-smooth ODE.
 
 # Fields
 - `f::T` the Non-smooth vector field, like `PiecewiseV`;
 - `timespan` the time span of time-T-map;
-- `timetmap` the time-t-map of nonsmooth ODE, which maps a `State` and parameters of ODE to a `NSState`.
+- `timetmap` the time-t-map of non-smooth ODE, which maps a `State` and parameters of ODE to a `NSState`.
 # Warn
 In a `ContinuousVectorField`,this parameters must be long than the real parameter.
 For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
-The value of the last parameter is meaninglless, just for switching the vector fields.
+The value of the last parameter is meaningless, just for switching the vector fields.
 """
 struct NSSetUp{T}
     f::T

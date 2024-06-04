@@ -113,7 +113,7 @@ end
 """
     InvariantManifolds.ns_initialise_curve(points, tmap, para)
 
-Initialise the curve of nonsmooth ODE's time-T-map.
+Initialise the curve of non-smooth ODE's time-T-map.
 """
 function ns_initialise_curve(points, tmap, para)
     map = x -> tmap(State(x, 0), para)
