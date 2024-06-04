@@ -11,12 +11,13 @@ makedocs(;
         canonical="https://Xiaomingzzhang.github.io/InvariantManifolds.jl",
         edit_link="master",
         assets=String[],
+        prettyurls = get(ENV, "CI", "false") == "true",
     ),
     pages = [
         "Home"=>"index.md",
-        "State of art"=>"state.md",
-        "Smooth mapping"=>"smooth.md",
-        "Time-T-map of non-smooth ODE"=>"nonsmooth.md",
+        "State of art"=>"art/art.md",
+        "Smooth mapping"=>"smooth/smooth.md",
+        "Time-T-map of non-smooth ODE"=>"nonsmooth/nonsmooth.md",
         "API"=>"api.md"
     ]
 )
