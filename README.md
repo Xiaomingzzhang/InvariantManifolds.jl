@@ -64,7 +64,7 @@ function myplot(v::Vector{IterationCurve})
 end
 myplot(result)
 ```
-<img src="/docs/src/assets/henon.png" alt="henon" width="300"/>
+<img src="/docs/src/assets/henon.png" alt="henon" width="600"/>
 
 ## An advanced example: Unstable manifold of the periodic pertubed system:
 
@@ -128,7 +128,7 @@ result = generate_curves(timemap, para, seg, 0.002, 3)
 myplot(result)
 ```
 
-<img src="/docs/src/assets/duffing.png" alt="duffing" width="300"/>
+<img src="/docs/src/assets/duffing.png" alt="duffing" width="600"/>
 
 ## Lorenz manifold:
 
@@ -172,6 +172,6 @@ lorenz_manifold = generate_surface(lorenz_map, para, SA[0.0, 0.0, 0.0], eigenv(p
 
 myplot(lorenz_manifold)
 ```
-<img src="/docs/src/assets/lorenz.png" alt="lorenz" width="300"/>
+<img src="/docs/src/assets/lorenz.png" alt="lorenz" width="600"/>
 
 See more examples in the docs.
