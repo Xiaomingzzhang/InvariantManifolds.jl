@@ -11,7 +11,9 @@ makedocs(;
     format=Documenter.HTML(;
         canonical="https://Xiaomingzzhang.github.io/InvariantManifolds.jl",
         edit_link="master",
-        assets=String[]
+        assets=String[],
+        prettyurls = get(ENV, "CI", nothing) == "true",
+        collapselevel = 1
     ),
     pages = [
         "Home"=>"index.md",
