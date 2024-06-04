@@ -11,8 +11,11 @@ Main features:
 - Compute saddles' two-dimensional manifolds of autonomous vector field;
 - Compute saddles' one-dimensional manifolds of non-smooth mapping: these mapping are the time-T-map of a non-smooth ODE systems, e.g., impact systems, piecewise smooth systems, and simple Fillippov systems.
 
-To use this package, first install [julia](https://julialang.org/), than run 
-`using Pkg; Pkg.add("https://github.com/Xiaomingzzhang/InvariantManifolds.jl")`
+To use this package, first install [julia](https://julialang.org/), then run 
+```julia
+using Pkg;
+Pkg.add("https://github.com/Xiaomingzzhang/InvariantManifolds.jl")
+```
 
 ## Basic example: Unstable manifold of Henon map
 Consider the Henon map:
@@ -29,7 +32,7 @@ where $\alpha=1.4,\beta=0.3$. This map has a saddle located at $(0.6313544770895
 To compute the unstable manifolds of the saddle numerically, InvariantManifolds.jl just needs a segment of unstable manifold, whose start point is the saddle.
 It's resonable to choose a short unstable eigenvector as the segment. You don't have to shorten the eigenvector started at the saddle yourself. We provide a function `segment` to do this automatically. The `segment` can generate equal distributed `n` points at one point, with given length and direction.
 ```julia
-using InvaraiantManifolds, StaticArrays, Plots
+using InvaraiantManifolds, StaticArrays
 
 function henonmap(x, p)
     y1 = 1 - p[1] * x[1]^2 + x[2]
@@ -124,7 +127,7 @@ seg = segment(fixedpoint, unstable_direction, 150, 0.01)
 result = generate_curves(timemap, para, seg, 0.002, 3)
 myplot(result)
 ```
-![henon](/docs/src/assets/duffing.png)
+![duffing](/docs/src/assets/duffing.png)
 
 ## Lorenz manifold:
 
@@ -168,6 +171,6 @@ lorenz_manifold = generate_surface(lorenz_map, para, SA[0.0, 0.0, 0.0], eigenv(p
 
 myplot(lorenz_manifold)
 ```
-![henon](/docs/src/assets/lorenz.png)
+![lorenz](/docs/src/assets/lorenz.png)
 
 See more examples in the docs.

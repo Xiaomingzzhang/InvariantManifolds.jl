@@ -146,7 +146,7 @@ abstract type ContinuousVectorField end
 abstract type JumpVectorField end
 
 """
-    PiecewiseV
+    PiecewiseV <: ContinuousVectorField
 
 Piecewise smooth vector field. 
 
@@ -195,7 +195,7 @@ end
 
 
 """
-    BilliardV
+    BilliardV <: JumpVectorField
 
 A vector field with multiple hypersurfaces such that the flow jump when hits these hypersurfaces.
 
@@ -216,7 +216,7 @@ end
 
 
 """
-    SFilippovV
+    SFilippovV <: ContinuousVectorField
 
 `SFilippovV` means simple Fillippov vector fields, which means that there only exists one hypersurface to separate the phase space.
 
