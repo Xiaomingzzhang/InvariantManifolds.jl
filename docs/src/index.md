@@ -5,6 +5,8 @@
 
 ## InvariantManifolds.jl
 
+<img src="/assets/henon.png" alt="henon" width="300"/>
+
 <!-- ```@example fast_code
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
 
