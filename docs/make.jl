@@ -17,9 +17,9 @@ makedocs(;
     ),
     pages = [
         "Home"=>"index.md",
-        "State of art"=>"art/art.md",
-        "Smooth mapping"=>"smooth/smooth.md",
-        "Time-T-map of non-smooth ODE"=>"nonsmooth/nonsmooth.md",
+        "State of art"=>"art.md",
+        "Smooth mapping"=>"smooth.md",
+        "Time-T-map of non-smooth ODE"=>"nonsmooth.md",
         "API"=>"api.md"
     ]
 )
