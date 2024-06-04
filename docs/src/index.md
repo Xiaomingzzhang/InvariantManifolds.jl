@@ -4,3 +4,17 @@
 [![Build Status](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 
 ## InvariantManifolds.jl
+
+```@raw html
+<img src="/figs/duffing.png" width="660px"/>
+```
+
+!["luxor gallery"](figs/duffing.png)
+
+```@raw html
+<img src="../figs/duffing.png" width="660px"/>
+```
+
+```@raw html
+<img src="figs/duffing.png" width="660px"/>
+```
