@@ -3,9 +3,9 @@
 [![](https://img.shields.io/badge/docs-online-blue.svg)](https://Xiaomingzzhang.github.io/InvariantManifolds.jl/dev/)
 [![Build Status](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 
-## 
+## InvariantManifolds.jl
 
-```@example fast_code
+<!-- ```@example fast_code
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
 
 # First define the lorenz vector field.
@@ -45,4 +45,4 @@ end
 para = [10, 28, 9 / 3]
 lorenz_manifold = generate_surface(lorenz_map, para, SA[0.0, 0.0, 0.0], eigenv(para)..., 70, 2, 2)
 myplot(lorenz_manifold)
-```
+``` -->

@@ -32,7 +32,7 @@ where $\alpha=1.4,\beta=0.3$. This map has a saddle located at $(0.6313544770895
 To compute the unstable manifolds of the saddle numerically, InvariantManifolds.jl just needs a segment of unstable manifold, whose start point is the saddle.
 It's resonable to choose a short unstable eigenvector as the segment. You don't have to shorten the eigenvector started at the saddle yourself. We provide a function `segment` to do this automatically. The `segment` can generate equal distributed `n` points at one point, with given length and direction.
 ```julia
-using InvaraiantManifolds, StaticArrays
+using InvariantManifolds, StaticArrays
 
 function henonmap(x, p)
     y1 = 1 - p[1] * x[1]^2 + x[2]
@@ -127,7 +127,8 @@ seg = segment(fixedpoint, unstable_direction, 150, 0.01)
 result = generate_curves(timemap, para, seg, 0.002, 3)
 myplot(result)
 ```
-![duffing](/docs/src/assets/duffing.png)
+
+<img src="/docs/src/assets/duffing.png" alt="duffing"/>
 
 ## Lorenz manifold:
 
