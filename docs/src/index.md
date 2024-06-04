@@ -5,7 +5,10 @@
 
 ## InvariantManifolds.jl
 
-<img src="/assets/henon.png" alt="henon" width="600"/>
+```@raw html; template=true
+<img src="$(DOCUMENTER_DOCROOT)/figs/duffing.png" width="660px"/>
+```
+
 
 <!-- ```@example fast_code
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
