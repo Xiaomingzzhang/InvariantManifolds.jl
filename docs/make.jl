@@ -18,8 +18,8 @@ makedocs(;
     pages = [
         "Home"=>"index.md",
         "State of art"=>"art.md",
-        "Smooth mapping"=>"smooth.md",
-        "Time-T-map of non-smooth ODE"=>"nonsmooth.md",
+        "Examples"=>"smooth.md",
+        "Extensions"=>"nonsmooth.md",
         "API"=>"api.md"
     ]
 )

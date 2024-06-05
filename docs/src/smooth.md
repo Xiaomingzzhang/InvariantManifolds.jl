@@ -1,29 +1,23 @@
 
-# Smooth mapping
 
-[![Build Status](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml?query=branch%3Amaster)
+# Examples
 
-This is a package to compute the invariant manifolds of a dynamcal system. Currently, I am still work on the one-dimensional manifolds of saddle points.
-
-Things have been done:
-
-- Compute saddles' one-dimensional manifolds of smooth mapping;
-- Compute these manifolds in any precisions;
-- Compute saddles' one-dimensional manifolds of non-smooth mapping: these mapping are the time-T-map of a non-smooth ODE systems, e.g., impact systems, piecewise smooth systems, and simple Fillippov systems;
-
-Things haven't been done:
-
-- Compute saddles' high-dimensional manifolds of smooth mapping;
-- Compute invariant tori.
-
-# Basic example: Unstable manifold of Henon map
+## Unstable manifold of Henon map
 Consider the Henon map:
+
+```math
+\begin{aligned}
+x'&=1-\alpha x^2+y,\\
+y'&=\beta x,
+\end{aligned}
+```
+
+where $\alpha=1.4,\beta=0.3$. This map has a saddle located at $(0.6313544770895048, 0.18940634312685142)$, and its unstable eigenvector is $(-0.9880577559947047, 0.15408397327012555)$. 
 
 To compute the unstable manifolds of the saddle numerically, InvariantManifolds.jl just needs a segment of unstable manifold, whose start point is the saddle.
 It's resonable to choose a short unstable eigenvector as the segment. You don't have to shorten the eigenvector started at the saddle yourself. We provide a function `segment` to do this automatically. The `segment` can generate equal distributed `n` points at one point, with given length and direction.
 ```julia
-
-using InvaraiantManifolds, StaticArrays, Plots
+using InvariantManifolds, StaticArrays
 
 function henonmap(x, p)
     y1 = 1 - p[1] * x[1]^2 + x[2]
@@ -31,30 +25,176 @@ function henonmap(x, p)
     SA[y1, y2]
 end
 
+henonmap2(x, p)=henonmap(henonmap(x, p), p)
+
+# For technical reason, we have to use the double iteration of the map, since the eigenvalue is less than -1.
+
 seg = segment(SA[0.6313544770895048, 0.18940634312685142], SA[-0.9880577559947047, 0.15408397327012555], 150, 0.01)
-result = generate_curves(henonmap, SA[1.4, 0.3], seg, 0.005, 13)
-plot(result)
+result = generate_curves(henonmap2, SA[1.4, 0.3], seg, 0.001, 8)
 ```
 
-You can use `Plotly` backends to see the details of manifolds. To do this, just define
+This package does not provide any function to plot the manifolds. However, it's simple to plot it using the stardard julia ploting library.
+
+To do this, just run
 ```julia
-function myplot(v::Vector{IterationCurve{N,T}}) where {N,T}
-    plotlyjs()
-    figure = plot(;legend=false)
-    for i in eachindex(v)
-        nn = length(v[i].states)
-        id = range(0, 1, length=2 * nn)
-        data = v[i].pcurve.(id)
-        plot!(first.(data), last.(data))
+using GLMakie
+function manifold_plot(v::Vector{IterationCurve})
+    figure = Figure()
+    axes = Axis(figure[1,1])
+    for k in eachindex(v)
+        data = v[k].pcurve.u
+        lines!(axes, first.(data), last.(data))
     end
     figure
 end
+manifold_plot(result)
 ```
-Run `myplot(result)` to get the figure that can be zoom in.
 
-See more exmples in document.
-<!-- # An advanced example : manifolds of the saddle periodic orbits of Duffing equation
+```@raw html
+<img src="../figs/henon.png" width="600"/>
+```
 
-# Invariant manifold of the saddle for Pieicewise smooth ODE
+## Unstable manifold of the periodic perturbed system:
+Consider the Duffing equation with periodic perturbation:
 
-# Invariant manifold of the saddle for ODE with imoacts -->
+```math
+\begin{aligned}
+\dot{x}&=y,\\
+\dot{y}&=x-x^3+\gamma cos(t).
+\end{aligned}
+```
+
+When $\gamma=0$, the system has a saddle located at $(0,0)$. After the small periodic perturbation,
+this saddle becomes a saddle periodic orbit, i.e., a saddle of the map $T:x\mapsto \phi(X,2\pi,0)$, where
+$\phi(X,t,t_0)$ is the solution of system with initial condition $X(t_0)=X\in\mathbb{R}^2$. Fortunately, we can use
+the solution of the variational equation to get the jacobian matrix of $T$. The map $T$'s saddle's location and unstable direction can also be obtained numerically.
+
+```julia
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
+# Duffing Equation
+
+f(x, p, t) = SA[x[2], x[1] - x[1]^3 + p[1]*cos(t)]
+
+# First find the fixed point and its unstable direction by using the Newton iteration.
+
+function timemap(x,p)
+    prob = ODEProblem{false}(f, x, (0.0, 2pi), p)
+    solve(prob, Vern9())[end]
+end
+
+# Solving the variational equation to get the jacobian matrix.
+
+function jac(x, p)
+    prob = ODEProblem{false}(f, x, (0.0, 2pi), p)
+    sol = solve(prob, Vern9())
+    function df(x, p, t)
+        SA[0 1; 1-3*(sol(t)[1])^2 0] * x
+    end
+    ii = SA[1.0 0.0; 0.0 1.0]
+    nprob = ODEProblem{false}(df, ii, (0.0, 2pi), p)
+    solve(nprob, Vern9())[end]
+end
+
+# Newton's iteration to get the saddle's location.
+
+function newton(x, p; n=100, atol=1e-8)
+    xn = x - inv(jac(x, p) - I) * (timemap(x, p) - x)
+    data = typeof(x)[x, xn]
+    i = 1
+    while norm(data[2] - data[1]) > atol && i <= n
+        data[1] = data[2]
+        data[2] = data[1] - inv(jac(data[1], p) - I) * (timemap(data[1], p) - data[1])
+        i = i + 1
+    end
+    if norm(data[2] - data[1]) < atol
+        println("Fixed point found successfully:")
+        data[2]
+    else
+        println("Failed to find a fixed point after $n times iterations. The last point is:")
+        data[2]
+    end
+end
+
+function manifold_plot(v)
+    figure = Figure()
+    axes = Axis(figure[1,1])
+    for k in eachindex(v)
+        data = v[k].pcurve.u
+        lines!(axes, first.(data), last.(data))
+    end
+    figure
+end
+
+para = [0.1]
+fixedpoint = newton(SA[-0.05, 0.0], para)
+unstable_direction = eigen(jac(fixedpoint, para)).vectors[:, 2]
+seg = segment(fixedpoint, unstable_direction, 150, 0.01)
+result = generate_curves(timemap, para, seg, 0.002, 3)
+manifold_plot(result)
+```
+
+```@raw html
+<img src="../figs/duffing.png" width="600"/>
+```
+
+## Lorenz manifold
+
+In this example, we will consider the well known Lorenz's equation. With classical parameters, the fixed point origin has two linear independent stable direction. Hence, there exists a two-dimensional stable manifolds of the
+origin, the so called Lorenz manifold. The function [`generate_surface`](@ref) mainly needs two parameter to compute such stable manifolds. The first parameter is the time-$T$-map of the system, where $T<0$. Moreover, the original vector field has to be rescaled to ensure the uniform extension of the flow. The second parameter is the two linear independent stable direction. See the blew codes for more details.
+
+```julia
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
+
+# First define the rescaled lorenz vector field and its time-T-map
+
+function lorenz(x, p, t)
+    σ, ρ, β = p
+    v = SA[σ*(x[2]-x[1]),
+        ρ*x[1]-x[2]-x[1]*x[3],
+        x[1]*x[2]-β*x[3]
+    ]
+    v / sqrt(1 + norm(v)^2)
+end
+
+function lorenz_map(x, p)
+    prob = ODEProblem{false}(lorenz, x, (0.0, -2.0), p)
+    sol = solve(prob, Tsit5())
+    sol[end]
+end
+
+function eigenv(p)
+    σ, ρ, β = p
+    (SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0])
+end
+
+second(x) = x[2]
+
+function manifold_plot(annulus)
+    fig = Figure()
+    axes = LScene(fig[1, 1], show_axis=false,scenekw = (backgroundcolor=:white, clear=true))
+    for i in eachindex(annulus)
+        points = annulus[i].outer.pcurve.u
+        scatter!(axes, first.(points), second.(points), last.(points), fxaa=true)
+    end
+    fig
+end
+para = [10, 28, 9 / 3]
+lorenz_manifold = generate_surface(lorenz_map, para, SA[0.0, 0.0, 0.0], eigenv(para)..., 120, 1, 1)
+manifold_plot(lorenz_manifold)
+```
+
+```@raw html
+<img src="../figs/lorenz.png" width="600"/>
+```
+
+## Unstable manifold of the piecewise smooth ODE's time-$T$-map
+
+
+
+
+
+## Unstable manifold of the impact inverted pendulum's time-$T$-map
+
+
+
+## Unstable manifold of the Filippov system's time-$T$-map
