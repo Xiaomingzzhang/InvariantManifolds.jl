@@ -1,2 +1,133 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Extensions · InvariantManifolds.jl</title><meta name="title" content="Extensions · InvariantManifolds.jl"/><meta property="og:title" content="Extensions · InvariantManifolds.jl"/><meta property="twitter:title" content="Extensions · InvariantManifolds.jl"/><meta name="description" content="Documentation for InvariantManifolds.jl."/><meta property="og:description" content="Documentation for InvariantManifolds.jl."/><meta property="twitter:description" content="Documentation for InvariantManifolds.jl."/><meta property="og:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/extensions/"/><meta property="twitter:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/extensions/"/><link rel="canonical" href="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/extensions/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="InvariantManifolds.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">InvariantManifolds.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../art/">State of art</a></li><li><a class="tocitem" href="../examples/">Examples</a></li><li class="is-active"><a class="tocitem" href>Extensions</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Extensions</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Extensions</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl/blob/master/docs/src/extensions.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Extensions"><a class="docs-heading-anchor" href="#Extensions">Extensions</a><a id="Extensions-1"></a><a class="docs-heading-anchor-permalink" href="#Extensions" title="Permalink"></a></h1><p>We point out that the framework of this package about the non-smooth ODE is generic enough, so that one can easily extends it to compute kinds of non-smooth ODE&#39;s invariant manifolds.</p><p>To show how to extends the function <a href="../api/#InvariantManifolds.generate_curves"><code>generate_curves</code></a> to other type of non-smooth ODE, we show how to deal with the systems with both impacts and piecewise smoothness.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../examples/">« Examples</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Friday 7 June 2024 10:14">Friday 7 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Extensions · InvariantManifolds.jl</title><meta name="title" content="Extensions · InvariantManifolds.jl"/><meta property="og:title" content="Extensions · InvariantManifolds.jl"/><meta property="twitter:title" content="Extensions · InvariantManifolds.jl"/><meta name="description" content="Documentation for InvariantManifolds.jl."/><meta property="og:description" content="Documentation for InvariantManifolds.jl."/><meta property="twitter:description" content="Documentation for InvariantManifolds.jl."/><meta property="og:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/extensions/"/><meta property="twitter:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/extensions/"/><link rel="canonical" href="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/extensions/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="InvariantManifolds.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">InvariantManifolds.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../art/">State of art</a></li><li><a class="tocitem" href="../examples/">Examples</a></li><li class="is-active"><a class="tocitem" href>Extensions</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Extensions</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Extensions</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl/blob/master/docs/src/extensions.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Extensions"><a class="docs-heading-anchor" href="#Extensions">Extensions</a><a id="Extensions-1"></a><a class="docs-heading-anchor-permalink" href="#Extensions" title="Permalink"></a></h1><p>We point out that the framework of this package about the non-smooth ODE is generic enough, so that one can easily extends it to compute kinds of non-smooth ODE&#39;s invariant manifolds.</p><p>To show how to extends the function <a href="../api/#InvariantManifolds.generate_curves"><code>generate_curves</code></a> to other type of non-smooth ODE, we show how to deal with the systems with both impacts and piecewise smoothness.</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
+
+import InvariantManifolds: State, JumpVectorField, setmap, _region_detect
+
+struct PiecewiseImpactV &lt;: JumpVectorField
+    fs::Vector{Function}
+    hypers::Vector{Function}
+    rules::Vector{Function}
+    regions::Vector{Function}
+    idxs::Vector{Int}
+end
+
+function (v::PiecewiseImpactV)(x, p, t)
+    n = Int(p[end])
+    v.fs[n](x, p, t)
+end
+
+function setmap(v::PiecewiseImpactV, timespan, alg, N, T; region_detect=_region_detect, extra...)
+    nn = length(v.hypers)
+    event_at = Int[]
+    event_state = SVector{N,T}[]
+    event_t = T[]
+    function affect!(integrator, idx)
+        if idx in v.idxs
+            integrator.u = v.rules[idx](integrator.u, integrator.p, integrator.t)
+        else
+            t0 = integrator.t + 1 // 20
+            u0 = integrator.sol(t0)
+            p = integrator.p
+            i = region_detect(v.regions, u0, p, t0)
+            p[end] = i
+        end
+        append!(event_at, [idx])
+        append!(event_state, [integrator.u])
+        append!(event_t, [integrator.t])
+    end
+    function condition(out, u, t, integrator)
+        for i in eachindex(v.hypers)
+            out[i] = v.hypers[i](u, integrator.p, t)
+        end
+    end
+    vcb = VectorContinuousCallback(condition, affect!, nn)
+    function tmap(State::State{N,T}, para) where {N,T}
+        x = State.state
+        para[end] = region_detect(v.regions, x, para, timespan[1])
+        prob = ODEProblem{false}(v, x, timespan, para)
+        sol = solve(prob, alg, callback=vcb; extra...)
+        newv_event_at = copy(event_at)
+        newv_event_t = copy(event_t)
+        newv_event_state = copy(event_state)
+        empty!(event_at)
+        empty!(event_t)
+        empty!(event_state)
+        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
+    end
+    NSSetUp(v, timespan, tmap)
+end
+
+
+f1(x, p, t) = SA[x[2], p[1]*x[1]+p[3]*sin(2pi * t)]
+
+f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[3]*sin(2pi * t)]
+
+hyper1(x, p, t) = x[1] - p[4]
+
+hyper2(x, p, t) = x[1] + p[4]
+
+dom1(x, p, t) = -p[4] &lt; x[1] &lt; p[4]
+
+dom2(x, p, t) = x[1] &lt; -p[4]
+
+impact_rules(x,p,t)=SA[x[1],-x[2]]
+
+id(x,p,t)=x
+
+vectorfield = PiecewiseImpactV([f1, f2], [hyper1, hyper2], [impact_rules,id],[dom1, dom2], [1])
+
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), 2, Float64)
+
+function timemap(x,p)
+    prob = ODEProblem{false}(f1, x, (0.0, 1.0), p)
+    solve(prob, Vern9())[end]
+end
+
+function jac(x,p)
+    prob = ODEProblem{false}(f1, x, (0.0, 1.0), p)
+    sol = solve(prob, Vern9())
+    function df(x, p, t)
+        SA[0 1; p[1] 0] * x
+    end
+    ii = SA[1.0 0.0; 0.0 1.0]
+    nprob = ODEProblem{false}(df, ii, (0.0, 1.0), p)
+    solve(nprob, Vern9())[end]
+end
+
+function newton(x,p; n=100, atol=1e-8)
+    xn = x - inv(jac(x,p) - I) * (timemap(x,p) - x)
+    data = [x, xn]
+    i = 1
+    while norm(data[2] - data[1]) &gt; atol &amp;&amp; i &lt;= n
+        data[1] = data[2]
+        data[2] = data[1] - inv(jac(data[1],p) - I) * (timemap(data[1],p) - data[1])
+    end
+    if norm(data[2] - data[1]) &lt; atol
+        println(&quot;Fixed point found successfully:&quot;)
+        data[2]
+    else
+        println(&quot;Failed to find a fixed point after $n times iterations. The last point is:&quot;)
+        data[2]
+    end
+end
+
+para = [2, 5, 0.6, 2, 1]
+fixedpoint= newton(SA[0.0, 0.0],para)
+unstable_direction = eigen(jac(fixedpoint,para)).vectors[:,2]
+
+seg = segment(fixedpoint, unstable_direction, 150, 0.05)
+result = generate_curves(setup, para, seg, 0.01, 9)
+
+function manifold_plot(result)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(result)
+        for j in eachindex(result[k])
+            data=result[k][j].pcurve.u
+            lines!(axes,first.(data),last.(data))
+        end
+    end
+    fig
+end
+
+manifold_plot(result)</code></pre><img src="../figs/PI.png" width="600"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../examples/">« Examples</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Friday 7 June 2024 13:31">Friday 7 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
