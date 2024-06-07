@@ -18,8 +18,8 @@ makedocs(;
     pages = [
         "Home"=>"index.md",
         "State of art"=>"art.md",
-        "Examples"=>"smooth.md",
-        "Extensions"=>"nonsmooth.md",
+        "Examples"=>"examples.md",
+        "Extensions"=>"extensions.md",
         "API"=>"api.md"
     ]
 )

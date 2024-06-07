@@ -67,7 +67,7 @@ end
         i = 1
         newpara = T[0]
         while i + 1 <= n
-            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, time_end, para, ntimes)
+            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, para, time_end, ntimes)
             if dist > min
                 m = ceil(Int, dist / min)
                 if m == 1
