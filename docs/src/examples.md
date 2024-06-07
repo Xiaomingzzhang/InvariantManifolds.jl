@@ -246,6 +246,11 @@ See [`setmap`](@ref) for the meaning of parameters of this function. For small $
 So we can still using the method of variational equation to compute the saddle's location.
 
 ```julia
+function timemap(x,p)
+    prob = ODEProblem{false}(f1, x, (0.0, 1.0), p)
+    solve(prob, Vern9())[end]
+end
+
 function jac(x,p)
     prob = ODEProblem{false}(f1, x, (0.0, 1.0), p)
     sol = solve(prob, Vern9())
