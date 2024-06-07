@@ -2,8 +2,10 @@ name: CI
 on:
   push:
     branches:
-      - master
-    tags: ['0.1.0']
+  only:
+    - master
+    - /^release-.*$/
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
   pull_request:
   workflow_dispatch:
 concurrency:
@@ -25,6 +27,7 @@ jobs:
         version:
           - '1.9'
           - '1.10'
+          - nightly
         os:
           - ubuntu-latest
         arch:
