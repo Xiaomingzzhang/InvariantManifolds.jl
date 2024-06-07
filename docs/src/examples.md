@@ -310,7 +310,7 @@ manifold_plot(result)
 ```
 
 ```@raw html
-<img src="./figs/piecewise.png" width="600"/>
+<img src="../figs/piecewise.png" width="600"/>
 ```
 
 ## Unstable manifold of the impact inverted pendulum's time-$T$-map
@@ -403,8 +403,7 @@ manifold_plot(result)
 ```
 
 ```@raw html
-<img src="./figs/impact.png" width="600"/>
+<img src="../figs/impact.png" width="600"/>
 ```
-
 
 ## Unstable manifold of the Filippov system's time-$T$-map

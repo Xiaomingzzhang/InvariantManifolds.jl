@@ -226,11 +226,11 @@ end
 - `dhyper` grad of hyper surface. Warn!!! The grad must point to the second of `fs`.
 - `exit` conditions to exit the hyper surface, which can also be generated automatically
 """
-struct SFilippovV <: ContinuousVectorField
-    fs::SVector{3,Function}
-    hyper
-    dhyper
-    exit
+struct SFilippovV{F,H,DH,E} <: ContinuousVectorField
+    fs::F
+    hyper::H
+    dhyper::DH
+    exit::E
 end
 
 function SFilippovV(fs, h, ∇h)
@@ -243,7 +243,7 @@ function SFilippovV(fs, h, ∇h)
     function exit(x, p, t)
         dot(∇h(x, p, t), f2(x, p, t)) * dot(∇h(x, p, t), f1(x, p, t))
     end
-    SFilippovV(SA[f1, f2, sv], h, ∇h, exit)
+    SFilippovV((f1, f2, sv), h, ∇h, exit)
 end
 
 function (v::SFilippovV)(x, p, t)
