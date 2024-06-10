@@ -25,7 +25,12 @@ The function `setmap` is to get a `NSSetUp`.
 
 To ensure type stable, the numbers in `timespan` should be type of `T`.
 The last two parameters has to be specified, since we have to store the event data.
-You can also pass the keywords of `solve` of `OrdinaryDiffEq` to this function, 
+
+# Keyword arguments
+For `ContinuousVectorField` such as `PiecewiseV`, we have keyword argument:
+- `region_detect=_region_detect` the region detect function to determine which domain the state in.
+
+You can also pass the keywords of `solve` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
 except the `callback` and saving related keywords.
 """
 function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect, extra...)
@@ -38,7 +43,7 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
-        p[end] = i
+        integrator.f.f == i
         append!(event_at, [idx])
         append!(event_state, [integrator.u])
         append!(event_t, [integrator.t])
@@ -51,7 +56,7 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
     vcb = VectorContinuousCallback(condition, affect!, nn)
     function tmap(State::State{N,T}, para) where {N,T}
         x = State.state
-        para[end] = region_detect(v.regions, x, para, timespan[1])
+        v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
@@ -69,17 +74,20 @@ end
     timetmap(v::T, para, timespan, alg; region_detect=_region_detect, extra...)
 
 The function `timetmap` is similar to `setmap`. The output of this function is a function
-which maps a `SVector` and parameters of ODE to a `SVector`, i.e. the time-T-map. Warn!!! In a `ContinuousVectorField`,this parameters must be long than the real parameter.
-For example, if the parameter of your system is `[0.1,2.0]`, than you must set it to `[0.1,2.0,1.0]`.
-The value of the last parameter is meaningless, just for switching the vector fields.
+which maps a `SVector` and parameters of ODE to a `SVector`, i.e. the time-T-map.
 
 # Parameters
 - `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
 - `timespan` the time span of the time-T-map.
+To ensure type stable, the numbers `timespan` should be type of float numbers you are using.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 
-To ensure type stable, the numbers `timespan` should be type of `T`.
-You can also pass the keywords of `solve` of `OrdinaryDiffEq` to this function, 
+# Keyword arguments
+For `ContinuousVectorField` such as `PiecewiseV`, we have keyword argument:
+- `region_detect=_region_detect` the region detect function to determine which domain the state in.
+
+
+You can also pass the keywords of `solve` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
 except the `callback` and saving related keywords.
 """
 function timetmap(v::PiecewiseV, timespan, alg ;region_detect=_region_detect, extra...)
@@ -89,7 +97,7 @@ function timetmap(v::PiecewiseV, timespan, alg ;region_detect=_region_detect, ex
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
-        p[end] = i
+        integrator.f.f == i
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -98,7 +106,7 @@ function timetmap(v::PiecewiseV, timespan, alg ;region_detect=_region_detect, ex
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
     function tmap(x, para)
-        para[end] = region_detect(v.regions, x, para, timespan[1])
+        v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         sol[end]
@@ -120,8 +128,8 @@ which maps a `SVector` to a `NSSolution`. This `NSSolution` contain all data of 
 - `T` number type used in computation.
 
 To ensure type stable, the numbers in `para` and `timespan` should be type of `T`.
-The last two parameters has to be specified, since we have to store the event data.
-You can also pass the keywords of `solve` of `OrdinaryDiffEq` to this function, 
+The last two parameters have to be specified, since we need to store the event data.
+You can also pass the keywords of `solve` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
 except the `callback` and saving related keywords.
 """
 function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_detect, extra...)
@@ -134,7 +142,7 @@ function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_dete
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
-        p[end] = i
+        integrator.f.f == i
         append!(event_at, [idx])
         append!(event_state, [integrator.u])
         append!(event_t, [integrator.t])
@@ -146,7 +154,7 @@ function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_dete
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
     function tmap(x, para)
-        para[end] = region_detect(v.regions, x, para, timespan[1])
+        v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)

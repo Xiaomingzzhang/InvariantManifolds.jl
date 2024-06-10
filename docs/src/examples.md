@@ -232,7 +232,7 @@ dom2(x, p, t) = x[1] > p[5]
 
 dom3(x, p, t) = x[1] < -p[5]
 
-vectorfield = PiecewiseV([f1, f2, f3], [dom1, dom2, dom3], [hyper1, hyper2])
+vectorfield = PiecewiseV((f1, f2, f3), (dom1, dom2, dom3), (hyper1, hyper2), 0)
 ```
 The parameters pass to `PiecewiseV` are vector fields, their definition domains, and the hyper surfaces separating these domains. See [`PiecewiseV`](@ref) for more details.
 
@@ -283,15 +283,10 @@ end
 Then we define the parameters and try to find the saddle:
 
 ```julia
-para = [2, 5, 5, 0.6, 2, 1]
+para = [2, 5, 5, 0.6, 2]
 fixedpoint= newton(SA[0.0, 0.0],para)
 unstable_direction = eigen(jac(fixedpoint,para)).vectors[:,2]
 ```
-
-!!! warning "Warning"
-    In a system of `PiecewiseV`, the parameter should be a vector and always has extra elements in the end. In this example, we only use five
-    parameters $k_1,k_2,k_3,\epsilon,d$. However, you should set it to a six element vector. The last parameter is
-    to switch the vector field, and its value can be arbitrary.
 
 As before, we compute the manifold and plot it using `GLMakie`. Noting that the data structures of `result` is slightly different from examples before.
 
@@ -346,7 +341,7 @@ rule1(x, p, t) = SA[x[1], -p[3]*x[2]]
 
 rule2(x, p, t) = SA[x[1], -p[3]*x[2]]
 
-vectorfield = BilliardV(f, [hyper1, hyper2], [rule1, rule2])
+vectorfield = BilliardV(f, (hyper1, hyper2), (rule1, rule2))
 
 setup = setmap(vectorfield, (0.0, 1.0), Vern9(), 2, Float64)
 

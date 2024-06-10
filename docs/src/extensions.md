@@ -10,16 +10,17 @@ using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
 
 import InvariantManifolds: State, JumpVectorField, setmap, _region_detect
 
-struct PiecewiseImpactV <: JumpVectorField
-    fs::Vector{Function}
-    hypers::Vector{Function}
-    rules::Vector{Function}
-    regions::Vector{Function}
+mutable struct PiecewiseImpactV{F1,F2,F3,F4} <: JumpVectorField
+    fs::F1
+    hypers::F2
+    rules::F3
+    regions::F4
     idxs::Vector{Int}
+    n::Int
 end
 
 function (v::PiecewiseImpactV)(x, p, t)
-    n = Int(p[end])
+    n = v.n
     v.fs[n](x, p, t)
 end
 
@@ -35,7 +36,7 @@ function setmap(v::PiecewiseImpactV, timespan, alg, N, T; region_detect=_region_
             t0 = integrator.t + 1 // 20
             u0 = integrator.sol(t0)
             p = integrator.p
-            i = region_detect(v.regions, u0, p, t0)
+            integrator.f.f = region_detect(v.regions, u0, p, t0)
             p[end] = i
         end
         append!(event_at, [idx])
@@ -50,7 +51,7 @@ function setmap(v::PiecewiseImpactV, timespan, alg, N, T; region_detect=_region_
     vcb = VectorContinuousCallback(condition, affect!, nn)
     function tmap(State::State{N,T}, para) where {N,T}
         x = State.state
-        para[end] = region_detect(v.regions, x, para, timespan[1])
+        v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
@@ -81,7 +82,7 @@ impact_rules(x,p,t)=SA[x[1],-x[2]]
 
 id(x,p,t)=x
 
-vectorfield = PiecewiseImpactV([f1, f2], [hyper1, hyper2], [impact_rules,id],[dom1, dom2], [1])
+vectorfield = PiecewiseImpactV((f1, f2), (hyper1, hyper2), (impact_rules,id),(dom1, dom2), [1],0)
 
 setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), 2, Float64)
 
@@ -118,7 +119,7 @@ function newton(x,p; n=100, atol=1e-8)
     end
 end
 
-para = [2, 5, 0.6, 2, 1]
+para = [2, 5, 0.6, 2]
 fixedpoint= newton(SA[0.0, 0.0],para)
 unstable_direction = eigen(jac(fixedpoint,para)).vectors[:,2]
 
