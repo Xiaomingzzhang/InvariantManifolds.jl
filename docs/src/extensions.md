@@ -36,7 +36,7 @@ function setmap(v::PiecewiseImpactV, timespan, alg, N, T; region_detect=_region_
             t0 = integrator.t + 1 // 20
             u0 = integrator.sol(t0)
             p = integrator.p
-            integrator.f.f = region_detect(v.regions, u0, p, t0)
+            integrator.f.f.n = region_detect(v.regions, u0, p, t0)
             p[end] = i
         end
         append!(event_at, [idx])

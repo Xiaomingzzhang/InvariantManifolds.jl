@@ -43,7 +43,7 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
-        integrator.f.f == i
+        integrator.f.f.n = i
         append!(event_at, [idx])
         append!(event_state, [integrator.u])
         append!(event_t, [integrator.t])
@@ -97,7 +97,7 @@ function timetmap(v::PiecewiseV, timespan, alg ;region_detect=_region_detect, ex
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
-        integrator.f.f == i
+        integrator.f.f.n = i
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -142,7 +142,7 @@ function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_dete
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
-        integrator.f.f == i
+        integrator.f.f.n = i
         append!(event_at, [idx])
         append!(event_state, [integrator.u])
         append!(event_t, [integrator.t])

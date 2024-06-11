@@ -17,7 +17,7 @@ makedocs(;
     ),
     pages = [
         "Home"=>"index.md",
-        "State of art"=>"art.md",
+        # "State of art"=>"art.md",
         "Examples"=>"examples.md",
         "Extensions"=>"extensions.md",
         "API"=>"api.md"

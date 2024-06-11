@@ -407,3 +407,5 @@ manifold_plot(result)
 ```
 
 ## Unstable manifold of the Filippov system's time-$T$-map
+
+I don't found any existing simple examples, but I think the codes should just work.
