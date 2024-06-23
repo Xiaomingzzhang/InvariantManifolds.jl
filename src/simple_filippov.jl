@@ -40,8 +40,7 @@ function setmap(v::SFilippovV, timespan, alg, N, T; extra...)
         end
     end
     cb = ContinuousCallback(condition, affect!)
-    function tmap(State::State{N,T}, para) where {N,T}
-        x = State.state
+    function tmap(x::SVector{N,T}, para) where {N,T}
         if v.hyper(x, para, timespan[1]) < 0
             v.n = 1
         elseif v.hyper(x, para, timespan[1]) > 0
@@ -59,7 +58,7 @@ function setmap(v::SFilippovV, timespan, alg, N, T; extra...)
         empty!(event_at)
         empty!(event_t)
         empty!(event_state)
-        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
+        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at)
     end
     NSSetUp(v, timespan, tmap)
 end

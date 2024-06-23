@@ -17,8 +17,7 @@ function setmap(v::BilliardV, timespan, alg, N, T; extra...)
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    function tmap(State::State{N,T}, para) where {N,T}
-        x = State.state
+    function tmap(x::SVector{N,T}, para) where {N,T}
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
@@ -27,7 +26,7 @@ function setmap(v::BilliardV, timespan, alg, N, T; extra...)
         empty!(event_at)
         empty!(event_t)
         empty!(event_state)
-        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
+        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at)
     end
     NSSetUp(v, timespan, tmap)
 end

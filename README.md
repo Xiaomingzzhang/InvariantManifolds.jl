@@ -16,3 +16,5 @@ To use this package, first install [julia](https://julialang.org/), then run
 using Pkg;
 Pkg.add("https://github.com/Xiaomingzzhang/InvariantManifolds.jl")
 ```
+
+For more information, see the [docs](https://Xiaomingzzhang.github.io/InvariantManifolds.jl/dev/) of this package.

@@ -54,8 +54,7 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    function tmap(State::State{N,T}, para) where {N,T}
-        x = State.state
+    function tmap(x::SVector{N,T}, para) where {N,T}
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
@@ -65,7 +64,7 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         empty!(event_at)
         empty!(event_t)
         empty!(event_state)
-        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
+        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at)
     end
     NSSetUp(v, timespan, tmap)
 end

@@ -1,30 +1,83 @@
 """
-    segment(point, direction, n, d)
+    segment(saddle, direction, n, d)
 
-Generating `n` points at `point` in the `direction`, with length `d`
+Generating `n` points at `saddle` in the `direction`, with length `d`
 """
-function segment(point, direction, n, d)
+function segment(saddle, direction, n, d)
     tangent = normalize(direction)
-    datatype = typeof(point)
+    datatype = typeof(saddle)
     data = Vector{datatype}(undef, n)
     for i in eachindex(data)
-        data[i] = point + ((d * (i - 1)) / (n - 1)) * tangent
+        data[i] = saddle + ((d * (i - 1)) / (n - 1)) * tangent
     end
     data
 end
 
-function paramise(image)
-    datatype = typeof(image[1][1])
-    l = length(image[1])
-    m = length(image)
+function paramise(data::Vector{SVector{N,T}}; interp=LinearInterpolation) where {N,T}
+    m = length(data)
     if m == 1
-        error("inintial points are too small")
+        error("there is just one point!")
     end
-    final = Vector{State{l,datatype}}(undef, m)
-    @inbounds for q in 1:m
-        final[q] = State(image[q], (q - 1) // (m - 1))
+    s0 = Vector{T}(undef,m)
+    s0[1] = 0
+    for i in 2:m
+        dd = norm(data[i]-data[i-1])
+        s0[i] = s0[i-1]+dd
     end
-    IterationCurve(final, LinearInterpolation(final))
+    interp(data, s0)
+end
+
+# extend the function Base.insert! so that we can insert many elements at a certain position.
+function Base.insert!(a::Array{T,1}, i::Integer, b::Array{T,1}) where {T}
+    # Throw convert error before changing the shape of the array
+    n = length(b)
+    Base._growat!(a, i, n)
+    # _growat! already did bound check
+    @inbounds for j in 1:n
+        a[i+j-1] = b[j]
+    end
+    return a
+end
+
+function Base.insert!(a::Vector{Vector{T}}, i::Integer, b::Vector{T}) where {T}
+    # Throw convert error before changing the shape of the array
+    Base._growat!(a, i, 1)
+    # _growat! already did bound check
+    a[i] = b
+    return a
+end
+
+@inline function addpoints!(f, p, min, oldcurve, newu::Vector{SVector{N,T}}, olds::Vector{T}) where {N,T}
+    n = length(newu)
+    i = 1
+    newpara = T[0]
+    @inbounds while i + 1 <= n
+        dist = norm(newu[i+1] - newu[i])
+        if dist > min
+            m = ceil(Int, dist / min)
+            if m == 1
+                m = 2
+            end
+            s0 = olds[i]
+            s1 = olds[i+1]
+            plengh = (s1 - s0) / m
+            paras = [s0 + plengh * i for i in 1:m-1]
+            addps = Vector{SVector{N,T}}(undef, m - 1)
+            for j in 1:m-1
+                addps[j] = f(oldcurve(paras[j]), p)
+            end
+            # @show paras
+            # @show addps
+            insert!(newu, i + 1, addps)
+            insert!(olds, i + 1, paras)
+            n = n + m - 1
+        else
+            i = i + 1
+            dd = newpara[end]
+            append!(newpara, [dd + dist])
+        end
+    end
+    newpara
 end
 
 """
@@ -37,93 +90,53 @@ saddle point, to get `[pn,...,f(pn)]`.
 - `map` is the map function;
 - `parameters` is the parameters of the `map`.
 """
-function initialise_curve(points, map, parameters)
+function initialise_curve(map, parameters, saddle, direction, nn, d; interp=LinearInterpolation)
+    points = segment(saddle, direction, nn, d)
+    result = [paramise(points, interp=interp)]
     n = length(points)
-    image = Vector{eltype(points)}(undef, n)
-    for i in eachindex(image)
-        image[i] = map(points[i], parameters)
+    data = Vector{eltype(points)}(undef, n)
+    for i in eachindex(data)
+        data[i] = map(points[i], parameters)
     end
     p0 = first(points)
     pn = last(points)
     j = 1
     d = norm(pn - p0)
-    while norm(image[j] - p0) < d
+    while norm(data[j] - p0) < d
         j = j + 1
     end
     j = j + 1
-    result = image[j:end]
-    result=prepend!(result, [pn])
-    paramise(result)
+    data = data[j:end]
+    prepend!(data, [pn])
+    append!(result, [paramise(data, interp=interp)])
 end
 
 
-function insert!(a::Array{T,1}, i::Integer, b::Array{S,1}) where {T,S}
-    # Throw convert error before changing the shape of the array
-    _b = S == T ? b : convert(Array{T,1}, b)::Array{T,1}
-    n = length(b)
-    Base._growat!(a, i, n)
-    # _growat! already did bound check
-    @inbounds for j in 1:n
-        a[i+j-1] = _b[j]
-    end
-    return a
-end
 
 """
     InvariantManifolds.addpoints(f, p, ic1::IterationCurve{N,T}, min)
     
-`addpoints` will add enough points from `ic1` so that its image of points are
+`addpoints` will add enough points from `ic1` so that its data of points are
 dense, i.e., the distance of nearby points will less than `min`. 
 This function will also delete extra points so that the distance of nearby points aren't two small.
 """
-@inline function addpoints(f, p, ic1::IterationCurve{N,T}, min) where{N, T}
-    n = length(ic1.states)
+function grow_line!(f, p, data, min; interp=LinearInterpolation)
+    ic1 = copy(data[end].u)
+    olds = copy(data[end].t)
+    n = length(ic1)
     if n < 3
         error("The length of states must be greater than 2")
     end
-    datatype = typeof(ic1.states[1])
-    ic2_states = Vector{datatype}(undef, n)
-    @inbounds @simd for i in eachindex(ic2_states)
-        ic2_states[i] = State(f(ic1.states[i].state, p), ic1.states[i].s)
+    datatype = typeof(ic1[1])
+    T = typeof(ic1[1][1])
+    ic2 = Vector{datatype}(undef, n)
+    @inbounds @simd for i in eachindex(ic1)
+        ic2[i] = f(ic1[i], p)
     end
-    curve = ic1.pcurve
-    i = 1
-    newpara = T[0]
-    @inbounds while i + 1 <= n
-        dist = norm(ic2_states[i+1] - ic2_states[i])
-        if dist > min
-            m = ceil(Int, dist / min)
-            if m == 1
-                m = 2
-            end
-            s0 = ic2_states[i].s
-            s1 = ic2_states[i+1].s
-            plengh = (s1 - s0) / m
-            paras = [s0 + plengh * i for i in 1:m-1]
-            addps = Vector{datatype}(undef, m - 1)
-            for j in 1:m-1
-                addps[j] = State(f(curve(paras[j]), p), paras[j])
-            end
-            insert!(ic2_states, i + 1, addps)
-            n = n + m - 1
-        else
-            i = i + 1
-            dd = newpara[end]
-            append!(newpara, [dd+dist])
-        end
-    end
-    newstates = similar(ic2_states)
-    for i in eachindex(newstates)
-        newstates[i] = State(ic2_states[i].state, newpara[i])
-    end
-    IterationCurve(newstates, LinearInterpolation(take_state.(ic2_states), newpara))
-end
-
-function iterate!(f, p, result, min, n)
-    for i in 1:n
-        append!(result, [addpoints(f, p, result[end], min)])
-    end
-    result
+    curve = data[end]
+    newpara = addpoints!(f, p, min, curve, ic2, olds)
+    newintep = interp(ic2, newpara)
+    append!(data, [newintep])
 end
 
 """
@@ -137,16 +150,10 @@ This function is to generate one-dimensional manifold of smooth mapping or a tim
 - `d` max distance between points;
 - `n` iteration times.
 """
-function generate_curves(f, p, seg, d, n)
-    N = length(seg[1])
-    T = typeof(seg[1][1])
-    result = Vector{IterationCurve{N,T}}(undef, 2)
-    _seg = initialise_curve(seg, f, p)
-    result[1] = paramise(seg)
-    result[2] = _seg
-    for i in 1:n
-        seg2 = addpoints(f, p, result[end], d)
-        append!(result, [seg2])
+function generate_curves(f, p, saddle, direction, d, N; interp=LinearInterpolation, n=150, initial_d=0.01)
+    curves = initialise_curve(f, p, saddle, direction, n, initial_d; interp=interp)
+    for i in 1:N
+        grow_line!(f, p, curves, d; interp=interp)
     end
-    result
+    curves
 end

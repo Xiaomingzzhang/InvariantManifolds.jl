@@ -39,14 +39,14 @@ end
 #     return a
 # end
 
-@inline function nsnorm(a::NSState{N,T}, b::NSState{N,T}, rules, p, time_end, ntimes) where {N,T}
+@inline function nsnorm(a::NSState{N,T}, b::NSState{N,T}, rules, p, time_end, dtimes) where {N,T}
     if a.event_at == b.event_at
         norm(a - b)
     elseif abs(length(a.event_at) - length(b.event_at)) == 1
         if a.event_at == b.event_at[1:end-1]
-            norm(rules[b.event_at[end]](a.state, p, time_end) - b.state) * ntimes
+            norm(rules[b.event_at[end]](a.state, p, time_end) - b.state) * dtimes
         elseif a.event_at[1:end-1] == b.event_at
-            norm(rules[a.event_at[end]](b.state, p, time_end) - a.state) * ntimes
+            norm(rules[a.event_at[end]](b.state, p, time_end) - a.state) * dtimes
         else
             T(2)
         end
@@ -55,74 +55,24 @@ end
     end
 end
 
-@inline function addpoints(f, para, nic::Vector{IterationCurve{N,T}}, rules, time_end, min, ntimes) where {N,T}
-    result = IterationCurve{N,T}[]
-    @inbounds for j in eachindex(nic)
-        n = length(nic[j].states)
-        ic2_states = Vector{NSState{N,T}}(undef, n)
-        for k in eachindex(ic2_states)
-            ic2_states[k] = f(nic[j].states[k],para)
-        end
-        curve = nic[j].pcurve
-        i = 1
-        newpara = T[0]
-        while i + 1 <= n
-            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, para, time_end, ntimes)
-            if dist > min
-                m = ceil(Int, dist / min)
-                if m == 1
-                    m = 2
-                end
-                s0 = ic2_states[i].s
-                s1 = ic2_states[i+1].s
-                plengh = (s1 - s0) / m
-                paras = [s0 + plengh * i for i in 1:m-1]
-                addps = Vector{NSState{N,T}}(undef, m - 1)
-                for kk in 1:m-1
-                    addps[kk] = f(State(curve(paras[kk]), paras[kk]), para)
-                end
-                insert!(ic2_states, i + 1, addps)
-                n = n + m - 1
-            else
-                i = i + 1
-                dd = newpara[end]
-                append!(newpara, [dd + dist])
-            end
-        end
-        __result = partition(ic2_states)
-        mm = length(__result)
-        _result = Vector{IterationCurve{N,T}}(undef, mm)
-        l0 = 1
-        lend = length(__result[1])
-        for k in 1:mm
-            newstates = Vector{State{N,T}}(undef, length(__result[k]))
-            for i in eachindex(newstates)
-                newstates[i] = State(__result[k][i].state, newpara[l0+i-1])
-            end
-            _result[k] = IterationCurve(newstates, LinearInterpolation(take_state.(__result[k]), newpara[l0:lend]))
-            if k <= mm - 1
-                l0 = lend + 1
-                lend = lend + length(__result[k+1])
-            end
-        end
-        append!(result, _result)
-    end
-    result
-end
+take_state(x) = x.state
+
 
 """
     InvariantManifolds.ns_initialise_curve(points, tmap, para)
 
 Initialise the curve of non-smooth ODE's time-T-map.
 """
-function ns_initialise_curve(points, tmap, para)
-    map = x -> tmap(State(x, 0), para)
+function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d; interp=LinearInterpolation)
+    points = segment(saddle, direction, nn, d)
+    result = [[paramise(points, interp=interp)]]
+    tmap = f.timetmap
     n = length(points)
-    m = length(points[1])
-    type = typeof(points[1][1])
+    m = length(saddle)
+    type = typeof(saddle[1][1])
     _image = Vector{NSState{m,type}}(undef, n)
     for i in eachindex(_image)
-        _image[i] = map(points[i])
+        _image[i] = tmap(points[i], para)
     end
     if ispartitioned(_image) == false
         error("The initial curve has to be chosen more small")
@@ -136,39 +86,81 @@ function ns_initialise_curve(points, tmap, para)
         j = j + 1
     end
     j = j + 1
-    result = image[j:end]
-    prepend!(result, [pn])
-    paramise(result)
+    first_iteration_curve = image[j:end]
+    prepend!(first_iteration_curve, [pn])
+    append!(result, [[paramise(first_iteration_curve, interp=interp)]])
+end
+
+@inline function grow_line!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
+    dtimes=100, interp=LinearInterpolation) where {P}
+    nic = data[end]
+    result = P[]
+    N = length(nic[1].u[1])
+    T = typeof(nic[1].u[1][1])
+    rules = v.f.rules
+    t_end = v.timespan[end]
+    f = v.timetmap
+    @inbounds for j in eachindex(nic)
+        curve = nic[j]
+        n = length(curve.u)
+        ic2_states = Vector{NSState{N,T}}(undef, n)
+        for k in eachindex(ic2_states)
+            ic2_states[k] = f(curve.u[k], para)
+        end
+        i = 1
+        news = T[0]
+        olds = copy(curve.t)
+        while i + 1 <= n
+            dist = nsnorm(ic2_states[i], ic2_states[i+1], rules, para, t_end, dtimes)
+            if dist > δ
+                m = ceil(Int, dist / δ)
+                if m == 1
+                    m = 2
+                end
+                s0 = olds[i]
+                s1 = olds[i+1]
+                plengh = (s1 - s0) / m
+                paras = [s0 + plengh * i for i in 1:m-1]
+                addps = Vector{NSState{N,T}}(undef, m - 1)
+                for kk in 1:m-1
+                    addps[kk] = f(curve(paras[kk]), para)
+                end
+                insert!(ic2_states, i + 1, addps)
+                insert!(olds, i + 1, paras)
+                n = n + m - 1
+            else
+                if ic2_states[i].event_at == ic2_states[i+1].event_at
+                    newdist = dist
+                else
+                    newdist = dist / dtimes
+                end
+                dd = news[end]
+                append!(news, [dd + newdist])
+                i = i + 1
+            end
+        end
+        __result = partition(ic2_states)
+        mm = length(__result)
+        _result = Vector{P}(undef, mm)
+        l0 = 1
+        lend = length(__result[1])
+        for k in 1:mm
+            _result[k] = interp(take_state.(__result[k]), news[l0:lend])
+            if k <= mm - 1
+                l0 = lend + 1
+                lend = lend + length(__result[k+1])
+            end
+        end
+        append!(result, _result)
+    end
+    append!(data, [result])
 end
 
 
-id(x, p, t) = x
-
-function generate_curves(v::NSSetUp{S}, para, seg, d, n; ntimes=100) where {S<:ContinuousVectorField}
-    N = length(seg[1])
-    T = typeof(seg[1][1])
-    m = length(v.f.hypers)
-    result = Vector{Vector{IterationCurve{N,T}}}(undef, 2)
-    _seg = ns_initialise_curve(seg, v.timetmap,para)
-    result[1] = [paramise(seg)]
-    result[2] = [_seg]
-    for i in 1:n
-        seg2 = addpoints(v.timetmap, para, result[end], fill(id, m), v.timespan[end], d, ntimes)
-        append!(result, [seg2])
+function generate_curves(f::NSSetUp, p, saddle, direction, δ, N; interp=LinearInterpolation, n=150, initial_d=0.01, dtimes=100)
+    curves = ns_initialise_curve(f, p, saddle, direction, n, initial_d; interp=interp)
+    for i in 1:N
+        grow_line!(f, p, curves, δ; interp=interp, dtimes=dtimes)
     end
-    result
-end
-
-function generate_curves(v::NSSetUp{S}, para, seg, d, n; ntimes=100) where {S<:JumpVectorField}
-    N = length(seg[1])
-    T = typeof(seg[1][1])
-    result = Vector{Vector{IterationCurve{N,T}}}(undef, 2)
-    _seg = ns_initialise_curve(seg, v.timetmap,para)
-    result[1] = [paramise(seg)]
-    result[2] = [_seg]
-    for i in 1:n
-        seg2 = addpoints(v.timetmap, para, result[end], v.f.rules, v.timespan[end], d, ntimes)
-        append!(result, [seg2])
-    end
-    result
+    curves
 end
