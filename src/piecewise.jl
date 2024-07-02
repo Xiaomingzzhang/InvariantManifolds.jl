@@ -36,8 +36,6 @@ except the `callback` and saving related keywords.
 function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect, extra...)
     nn = length(v.hypers)
     event_at = Int[]
-    event_state = SVector{N,T}[]
-    event_t = T[]
     function affect!(integrator, idx)
         t0 = integrator.t + 1 // 20
         p = integrator.p
@@ -45,8 +43,6 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         i = region_detect(v.regions, u0, p, t0)
         integrator.f.f.n = i
         append!(event_at, [idx])
-        append!(event_state, [integrator.u])
-        append!(event_t, [integrator.t])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -59,12 +55,8 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
-        newv_event_t = copy(event_t)
-        newv_event_state = copy(event_state)
         empty!(event_at)
-        empty!(event_t)
-        empty!(event_state)
-        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at)
+        NSState(sol[end], newv_event_at, false, 0)
     end
     NSSetUp(v, timespan, tmap)
 end

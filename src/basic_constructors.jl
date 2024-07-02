@@ -28,11 +28,12 @@ PiecewiseV((f1,f2),(dom1,dom2),(hyper,),1)
 The above codes generate a piecewise smooth vector field, which when `x[1]>0` is `f1`, and when `x[2]<0` is `f2`.
 The hyper surface separating these smooth vector fields is `x[1]=0`.
 """
-mutable struct PiecewiseV{F1,F2,F3,F4} <: ContinuousVectorField
+mutable struct PiecewiseV{F1,F2,F3,F4,F5} <: ContinuousVectorField
     fs::F1
     regions::F2
     hypers::F3
     rules::F4
+    mirrors::F5
     n::Int
 end
 
@@ -59,7 +60,7 @@ id(x, p, t) = x
 function PiecewiseV(f1, f2, f3)
     n = length(f3)
     ids = ntuple(_ -> id, n)
-    PiecewiseV(f1, f2, f3, ids, 0)
+    PiecewiseV(f1, f2, f3, ids, ids, 0)
 end
 
 function (v::PiecewiseV)(x, p, t)
@@ -78,10 +79,15 @@ A vector field with multiple hyper surfaces such that the flow jump when hits th
 - `hypers` is tuple of hyper surfaces:`(h1,h2,...)`, `h1(x,p,t)`;
 - `irules` is tuple of rules on hyper surfaces:`(r1,r2,r3,...)`.
 """
-struct BilliardV{F1,F2,F3} <: JumpVectorField
+struct BilliardV{F1,F2,F3,F4} <: JumpVectorField
     f::F1
     hypers::F2
     rules::F3
+    mirrors::F4
+end
+
+function BilliardV(f, hypers, rules)
+    BilliardV(f, hypers, rules, nothing)
 end
 
 function (v::BilliardV)(x, p, t)
@@ -101,12 +107,13 @@ end
 - `exit` conditions to exit the hyper surface, which can also be generated automatically.
 - `n` is a integer to switch between vector fields. It can be set to any integer when construct a `SFilippovV`.
 """
-mutable struct SFilippovV{F,H,DH,E,G} <: ContinuousVectorField
+mutable struct SFilippovV{F,H,DH,E,G,Q} <: ContinuousVectorField
     fs::F
     hyper::H
     dhyper::DH
     exit::E
     rules::G
+    mirrors::Q
     n::Int
 end
 
@@ -121,13 +128,22 @@ function SFilippovV(fs, h, ∇h)
         dot(∇h(x, p, t), f2(x, p, t)) * dot(∇h(x, p, t), f1(x, p, t))
     end
     ids = (id, id, id)
-    SFilippovV((f1, f2, sv), h, ∇h, exit, ids, 0)
+    SFilippovV((f1, f2, sv), h, ∇h, exit, ids, ids, 0)
 end
 
 function (v::SFilippovV)(x, p, t)
     n = v.n
     v.fs[n](x, p, t)
 end
+
+# struct HyperPlaneMirror{T}
+#     idx::Int64
+#     value::T
+# end
+
+# function (v::SFilippovV)(x, p, t)
+    
+# end
 
 
 """
