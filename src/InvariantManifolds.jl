@@ -2,8 +2,6 @@ module InvariantManifolds
 
 using LinearAlgebra, StaticArrays, OrdinaryDiffEq, DataInterpolations, NearestNeighbors
 
-import DataInterpolations.AbstractInterpolation
-
 import Base: -, +, *, /, length, eltype, getindex, size, show, insert!
 
 export NSState, NSSolution, NSSetUp, AnnulusBoundaries
@@ -12,7 +10,9 @@ export PiecewiseV, BilliardV, SFilippovV
 
 export setmap, timetmap, ns_solver
 
-export inintialise_mesh, initialise_curve, ns_initialise_curve, grow_line!, grow_surface!, generate_curves, generate_surface
+export inintialise_mesh, initialise_curve, ns_initialise_curve
+
+export grow_line!, grow_surface!, generate_curves, generate_surface
 
 include("basic_constructors.jl")
 include("nsstate_construction.jl")
@@ -34,7 +34,9 @@ include("simple_filippov.jl")
 # the one dimensional non-smooth manifold algorithm
 include("nonsmooth-one.jl")
 
-# the two dimensional non-smooth manifold algorithm
-# include("nonsmooth-two.jl")
+include("nonsmooth_maps_two.jl")
+
+# newton method to locate the saddles of smooth vector fields' time-T-map
+include("newton.jl")
 
 end

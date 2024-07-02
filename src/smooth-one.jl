@@ -13,16 +13,17 @@ function segment(saddle, direction, n, d)
     data
 end
 
-function paramise(data::Vector{SVector{N,T}}; interp=LinearInterpolation) where {N,T}
+function paramise(data::Vector{S}; interp=LinearInterpolation) where {S}
     m = length(data)
     if m == 1
         error("there is just one point!")
     end
-    s0 = Vector{T}(undef,m)
+    T = typeof(data[1][1])
+    s0 = Vector{T}(undef, m)
     s0[1] = 0
     for i in 2:m
-        dd = norm(data[i]-data[i-1])
-        s0[i] = s0[i-1]+dd
+        dd = norm(data[i] - data[i-1])
+        s0[i] = s0[i-1] + dd
     end
     interp(data, s0)
 end
@@ -47,10 +48,11 @@ function Base.insert!(a::Vector{Vector{T}}, i::Integer, b::Vector{T}) where {T}
     return a
 end
 
-@inline function addpoints!(f, p, min, oldcurve, newu::Vector{SVector{N,T}}, olds::Vector{T}) where {N,T}
+@inline function addpoints!(f, p, min, oldcurve, newu::Vector{SVector{N,T}}, olds::Vector{T}; del_extra=false) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
+    # first add enough points
     @inbounds while i + 1 <= n
         dist = norm(newu[i+1] - newu[i])
         if dist > min
@@ -66,8 +68,6 @@ end
             for j in 1:m-1
                 addps[j] = f(oldcurve(paras[j]), p)
             end
-            # @show paras
-            # @show addps
             insert!(newu, i + 1, addps)
             insert!(olds, i + 1, paras)
             n = n + m - 1
@@ -77,8 +77,27 @@ end
             append!(newpara, [dd + dist])
         end
     end
+    # delete unnesscery points
+    if del_extra == true
+        k = 1
+        M = length(newpara)
+        @inbounds while k + 2 <= M
+            s1 = newpara[k+1] - newpara[k]
+            s2 = newpara[k+2] - newpara[k+1]
+            s3 = norm(newu[k+2] - newu[k])
+            if s1 < min && s2 < min && s3 < min
+                deleteat!(newpara, k + 1)
+                deleteat!(olds, k + 1)
+                deleteat!(newu, k + 1)
+                M = M - 1
+            else
+                k = k + 1
+            end
+        end
+    end
     newpara
 end
+
 
 """
     InvariantManifolds.initialise_curve(points, map, parameters)
@@ -90,7 +109,7 @@ saddle point, to get `[pn,...,f(pn)]`.
 - `map` is the map function;
 - `parameters` is the parameters of the `map`.
 """
-function initialise_curve(map, parameters, saddle, direction, nn, d; interp=LinearInterpolation)
+function initialise_curve(map, parameters, saddle, direction, nn, d, min; interp=LinearInterpolation, del_extra=false)
     points = segment(saddle, direction, nn, d)
     result = [paramise(points, interp=interp)]
     n = length(points)
@@ -98,11 +117,14 @@ function initialise_curve(map, parameters, saddle, direction, nn, d; interp=Line
     for i in eachindex(data)
         data[i] = map(points[i], parameters)
     end
+    curve = paramise(points)
+    olds = copy(curve.t)
+    addpoints!(map, parameters, min, curve, data, olds, del_extra = del_extra)
     p0 = first(points)
     pn = last(points)
     j = 1
-    d = norm(pn - p0)
-    while norm(data[j] - p0) < d
+    dist = norm(pn - p0)
+    while norm(data[j] - p0) < dist
         j = j + 1
     end
     j = j + 1
@@ -120,7 +142,7 @@ end
 dense, i.e., the distance of nearby points will less than `min`. 
 This function will also delete extra points so that the distance of nearby points aren't two small.
 """
-function grow_line!(f, p, data, min; interp=LinearInterpolation)
+function grow_line!(f, p, data, min; interp=LinearInterpolation, del_extra = false)
     ic1 = copy(data[end].u)
     olds = copy(data[end].t)
     n = length(ic1)
@@ -134,7 +156,7 @@ function grow_line!(f, p, data, min; interp=LinearInterpolation)
         ic2[i] = f(ic1[i], p)
     end
     curve = data[end]
-    newpara = addpoints!(f, p, min, curve, ic2, olds)
+    newpara = addpoints!(f, p, min, curve, ic2, olds, del_extra = del_extra)
     newintep = interp(ic2, newpara)
     append!(data, [newintep])
 end
@@ -150,10 +172,10 @@ This function is to generate one-dimensional manifold of smooth mapping or a tim
 - `d` max distance between points;
 - `n` iteration times.
 """
-function generate_curves(f, p, saddle, direction, d, N; interp=LinearInterpolation, n=150, initial_d=0.01)
-    curves = initialise_curve(f, p, saddle, direction, n, initial_d; interp=interp)
+function generate_curves(f, p, saddle, direction, d, N; interp=LinearInterpolation, n=150, initial_d=0.01, del_extra=false)
+    curves = initialise_curve(f, p, saddle, direction, n, initial_d, d; interp=interp, del_extra = del_extra)
     for i in 1:N
-        grow_line!(f, p, curves, d; interp=interp)
+        grow_line!(f, p, curves, d; interp=interp, del_extra = del_extra)
     end
     curves
 end

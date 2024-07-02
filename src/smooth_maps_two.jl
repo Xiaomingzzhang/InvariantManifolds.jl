@@ -128,8 +128,6 @@ function grow_surface!(f, para, annulus::Vector{Annulus{S}}, δ1, δ2; interp=Li
         for j in eachindex(data[i].u)
             states[j] = f(data[i].u[j], para)
         end
-        # @show length(states)
-        # @show length(ss)
         newdata[i] = interp(states, ss)
     end
     newdata[1] = deepcopy(data[end])
@@ -141,13 +139,11 @@ function grow_surface!(f, para, annulus::Vector{Annulus{S}}, δ1, δ2; interp=Li
         newpara = addpoints!(f, para, δ1, oldcurve, ic, olds)
         olds .= newpara
     end
-    # @show typeof(collect_s)
     # then interpolate between circles
     p = 1
     copydata = deepcopy(data)
     @inbounds while p + 1 <= k
         dd = kd_distence(newdata[p].u, newdata[p+1].u)
-        # @show dd
         if dd > δ2
             insert_circle = copy(copydata[p+1].u)
             pre_insert_circle = similar(copydata[p+1].u)
