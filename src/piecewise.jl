@@ -56,7 +56,7 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
         empty!(event_at)
-        NSState(sol[end], newv_event_at, false, 0)
+        NSState(sol[end], newv_event_at, false, 0, 0)
     end
     NSSetUp(v, timespan, tmap)
 end

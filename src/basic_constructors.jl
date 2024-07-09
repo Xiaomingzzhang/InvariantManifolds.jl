@@ -32,8 +32,8 @@ mutable struct PiecewiseV{F1,F2,F3,F4,F5} <: ContinuousVectorField
     fs::F1
     regions::F2
     hypers::F3
-    rules::F4
-    mirrors::F5
+    mirrors::F4
+    inverse_mirrors::F5
     n::Int
 end
 
@@ -79,15 +79,16 @@ A vector field with multiple hyper surfaces such that the flow jump when hits th
 - `hypers` is tuple of hyper surfaces:`(h1,h2,...)`, `h1(x,p,t)`;
 - `irules` is tuple of rules on hyper surfaces:`(r1,r2,r3,...)`.
 """
-struct BilliardV{F1,F2,F3,F4} <: JumpVectorField
+struct BilliardV{F1,F2,F3,F4,F5} <: JumpVectorField
     f::F1
     hypers::F2
     rules::F3
     mirrors::F4
+    inverse_mirrors::F5
 end
 
 function BilliardV(f, hypers, rules)
-    BilliardV(f, hypers, rules, nothing)
+    BilliardV(f, hypers, rules, rules, nothing)
 end
 
 function (v::BilliardV)(x, p, t)

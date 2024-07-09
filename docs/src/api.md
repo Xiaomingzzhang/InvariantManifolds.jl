@@ -3,9 +3,7 @@
 
 
 ```@docs
-State
 NSState
-IterationCurve
 NSSolution
 NSSetUp
 AnnulusBoundaries

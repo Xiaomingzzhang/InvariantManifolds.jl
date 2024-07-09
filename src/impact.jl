@@ -4,21 +4,24 @@ function setmap(v::BilliardV, timespan, alg, N, T; extra...)
     function affect!(integrator, idx)
         p0 = integrator.p
         u0 = integrator.u
-        integrator.u = v.rules[idx](u0, p0, integrator.t)
+        integrator.u = v.rules[idx](u0, p0)
         append!(event_at, [idx])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
-            out[i] = v.hypers[i](u, integrator.p, t)
+            out[i] = v.hypers[i](u, integrator.p)
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    function tmap(x::SVector{N,T}, para) where {N,T}
+    function tmap(X::NSState{N,T}, para) where {N,T}
+        x = X.state
+        event = copy(X.event_at)
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
+        append!(event, newv_event_at)
         empty!(event_at)
-        NSState(sol[end], newv_event_at, false, 0)
+        NSState(sol[end], event, false, 0, 0)
     end
     NSSetUp(v, timespan, tmap)
 end

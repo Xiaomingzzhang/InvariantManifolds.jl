@@ -19,7 +19,8 @@ struct NSState{N,T<:Number} <: AbstractVector{T}
     state::SVector{N,T}
     event_at::Vector{Int64}
     ismirrored::Bool
-    mirroredidx::Int64
+    idx::Int64
+    toward::Int64
 end
 
 function Base.show(io::IO, m::MIME"text/plain", A::NSState{N,T}) where {N,T}
@@ -32,7 +33,11 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSState{N,T}) where {N,T}
 end
 
 function NSState(v::SVector{N,T}) where {N,T}
-    NSState(v, Int64[], false, 0)
+    NSState(v, Int64[], false, 0, 0)
+end
+
+function NSState(v::SVector{N,T}, event::Vector{Int}) where {N,T}
+    NSState(v, event, false, 0, 0)
 end
 
 # Further definitions allow to interpolate vector consisting of NSState.
@@ -41,9 +46,9 @@ function NSState{N,T}(v::NSState{N,T}) where {N,T}
     v
 end
 
-+(a, b) = a.state + b.state
++(a::NSState, b::NSState) = a.state + b.state
 
--(a, b) = a.state - b.state
+-(a::NSState, b::NSState) = a.state - b.state
 
 *(a::Number, b::NSState) = a * b.state
 
@@ -51,13 +56,14 @@ end
 
 /(a::NSState, b::Number) = a.state / b
 
-Base.length(v::NSState{N,T}) where {N,T} = N
+Base.length(v::Type{NSState{N,T}}) where {N,T} = N
 
 Base.eltype(v::NSState{N,T}) where {N,T} = T
 
 Base.getindex(v::NSState{N,T}, k) where {N,T} = v.state[k]
 
 Base.size(v::NSState{N,T}) where {N,T} = (N,)
+
 
 """
     NSSolution{N,T<:Number}

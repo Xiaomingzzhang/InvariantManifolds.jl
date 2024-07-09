@@ -11,14 +11,14 @@ function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=LinearInterpol
             append!(s00, [s0[j]])
         else
             append!(result, [a0])
-            append!(result, [s00])
+            append!(result_s, [s00])
             a0 = [v[j]]
             s00 = [s0[j]]
             ctime1 = v[j].event_at
         end
     end
     append!(result, [a0])
-    append!(result, [s00])
+    append!(result_s, [s00])
     [interp(result[i], result_s[i]) for i in eachindex(result)]
 end
 
@@ -50,9 +50,9 @@ end
         norm(a - b)
     elseif abs(length(a.event_at) - length(b.event_at)) == 1
         if a.event_at == b.event_at[1:end-1]
-            norm(mirrors[b.event_at[end]](a.state, p, time_end) - b.state) * dtimes
+            norm(mirrors[b.event_at[end]](a.state, p) - b.state) * dtimes
         elseif a.event_at[1:end-1] == b.event_at
-            norm(mirrors[a.event_at[end]](b.state, p, time_end) - a.state) * dtimes
+            norm(mirrors[a.event_at[end]](b.state, p) - a.state) * dtimes
         else
             T(2)
         end
@@ -62,14 +62,16 @@ end
 end
 
 
-@inline function ns_addpoints!(tmap, p, min, oldcurve, newu::Vector{NSState{N,T}}, olds::Vector{T}, dtimes, tend, mirrors) where {N,T}
+@inline function ns_addpoints!(tmap, p, δ, oldcurve, newu::Vector{NSState{N,T}}, olds::Vector{T}, dtimes, tend, mirrors) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
+    event = oldcurve.u[1].event_at
     @inbounds while i + 1 <= n
         dist = nsnorm(newu[i], newu[i+1], mirrors, p, tend, dtimes)
-        if dist > min
-            m = ceil(Int, dist / min)
+        if dist > δ
+            @show dist
+            m = ceil(Int, dist / δ)
             if m == 1
                 m = 2
             end
@@ -79,7 +81,7 @@ end
             paras = [s0 + plengh * i for i in 1:m-1]
             addps = Vector{NSState{N,T}}(undef, m - 1)
             for j in 1:m-1
-                addps[j] = tmap(oldcurve(paras[j]), p)
+                addps[j] = tmap(NSState(oldcurve(paras[j]), copy(event)), p)
             end
             insert!(newu, i + 1, addps)
             insert!(olds, i + 1, paras)
@@ -90,7 +92,7 @@ end
             else
                 newdist = dist / dtimes
             end
-            dd = news[end]
+            dd = newpara[end]
             append!(newpara, [dd + newdist])
             i = i + 1
         end
@@ -107,7 +109,7 @@ take_state(x) = x.state
 
 Initialise the curve of non-smooth ODE's time-T-map.
 """
-function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, min; dtimes=100, interp=LinearInterpolation)
+function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, δ; dtimes=100, interp=LinearInterpolation)
     points = NSState.(segment(saddle, direction, nn, d))
     result = [[paramise(points, interp=interp)]]
     tmap = f.timetmap
@@ -118,11 +120,11 @@ function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, min; dt
     type = typeof(saddle[1][1])
     image = Vector{NSState{m,type}}(undef, n)
     for i in eachindex(image)
-        image[i] = tmap(points[i].state, para)
+        image[i] = tmap(points[i], para)
     end
-    oldcurve = result[1]
-    olds = copy(result[1].t)
-    ns_addpoints!(tmap, para, min, oldcurve, image, olds, dtimes, tend, mirrors)
+    oldcurve = result[1][1]
+    olds = copy(result[1][1].t)
+    ns_addpoints!(tmap, para, δ, oldcurve, image, olds, dtimes, tend, mirrors)
     if ispartitioned(image) == false
         error("The initial curve has to be chosen more small")
     end
@@ -153,10 +155,10 @@ function grow_line!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
         n = length(curve.u)
         ic2_states = Vector{NSState{N,T}}(undef, n)
         for k in eachindex(ic2_states)
-            ic2_states[k] = tmap(curve.u[k].state, para)
+            ic2_states[k] = tmap(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap, para, min, curve, ic2_states, olds, dtimes, tend, mirrors)
+        newpara = ns_addpoints!(tmap, para, δ, curve, ic2_states, olds, dtimes, tend, mirrors)
         _result = partition(ic2_states, newpara)
         # insert left zeros and right zeros
 

@@ -4,6 +4,8 @@ using LinearAlgebra, StaticArrays, OrdinaryDiffEq, DataInterpolations, NearestNe
 
 import Base: -, +, *, /, length, eltype, getindex, size, show, insert!
 
+import DataInterpolations: AbstractInterpolation, show
+
 export NSState, NSSolution, NSSetUp, AnnulusBoundaries
 
 export PiecewiseV, BilliardV, SFilippovV
