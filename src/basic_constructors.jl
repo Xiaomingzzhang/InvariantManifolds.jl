@@ -157,10 +157,10 @@ end
 - `timespan` the time span of time-T-map;
 - `timetmap` the time-t-map of non-smooth ODE, which maps a `State` and parameters of ODE to a `NSState`.
 """
-struct NSSetUp{T}
-    f::T
-    timespan
-    timetmap
+struct NSSetUp{F1,T,F2}
+    f::F1
+    timespan::Tuple{T,T}
+    timetmap::F2
 end
 
 function show(io::IO, m::MIME"text/plain", A::NSSetUp{T}) where {T}

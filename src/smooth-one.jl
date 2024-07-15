@@ -16,16 +16,18 @@ end
 function paramise(data::Vector{S}; interp=LinearInterpolation) where {S}
     m = length(data)
     if m == 1
-        error("there is just one point!")
+        T = typeof(data[1][1])
+        interp(data, [T(0)])
+    else
+        T = typeof(data[1][1])
+        s0 = Vector{T}(undef, m)
+        s0[1] = 0
+        for i in 2:m
+            dd = norm(data[i] - data[i-1])
+            s0[i] = s0[i-1] + dd
+        end
+        interp(data, s0)
     end
-    T = typeof(data[1][1])
-    s0 = Vector{T}(undef, m)
-    s0[1] = 0
-    for i in 2:m
-        dd = norm(data[i] - data[i-1])
-        s0[i] = s0[i-1] + dd
-    end
-    interp(data, s0)
 end
 
 # extend the function Base.insert! so that we can insert many elements at a certain position.

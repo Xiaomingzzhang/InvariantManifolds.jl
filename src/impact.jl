@@ -4,12 +4,13 @@ function setmap(v::BilliardV, timespan, alg, N, T; extra...)
     function affect!(integrator, idx)
         p0 = integrator.p
         u0 = integrator.u
-        integrator.u = v.rules[idx](u0, p0)
+        t0 = integrator.t
+        integrator.u = v.rules[idx](u0, p0, t0)
         append!(event_at, [idx])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
-            out[i] = v.hypers[i](u, integrator.p)
+            out[i] = v.hypers[i](u, integrator.p, integrator.t)
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)

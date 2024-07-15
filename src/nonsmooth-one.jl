@@ -19,7 +19,58 @@ function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=LinearInterpol
     end
     append!(result, [a0])
     append!(result_s, [s00])
+    for i in eachindex(result_s)
+        first_s = result_s[i][1]
+        for j in eachindex(result_s[i])
+            result_s[i][j] = result_s[i][j] - first_s
+        end
+    end
     [interp(result[i], result_s[i]) for i in eachindex(result)]
+end
+
+take_state(x) = x.state
+take_u(x) = x.u
+take_t(x) = x.t
+
+
+function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S<:AbstractInterpolation}
+    if length(v) == 1
+        v[1]
+    else
+        totals = v[1].t
+        totalu = vcat(take_u.(v)...)
+        l = length(v)
+        T = typeof(totals[1])
+        s0 = T(0)
+        for i in 1:l-1
+            last_s = v[i].t[end]
+            add_s = norm(v[i].u[end] - v[i+1].u[1])
+            s0 = s0 + last_s + add_s
+            final_s = s0 .+ v[i+1].t
+            append!(totals, final_s)
+        end
+        @show length(totalu)
+        @show length(totals)
+        interp(totalu, totals)
+    end
+end
+
+# Union broken lines with the same event
+function union_lines(v::Vector{S}; interp=LinearInterpolation) where {S<:AbstractInterpolation}
+    result = S[]
+    event = v[1].u[1].event_at
+    line = S[]
+    for j in eachindex(v)
+        if (v[j].u[1].event_at) == event
+            append!(line, [v[j]])
+        else
+            append!(result, [union_same_event(line, interp=interp)])
+            line = [v[j]]
+            event = v[j].u[1].event_at
+        end
+    end
+    append!(result, [union_same_event(line, interp=interp)])
+    result
 end
 
 function ispartitioned(v::Vector{NSState{N,T}}) where {N,T}
@@ -45,14 +96,16 @@ end
 #     return a
 # end
 
-@inline function nsnorm(a::NSState{N,T}, b::NSState{N,T}, mirrors, p, time_end, dtimes) where {N,T}
+@inline function nsnorm(a::NSState{N,T}, b::NSState{N,T}, hypers, p, time_end, dtimes) where {N,T}
     if a.event_at == b.event_at
         norm(a - b)
     elseif abs(length(a.event_at) - length(b.event_at)) == 1
         if a.event_at == b.event_at[1:end-1]
-            norm(mirrors[b.event_at[end]](a.state, p) - b.state) * dtimes
+            idx = b.event_at[end]
+            max(abs(hypers[idx](a.state, p, time_end)), abs(hypers[idx](b.state, p, time_end))) * dtimes
         elseif a.event_at[1:end-1] == b.event_at
-            norm(mirrors[a.event_at[end]](b.state, p) - a.state) * dtimes
+            idx = a.event_at[end]
+            max(abs(hypers[idx](a.state, p, time_end)), abs(hypers[idx](b.state, p, time_end))) * dtimes
         else
             T(2)
         end
@@ -62,15 +115,15 @@ end
 end
 
 
-@inline function ns_addpoints!(tmap, p, δ, oldcurve, newu::Vector{NSState{N,T}}, olds::Vector{T}, dtimes, tend, mirrors) where {N,T}
+@inline function ns_addpoints!(tmap, p, δ, oldcurve, newu::Vector{NSState{N,T}}, olds::Vector{T}, dtimes, tend, hypers) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
     event = oldcurve.u[1].event_at
     @inbounds while i + 1 <= n
-        dist = nsnorm(newu[i], newu[i+1], mirrors, p, tend, dtimes)
+        dist = nsnorm(newu[i], newu[i+1], hypers, p, tend, dtimes)
         if dist > δ
-            @show dist
+            # @show dist
             m = ceil(Int, dist / δ)
             if m == 1
                 m = 2
@@ -100,8 +153,25 @@ end
     newpara
 end
 
+function del_extra!(newpara, newu, min)
+    k = 1
+    M = length(newpara)
+    @inbounds while k + 2 <= M
+        s1 = newpara[k+1] - newpara[k]
+        s2 = newpara[k+2] - newpara[k+1]
+        s3 = norm(newu[k+2] - newu[k])
+        if s1 < min && s2 < min && s3 < min
+            deleteat!(newpara, k + 1)
+            deleteat!(newu, k + 1)
+            M = M - 1
+        else
+            k = k + 1
+        end
+    end
+end
 
-take_state(x) = x.state
+
+
 
 
 """
@@ -109,12 +179,13 @@ take_state(x) = x.state
 
 Initialise the curve of non-smooth ODE's time-T-map.
 """
-function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, δ; dtimes=100, interp=LinearInterpolation)
+function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, δ; abstol=1e-4, interp=LinearInterpolation)
     points = NSState.(segment(saddle, direction, nn, d))
     result = [[paramise(points, interp=interp)]]
     tmap = f.timetmap
     tend = f.timespan[end]
-    mirrors = f.f.mirrors
+    hypers = f.f.hypers
+    dtimes = δ / abstol
     n = length(points)
     m = length(saddle)
     type = typeof(saddle[1][1])
@@ -124,7 +195,7 @@ function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, δ; dti
     end
     oldcurve = result[1][1]
     olds = copy(result[1][1].t)
-    ns_addpoints!(tmap, para, δ, oldcurve, image, olds, dtimes, tend, mirrors)
+    ns_addpoints!(tmap, para, δ, oldcurve, image, olds, dtimes, tend, hypers)
     if ispartitioned(image) == false
         error("The initial curve has to be chosen more small")
     end
@@ -142,14 +213,15 @@ function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, δ; dti
 end
 
 function grow_line!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
-    dtimes=100, interp=LinearInterpolation) where {P}
+    abstol=1e-4, interp=LinearInterpolation) where {P}
     nic = data[end]
     result = P[]
     N = length(nic[1].u[1])
     T = typeof(nic[1].u[1][1])
     tmap = v.timetmap
     tend = v.timespan[end]
-    mirrors = v.f.mirrors
+    hypers = v.f.hypers
+    dtimes = δ / abstol
     @inbounds for j in eachindex(nic)
         curve = nic[j]
         n = length(curve.u)
@@ -158,21 +230,56 @@ function grow_line!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
             ic2_states[k] = tmap(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap, para, δ, curve, ic2_states, olds, dtimes, tend, mirrors)
+        newpara = ns_addpoints!(tmap, para, δ, curve, ic2_states, olds, dtimes, tend, hypers)
         _result = partition(ic2_states, newpara)
         # insert left zeros and right zeros
-
+        for i in eachindex(_result)
+            del_extra!(_result[i].t, _result[i].u, δ)
+        end
         # delete extra points
         append!(result, _result)
     end
-    append!(data, [result])
+    append!(data, [union_lines(result, interp=interp)])
+    # append!(data, [result])
 end
 
 
-function generate_curves(f::NSSetUp, p, saddle, direction, δ, N; interp=LinearInterpolation, n=150, initial_d=0.01, dtimes=100)
-    curves = ns_initialise_curve(f, p, saddle, direction, n, initial_d, δ; dtimes=dtimes, interp=interp)
+function grow_linetest!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
+    abstol=1e-4, interp=LinearInterpolation) where {P}
+    nic = data[end]
+    result = P[]
+    N = length(nic[1].u[1])
+    T = typeof(nic[1].u[1][1])
+    tmap = v.timetmap
+    tend = v.timespan[end]
+    hypers = v.f.hypers
+    dtimes = δ / abstol
+    @inbounds for j in eachindex(nic)
+        curve = nic[j]
+        n = length(curve.u)
+        ic2_states = Vector{NSState{N,T}}(undef, n)
+        for k in eachindex(ic2_states)
+            ic2_states[k] = tmap(curve.u[k], para)
+        end
+        olds = copy(curve.t)
+        newpara = ns_addpoints!(tmap, para, δ, curve, ic2_states, olds, dtimes, tend, hypers)
+        _result = partition(ic2_states, newpara)
+        # insert left zeros and right zeros
+        for i in eachindex(_result)
+            del_extra!(_result[i].t, _result[i].u, δ)
+        end
+        # delete extra points
+        append!(result, _result)
+    end
+    result
+    # append!(data, [result])
+end
+
+
+function generate_curves(f::NSSetUp, p, saddle, direction, δ, N; interp=LinearInterpolation, n=150, initial_d=0.01, abstol=1e-4)
+    curves = ns_initialise_curve(f, p, saddle, direction, n, initial_d, δ; abstol=abstol, interp=interp)
     for i in 1:N
-        grow_line!(f, p, curves, δ; interp=interp, dtimes=dtimes)
+        grow_line!(f, p, curves, δ; interp=interp, abstol=abstol)
     end
     curves
 end
