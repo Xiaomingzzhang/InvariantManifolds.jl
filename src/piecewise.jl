@@ -17,7 +17,7 @@ end
 The function `setmap` is to get a `NSSetUp`.
 
 # Parameters
-- `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
+- `v` a nonsmooth vector field like `PiecewiseV` or `BilliardV`.
 - `timespan` the time span of the time-T-map.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 - `N` the dimension of the vector field.
@@ -36,8 +36,6 @@ except the `callback` and saving related keywords.
 function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect, extra...)
     nn = length(v.hypers)
     event_at = Int[]
-    event_state = SVector{N,T}[]
-    event_t = T[]
     function affect!(integrator, idx)
         t0 = integrator.t + 1 // 20
         p = integrator.p
@@ -45,8 +43,6 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         i = region_detect(v.regions, u0, p, t0)
         integrator.f.f.n = i
         append!(event_at, [idx])
-        append!(event_state, [integrator.u])
-        append!(event_t, [integrator.t])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -54,17 +50,16 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    function tmap(x::SVector{N,T}, para) where {N,T}
+    function tmap(X::NSState{N,T}, para) where {N,T}
+        x = X.state
+        event = copy(X.event_at)
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
-        newv_event_t = copy(event_t)
-        newv_event_state = copy(event_state)
+        append!(event, newv_event_at)
         empty!(event_at)
-        empty!(event_t)
-        empty!(event_state)
-        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at)
+        NSState(sol[end], newv_event_at)
     end
     NSSetUp(v, timespan, tmap)
 end
@@ -82,7 +77,7 @@ To ensure type stable, the numbers `timespan` should be type of float numbers yo
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 
 # Keyword arguments
-For `ContinuousVectorField` such as `PiecewiseV`, we have keyword argument:
+For `ContinuousVectorField` such as `PiecewiseV`, there is a  keyword argument:
 - `region_detect=_region_detect` the region detect function to determine which domain the state in.
 
 

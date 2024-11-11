@@ -1,7 +1,3 @@
-abstract type ContinuousVectorField end
-
-abstract type JumpVectorField end
-
 """
     PiecewiseV <: ContinuousVectorField
 
@@ -22,17 +18,16 @@ f2(x,p,t)=SA[x[2],-x[1]]
 dom1(x,p,t)=x[1]>0
 dom2(x,p,t)=x[2]<0
 hyper(x,p,t)=x[1]
-PiecewiseV((f1,f2),(dom1,dom2),(hyper,),1)
+PiecewiseV((f1,f2),(dom1,dom2),(hyper,))
 ```
 
 The above codes generate a piecewise smooth vector field, which when `x[1]>0` is `f1`, and when `x[2]<0` is `f2`.
 The hyper surface separating these smooth vector fields is `x[1]=0`.
 """
-mutable struct PiecewiseV{F1,F2,F3,F4} <: ContinuousVectorField
+mutable struct PiecewiseV{F1,F2,F3}
     fs::F1
     regions::F2
     hypers::F3
-    rules::F4
     n::Int
 end
 
@@ -47,9 +42,6 @@ function show(io::IO, m::MIME"text/plain", A::PiecewiseV)
     print(io, "hypers: ")
     show(io, m, A.hypers)
     println(io)
-    print(io, "rules: ")
-    show(io, m, A.rules)
-    println(io)
     print(io, "n: ")
     show(io, m, A.n)
 end
@@ -57,9 +49,7 @@ end
 id(x, p, t) = x
 
 function PiecewiseV(f1, f2, f3)
-    n = length(f3)
-    ids = ntuple(_ -> id, n)
-    PiecewiseV(f1, f2, f3, ids, 0)
+    PiecewiseV(f1, f2, f3, 0)
 end
 
 function (v::PiecewiseV)(x, p, t)
@@ -78,11 +68,12 @@ A vector field with multiple hyper surfaces such that the flow jump when hits th
 - `hypers` is tuple of hyper surfaces:`(h1,h2,...)`, `h1(x,p,t)`;
 - `irules` is tuple of rules on hyper surfaces:`(r1,r2,r3,...)`.
 """
-struct BilliardV{F1,F2,F3} <: JumpVectorField
+struct BilliardV{F1,F2,F3}
     f::F1
     hypers::F2
     rules::F3
 end
+
 
 function (v::BilliardV)(x, p, t)
     v.f(x, p, t)
@@ -101,12 +92,11 @@ end
 - `exit` conditions to exit the hyper surface, which can also be generated automatically.
 - `n` is a integer to switch between vector fields. It can be set to any integer when construct a `SFilippovV`.
 """
-mutable struct SFilippovV{F,H,DH,E,G} <: ContinuousVectorField
+mutable struct SFilippovV{F,H,DH,E,G,Q}
     fs::F
     hyper::H
     dhyper::DH
     exit::E
-    rules::G
     n::Int
 end
 
@@ -120,8 +110,7 @@ function SFilippovV(fs, h, ∇h)
     function exit(x, p, t)
         dot(∇h(x, p, t), f2(x, p, t)) * dot(∇h(x, p, t), f1(x, p, t))
     end
-    ids = (id, id, id)
-    SFilippovV((f1, f2, sv), h, ∇h, exit, ids, 0)
+    SFilippovV((f1, f2, sv), h, ∇h, exit, 0)
 end
 
 function (v::SFilippovV)(x, p, t)
@@ -138,12 +127,12 @@ end
 # Fields
 - `f` the Non-smooth vector field, like `PiecewiseV`;
 - `timespan` the time span of time-T-map;
-- `timetmap` the time-t-map of non-smooth ODE, which maps a `State` and parameters of ODE to a `NSState`.
+- `timetmap` the time-t-map of non-smooth ODE, which maps a `NSState` and parameters of ODE to a `NSState`.
 """
-struct NSSetUp{T}
-    f::T
-    timespan
-    timetmap
+struct NSSetUp{F1,T,F2}
+    f::F1
+    timespan::Tuple{T,T}
+    timetmap::F2
 end
 
 function show(io::IO, m::MIME"text/plain", A::NSSetUp{T}) where {T}
@@ -156,4 +145,29 @@ function show(io::IO, m::MIME"text/plain", A::NSSetUp{T}) where {T}
     println(io)
     print(io, "timetmap: ")
     show(io, m, A.timetmap)
+end
+
+"""
+    Saddle{N,T,S}
+
+`Saddle` is a struct to contain the information of a saddle point needed in continuing the manifold of non-smooth ODE.
+For an ODE's saddle, this struct can be constructed by the function [`findsaddle`](@ref).
+# Fields
+- `saddle` the location of the saddle point;
+- `unstable_directions` the unstable directions;
+- `unstable_eigen_values` eigenvalues of the linearized map in the saddle at the unstable eigenvectors.
+"""
+struct Saddle{N,T,S}
+    saddle::SVector{N,T}
+    unstable_directions::Vector{SVector{N,S}}
+    unstable_eigen_values::Vector{S}
+end
+
+function show(io::IO, m::MIME"text/plain", A::Saddle{N,T}) where {N, T}
+    println(io, "Saddle{$N,$T}: ")
+    print(io, "saddle: ")
+    show(io, m, A.saddle)
+    println(io)
+    print(io, "unstable_directions: ")
+    show(io, m, A.unstable_directions)
 end

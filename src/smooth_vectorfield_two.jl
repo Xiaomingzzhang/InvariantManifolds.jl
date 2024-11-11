@@ -92,7 +92,7 @@ Function to generate the two dimension manifold of a vector field.
 - `n=150` the number of points in the boundary of the origin disk to extend.
 """
 function generate_surface(f, p, saddle, v1, v2, N, r, δ; n=150, interp = LinearInterpolation)
-    @show myannulus = inintialise_mesh(saddle, v1, v2, n, r, interp=interp)
+    myannulus = inintialise_mesh(saddle, v1, v2, n, r, interp=interp)
     for i in 1:N
         grow_surface!(f, p, myannulus,  δ; interp=interp)
     end
