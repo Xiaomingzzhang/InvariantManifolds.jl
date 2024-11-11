@@ -18,9 +18,6 @@ For a simple Fillippov system `SFilippovV`, we record three events:
 struct NSState{N,T<:Number} <: AbstractVector{T}
     state::SVector{N,T}
     event_at::Vector{Int64}
-    ismirrored::Bool
-    idx::Int64
-    toward::Int64
 end
 
 function Base.show(io::IO, m::MIME"text/plain", A::NSState{N,T}) where {N,T}
@@ -33,12 +30,9 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSState{N,T}) where {N,T}
 end
 
 function NSState(v::SVector{N,T}) where {N,T}
-    NSState(v, Int64[], false, 0, 0)
+    NSState(v, Int64[])
 end
 
-function NSState(v::SVector{N,T}, event::Vector{Int}) where {N,T}
-    NSState(v, event, false, 0, 0)
-end
 
 # Further definitions allow to interpolate vector consisting of NSState.
 # LinearInterpolation, CubicSpline, QuadraticInterpolation

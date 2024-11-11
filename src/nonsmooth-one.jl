@@ -1,3 +1,60 @@
+
+"""
+    NSOneDManifoldProblem{F,T}
+
+`NSOneDManifoldProblem` is a struct to contain the main information for continuing the non-smooth one-dimensional manifold of
+the time-T-map of a non-smooth ODE.
+# Fields
+- `f` the struct `NSSetUp`, see [`NSSetUp`](@ref);
+- `para` the parameters of the nonlinear map;
+- `amax` the maximum angle between points when continuing the manifold;
+- `d` the maximum distance between points when continuing the manifold;
+- `ϵ` the max value of the following expression:
+
+``\\max\\{|H(x_0,T)|,H(x_1,T)\\},``
+
+where ``H(x,t)`` is the hypersurface the manifold cross, ``x_0`` and ``x_1`` are points before and after the cross,
+``T`` is the end of the time-``T``-map (from 0 to ``T``).
+- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the 
+distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
+
+Convenient consturctors are `NSOneDManifoldProblem(f)` and `NSOneDManifoldProblem(f,para)`
+"""
+struct NSOneDManifoldProblem{F,T}
+    f::F
+    para::Vector{T}
+    amax::T
+    d::T
+    ϵ::T
+    dsmin::T
+end
+
+"""
+    NSOneDManifold{F,S,N,T}
+
+`NSOneDManifold` is a struct contains all the information of the non-smooth one-dimensional numerical manifold.
+# Fields
+- `prob` the problem `OneDManifoldProblem`;
+- `data` the numerical data that should be `Vector{Vector{Vector{S}}}`, where `S` is the interpolation curve 
+(we use `DataInterpolation` in this package);
+- `flawpoints` the flaw points generated during continuation.
+"""
+mutable struct NSOneDManifold{F,S,N,T}
+    prob::NSOneDManifoldProblem{F,T}
+    data::Vector{Vector{S}}
+    flawpoints::Vector{FlawPoint{N,T}}
+end
+
+function NSOneDManifoldProblem(f; amax=0.5, d=0.001, ϵ=0.00001, dsmin=0.0001)
+    NSOneDManifoldProblem(f, Float64[], amax, d, ϵ, dsmin)
+end
+
+
+function NSOneDManifoldProblem(f, para::Vector{T};
+    amax=T(0.5), d=T(0.001), ϵ=T(0.00001), dsmin=T(0.0001)) where {T}
+    NSOneDManifoldProblem(f, para, amax, d, ϵ, dsmin)
+end
+
 function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=LinearInterpolation) where {N,T}
     ctime1 = v[1].event_at
     n = length(v)
@@ -49,8 +106,6 @@ function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S<:Ab
             final_s = s0 .+ v[i+1].t
             append!(totals, final_s)
         end
-        @show length(totalu)
-        @show length(totals)
         interp(totalu, totals)
     end
 end
@@ -85,143 +140,264 @@ function ispartitioned(v::Vector{NSState{N,T}}) where {N,T}
     result
 end
 
-# function myreplace!(a::Array{T,1}, i::Integer, b::Array{S,1}) where {T,S}
-#     # Throw convert error before changing the shape of the array
-#     _b = S == T ? b : convert(Array{T,1}, b)::Array{T,1}
-#     n = length(b)
-#     Base._growat!(a, i, n - 1)
-#     @inbounds for j in 1:n
-#         a[i+j-1] = _b[j]
-#     end
-#     return a
-# end
-
-@inline function nsnorm(a::NSState{N,T}, b::NSState{N,T}, hypers, p, time_end, dtimes) where {N,T}
-    if a.event_at == b.event_at
-        norm(a - b)
-    elseif abs(length(a.event_at) - length(b.event_at)) == 1
-        if a.event_at == b.event_at[1:end-1]
-            idx = b.event_at[end]
-            max(abs(hypers[idx](a.state, p, time_end)), abs(hypers[idx](b.state, p, time_end))) * dtimes
-        elseif a.event_at[1:end-1] == b.event_at
-            idx = a.event_at[end]
-            max(abs(hypers[idx](a.state, p, time_end)), abs(hypers[idx](b.state, p, time_end))) * dtimes
-        else
-            T(2)
-        end
-    else
-        T(2)
-    end
-end
 
 
-@inline function ns_addpoints!(tmap, p, δ, oldcurve, newu::Vector{NSState{N,T}}, olds::Vector{T}, dtimes, tend, hypers) where {N,T}
+@inline function ns_addpoints!(tmap, p, d, dsmin, oldcurve, 
+    newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ, flawpoints) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
-    event = oldcurve.u[1].event_at
+    oldcurve_event = oldcurve.u[1].event_at
     @inbounds while i + 1 <= n
-        dist = nsnorm(newu[i], newu[i+1], hypers, p, tend, dtimes)
-        if dist > δ
-            # @show dist
-            m = ceil(Int, dist / δ)
-            if m == 1
-                m = 2
-            end
-            s0 = olds[i]
-            s1 = olds[i+1]
-            plengh = (s1 - s0) / m
-            paras = [s0 + plengh * i for i in 1:m-1]
-            addps = Vector{NSState{N,T}}(undef, m - 1)
-            for j in 1:m-1
-                addps[j] = tmap(NSState(oldcurve(paras[j]), copy(event)), p)
-            end
-            insert!(newu, i + 1, addps)
-            insert!(olds, i + 1, paras)
-            n = n + m - 1
-        else
-            if newu[i].event_at == newu[i+1].event_at
-                newdist = dist
+        if i + 2 <= n
+            u0 = newu[i]
+            u1 = newu[i+1]
+            u2 = newu[i+2]
+            if u0.event_at == u1.event_at == u2.event_at
+                δ = norm(u0 - u1)
+                baru0 = u1 + (u1 - u2) * norm(u1 - u0) / norm(u1 - u2)
+                α = norm(baru0 - u0) / (norm(u1 - u0))
+                if δ <= d && α <= αmax
+                    i = i + 1
+                    dd = newpara[end]
+                    append!(newpara, [dd + δ])
+                else
+                    if olds[i+1] - olds[i] > dsmin
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        i = i + 1
+                        append!(flawpoints, [FlawPoint(u0.state, α, δ)])
+                        dd = newpara[end]
+                        append!(newpara, [dd + δ])
+                    end
+                end
+            elseif u0.event_at == u1.event_at && u1.event_at != u2.event_at
+                δ = norm(u0 - u1)
+                if δ <= d
+                    i = i + 1
+                    dd = newpara[end]
+                    append!(newpara, [dd + δ])
+                else
+                    if olds[i+1] - olds[i] > dsmin
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        i = i + 1
+                        append!(flawpoints, [FlawPoint(u0.state, T(0), δ)])
+                        dd = newpara[end]
+                        append!(newpara, [dd + δ])
+                    end
+                end
+            elseif u0.event_at == u1.event_at[1:end-1]
+                idx = u1.event_at[end]
+                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                if ϵ0 <= ϵ
+                    i = i + 1
+                    dd = newpara[end]
+                    append!(newpara, [dd + ϵ0])
+                else
+                    if olds[i+1] - olds[i] > 1e-12
+                        olds[i+1] - olds[i]
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        error("Cannot locate the intersection points at desired accurcy. Please increase the value of ϵ")
+                    end
+                end
+            elseif u0.event_at[1:end-1] == u1.event_at
+                idx = u0.event_at[end]
+                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                if ϵ0 <= ϵ
+                    i = i + 1
+                    dd = newpara[end]
+                    append!(newpara, [dd + ϵ0])
+                else
+                    if olds[i+1] - olds[i] > 1e-12
+                        olds[i+1] - olds[i]
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        error("Cannot locate the intersection points. Please increase the value of ϵ")
+                    end
+                end
             else
-                newdist = dist / dtimes
+                if olds[i+1] - olds[i] > 1e-12
+                    @show olds[i+1] - olds[i]
+                    s0 = olds[i]
+                    s1 = olds[i+1]
+                    paras = (s0 + s1) / 2
+                    addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                    insert!(newu, i + 1, addps)
+                    insert!(olds, i + 1, paras)
+                    n = n + 1
+                else
+                    @show u0.event_at
+                    @show u1.event_at
+                    error("The manifold cross two events in an almost zero arc length")
+                end
             end
-            dd = newpara[end]
-            append!(newpara, [dd + newdist])
-            i = i + 1
+        else
+            u0 = newu[i]
+            u1 = newu[i+1]
+            if u0.event_at == u1.event_at
+                δ = norm(u0 - u1)
+                if δ <= d
+                    i = i + 1
+                    dd = newpara[end]
+                    append!(newpara, [dd + δ])
+                else
+                    if olds[i+1] - olds[i] > dsmin
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        i = i + 1
+                        append!(flawpoints, [FlawPoint(u0.state, T(0), δ)])
+                        dd = newpara[end]
+                        append!(newpara, [dd + δ])
+                    end
+                end
+            elseif u0.event_at == u1.event_at[1:end-1]
+                idx = u1.event_at[end]
+                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                if ϵ0 <= ϵ
+                    i = i + 1
+                    dd = newpara[end]
+                    append!(newpara, [dd + ϵ0])
+                else
+                    if olds[i+1] - olds[i] > 1e-12
+                        @show olds[i+1] - olds[i]
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        error("Cannot locate the intersection points. Please increase the value of ϵ")
+                    end
+                end
+            elseif u0.event_at[1:end-1] == u1.event_at
+                idx = u0.event_at[end]
+                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                if ϵ0 <= ϵ
+                    i = i + 1
+                    dd = newpara[end]
+                    append!(newpara, [dd + ϵ0])
+                else
+                    if olds[i+1] - olds[i] > 1e-12
+                        @show olds[i+1] - olds[i]
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        error("Cannot locate the intersection points. Please increase the value of ϵ")
+                    end
+                end
+            else
+                if olds[i+1] - olds[i] > 1e-12
+                    @show olds[i+1] - olds[i]
+                    s0 = olds[i]
+                    s1 = olds[i+1]
+                    paras = (s0 + s1) / 2
+                    addps = tmap(NSState(oldcurve(paras), copy(u0.event_at)), p)
+                    insert!(newu, i + 1, addps)
+                    insert!(olds, i + 1, paras)
+                    n = n + 1
+                else
+                    error("The manifold cross two events in an almost zero arc length")
+                end
+            end
         end
     end
     newpara
 end
 
-function del_extra!(newpara, newu, min)
-    k = 1
-    M = length(newpara)
-    @inbounds while k + 2 <= M
-        s1 = newpara[k+1] - newpara[k]
-        s2 = newpara[k+2] - newpara[k+1]
-        s3 = norm(newu[k+2] - newu[k])
-        if s1 < min && s2 < min && s3 < min
-            deleteat!(newpara, k + 1)
-            deleteat!(newu, k + 1)
-            M = M - 1
-        else
-            k = k + 1
-        end
-    end
-end
 
-
-
-
-
-"""
-    InvariantManifolds.ns_initialise_curve(points, tmap, para)
-
-Initialise the curve of non-smooth ODE's time-T-map.
-"""
-function ns_initialise_curve(f::NSSetUp, para, saddle, direction, nn, d, δ; abstol=1e-4, interp=LinearInterpolation)
-    points = NSState.(segment(saddle, direction, nn, d))
+function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; interp=LinearInterpolation) where {N,T}
+    parameters = prob.para
+    tmap = prob.f.timetmap
+    d = prob.d
+    αmax = prob.amax
+    tend = prob.f.timespan[end]
+    hypers = prob.f.f.hypers
+    dsmin = prob.dsmin
+    ϵ = prob.ϵ
+    flawpoints = FlawPoint{N,T}[]
+    points = NSState.(seg)
     result = [[paramise(points, interp=interp)]]
-    tmap = f.timetmap
-    tend = f.timespan[end]
-    hypers = f.f.hypers
-    dtimes = δ / abstol
+
     n = length(points)
-    m = length(saddle)
-    type = typeof(saddle[1][1])
-    image = Vector{NSState{m,type}}(undef, n)
+    image = Vector{NSState{N,T}}(undef, n)
     for i in eachindex(image)
-        image[i] = tmap(points[i], para)
+        image[i] = tmap(points[i], parameters)
     end
     oldcurve = result[1][1]
-    olds = copy(result[1][1].t)
-    ns_addpoints!(tmap, para, δ, oldcurve, image, olds, dtimes, tend, hypers)
+    olds = copy(oldcurve.t)
+    ns_addpoints!(tmap, parameters, d, dsmin, oldcurve, 
+    image, olds, αmax, tend, hypers, ϵ, flawpoints)
     if ispartitioned(image) == false
         error("The initial curve has to be chosen more small")
     end
     p0 = first(points)
     pn = last(points)
     j = 1
-    d = norm(pn - p0)
-    while norm(image[j] - p0) < d
+    dd = norm(pn - p0)
+    while norm(image[j] - p0) < dd
         j = j + 1
     end
     j = j + 1
     first_iteration_curve = image[j:end]
     prepend!(first_iteration_curve, [pn])
     append!(result, [[paramise(first_iteration_curve, interp=interp)]])
+    NSOneDManifold(prob, result, flawpoints)
 end
 
-function grow_line!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
-    abstol=1e-4, interp=LinearInterpolation) where {P}
-    nic = data[end]
-    result = P[]
-    N = length(nic[1].u[1])
-    T = typeof(nic[1].u[1][1])
+function grow!(manifold::NSOneDManifold{F,S,N,T}; interp=LinearInterpolation) where {F,S,N,T}
+    αmax = manifold.prob.amax
+    d = manifold.prob.d
+    v = manifold.prob.f
+    ϵ = manifold.prob.ϵ
+    dsmin = manifold.prob.dsmin
+    para = manifold.prob.para
     tmap = v.timetmap
     tend = v.timespan[end]
     hypers = v.f.hypers
-    dtimes = δ / abstol
+    data = manifold.data
+    nic = data[end]
+    flawpoints = manifold.flawpoints
+    n = length(manifold.data) + 1
+    result = empty(manifold.data[1])
     @inbounds for j in eachindex(nic)
         curve = nic[j]
         n = length(curve.u)
@@ -230,56 +406,18 @@ function grow_line!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
             ic2_states[k] = tmap(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap, para, δ, curve, ic2_states, olds, dtimes, tend, hypers)
-        _result = partition(ic2_states, newpara)
-        # insert left zeros and right zeros
-        for i in eachindex(_result)
-            del_extra!(_result[i].t, _result[i].u, δ)
-        end
-        # delete extra points
+        newpara = ns_addpoints!(tmap, para, d, dsmin, curve, 
+        ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
+        _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end
     append!(data, [union_lines(result, interp=interp)])
-    # append!(data, [result])
 end
 
-
-function grow_linetest!(v::NSSetUp, para, data::Vector{Vector{P}}, δ;
-    abstol=1e-4, interp=LinearInterpolation) where {P}
-    nic = data[end]
-    result = P[]
-    N = length(nic[1].u[1])
-    T = typeof(nic[1].u[1][1])
-    tmap = v.timetmap
-    tend = v.timespan[end]
-    hypers = v.f.hypers
-    dtimes = δ / abstol
-    @inbounds for j in eachindex(nic)
-        curve = nic[j]
-        n = length(curve.u)
-        ic2_states = Vector{NSState{N,T}}(undef, n)
-        for k in eachindex(ic2_states)
-            ic2_states[k] = tmap(curve.u[k], para)
-        end
-        olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap, para, δ, curve, ic2_states, olds, dtimes, tend, hypers)
-        _result = partition(ic2_states, newpara)
-        # insert left zeros and right zeros
-        for i in eachindex(_result)
-            del_extra!(_result[i].t, _result[i].u, δ)
-        end
-        # delete extra points
-        append!(result, _result)
-    end
-    result
-    # append!(data, [result])
-end
-
-
-function generate_curves(f::NSSetUp, p, saddle, direction, δ, N; interp=LinearInterpolation, n=150, initial_d=0.01, abstol=1e-4)
-    curves = ns_initialise_curve(f, p, saddle, direction, n, initial_d, δ; abstol=abstol, interp=interp)
+function growmanifold(prob::NSOneDManifoldProblem, segment, N; interp=LinearInterpolation)
+    manifold = initialize(prob, segment, interp=interp)
     for i in 1:N
-        grow_line!(f, p, curves, δ; interp=interp, abstol=abstol)
+        grow!(manifold, interp=interp)
     end
-    curves
+    manifold
 end

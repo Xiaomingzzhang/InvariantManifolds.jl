@@ -17,7 +17,7 @@ end
 The function `setmap` is to get a `NSSetUp`.
 
 # Parameters
-- `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
+- `v` a nonsmooth vector field like `PiecewiseV` or `BilliardV`.
 - `timespan` the time span of the time-T-map.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 - `N` the dimension of the vector field.
@@ -50,13 +50,16 @@ function setmap(v::PiecewiseV, timespan, alg, N, T; region_detect=_region_detect
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    function tmap(x::SVector{N,T}, para) where {N,T}
+    function tmap(X::NSState{N,T}, para) where {N,T}
+        x = X.state
+        event = copy(X.event_at)
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
+        append!(event, newv_event_at)
         empty!(event_at)
-        NSState(sol[end], newv_event_at, false, 0, 0)
+        NSState(sol[end], newv_event_at)
     end
     NSSetUp(v, timespan, tmap)
 end
@@ -74,7 +77,7 @@ To ensure type stable, the numbers `timespan` should be type of float numbers yo
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 
 # Keyword arguments
-For `ContinuousVectorField` such as `PiecewiseV`, we have keyword argument:
+For `ContinuousVectorField` such as `PiecewiseV`, there is a  keyword argument:
 - `region_detect=_region_detect` the region detect function to determine which domain the state in.
 
 

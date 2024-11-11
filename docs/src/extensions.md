@@ -3,20 +3,24 @@
 
 We point out that the framework of this package about the non-smooth ODE is generic enough, so that one can easily extends it to compute kinds of non-smooth ODE's invariant manifolds.
 
-To show how to extends the function [`generate_curves`](@ref) to other type of non-smooth ODE, we show how to deal with the systems with both impacts and piecewise smoothness.
+To show how to extends the function [`growmanifold`](@ref) to other type of non-smooth ODE, we show how to deal with the systems with both impacts and piecewise smoothness.
 
 ```julia
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, GLMakie
 
 import InvariantManifolds: State, JumpVectorField, setmap, _region_detect
 
-mutable struct PiecewiseImpactV{F1,F2,F3,F4} <: JumpVectorField
+mutable struct PiecewiseImpactV{F1,F2,F3,F4}
     fs::F1
     hypers::F2
     rules::F3
     regions::F4
     idxs::Vector{Int}
     n::Int
+end
+
+function PiecewiseImpactV(fs, hypers, rules, regions, idxs)
+    PiecewiseImpactV(fs, hypers, rules, regions, idxs, 0)
 end
 
 function (v::PiecewiseImpactV)(x, p, t)
@@ -27,8 +31,6 @@ end
 function setmap(v::PiecewiseImpactV, timespan, alg, N, T; region_detect=_region_detect, extra...)
     nn = length(v.hypers)
     event_at = Int[]
-    event_state = SVector{N,T}[]
-    event_t = T[]
     function affect!(integrator, idx)
         if idx in v.idxs
             integrator.u = v.rules[idx](integrator.u, integrator.p, integrator.t)
@@ -37,11 +39,8 @@ function setmap(v::PiecewiseImpactV, timespan, alg, N, T; region_detect=_region_
             u0 = integrator.sol(t0)
             p = integrator.p
             integrator.f.f.n = region_detect(v.regions, u0, p, t0)
-            p[end] = i
         end
         append!(event_at, [idx])
-        append!(event_state, [integrator.u])
-        append!(event_t, [integrator.t])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -49,18 +48,16 @@ function setmap(v::PiecewiseImpactV, timespan, alg, N, T; region_detect=_region_
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn)
-    function tmap(State::State{N,T}, para) where {N,T}
-        x = State.state
+    function tmap(X::NSState{N,T}, para) where {N,T}
+        x = X.state
+        event = copy(X.event_at)
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
-        newv_event_t = copy(event_t)
-        newv_event_state = copy(event_state)
+        append!(event, newv_event_at)
         empty!(event_at)
-        empty!(event_t)
-        empty!(event_state)
-        NSState(sol[end], newv_event_t, newv_event_state, newv_event_at, State.s)
+        NSState(sol[end], newv_event_at)
     end
     NSSetUp(v, timespan, tmap)
 end
