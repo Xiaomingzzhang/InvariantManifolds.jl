@@ -8,8 +8,7 @@
 - `para` the parameters of the nonlinear map;
 - `amax` the maximum angle between points when continuing the manifold;
 - `d` the maximum distance between points when continuing the manifold;
-- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the 
-distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
+- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
 
 Convenient consturctors are `OneDManifoldProblem(f)` and `OneDManifoldProblem(f,para)`
 """
@@ -39,22 +38,6 @@ struct FlawPoint{N,T}
 end
 
 
-"""
-    OneDManifold{F,S,N,T}
-
-`OneDManifold` is a struct contains all the information of the one-dimensional numerical manifold.
-# Fields
-- `prob` the problem `OneDManifoldProblem`;
-- `data` the numerical data that should be `Vector{Vector{S}}`, where `S` is the interpolation curve 
-(we use `DataInterpolation` in this package);
-- `flawpoints` the flaw points generated during continuation.
-"""
-mutable struct OneDManifold{F,S,N,T}
-    prob::OneDManifoldProblem{F,T}
-    data::Vector{S}
-    flawpoints::Vector{FlawPoint{N,T}}
-end
-
 function OneDManifoldProblem(f; amax=0.5, d=0.001, dsmin=1e-5)
     OneDManifoldProblem(f, Float64[], amax, d, dsmin)
 end
@@ -66,12 +49,40 @@ function OneDManifoldProblem(f, para::Vector{T};
 end
 
 
+"""
+    OneDManifold{F,S,N,T}
+
+`OneDManifold` is a struct contains all the information of the one-dimensional numerical manifold.
+# Fields
+- `prob` the problem `OneDManifoldProblem`;
+- `data` the numerical data that should be `Vector{Vector{S}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
+- `flawpoints` the flaw points generated during continuation.
+"""
+mutable struct OneDManifold{F,S,N,T}
+    prob::OneDManifoldProblem{F,T}
+    data::Vector{S}
+    flawpoints::Vector{FlawPoint{N,T}}
+end
+
 function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
-    n = 0
+    m = 0
+    n = length(A.data)
     for i in eachindex(A.data)
-        n = n + length(A.data[i].t)
+        m = m + length(A.data[i].t)
     end
-    println(io, "One dimensional manifold with $n points")
+    k = length(A.flawpoints)
+    println(io, "Two-dimensional manifold")
+    println(io, "Curves number: $n")
+    println(io, "Points number: $m")
+    amax = A.prob.amax
+    d = A.prob.d
+    prend = findall(x -> x.d > d, A.flawpoints)
+    nd = length(prend)
+    prenc = findall(x -> x.α > amax, A.flawpoints)
+    nc = length(prenc)
+    println(io, "Flaw points number: $k")
+    println(io, "Distance failed  points number: $nd")
+    println(io, "Curvature failed points number: $nc")
 end
 
 """
@@ -80,7 +91,7 @@ end
 Generating `n` points at `saddle` in the `direction`, with length `d`, with default `n=150` and `d=0.01`.
 Another Convenient consturctor is `segment(p::Saddle)`.
 """
-function segment(saddle::SVector{N,T}, direction; n=150, d=0.01) where {N,T}
+function gen_segment(saddle::SVector{N,T}, direction; n=150, d=0.01) where {N,T}
     tangent = normalize(direction)
     data = Vector{SVector{N,T}}(undef, n)
     for i in eachindex(data)
@@ -89,7 +100,7 @@ function segment(saddle::SVector{N,T}, direction; n=150, d=0.01) where {N,T}
     data
 end
 
-function segment(p::Saddle{N,T,S}; n=150, d=0.01) where {N,T,S}
+function gen_segment(p::Saddle{N,T,S}; n=150, d=0.01) where {N,T,S}
     saddle = p.saddle
     direction = p.unstable_directions[1]
     tangent = normalize(direction)
@@ -186,7 +197,7 @@ function grow!(manifold::OneDManifold; interp=LinearInterpolation)
     n = length(ic1)
     datatype = typeof(ic1[1])
     ic2 = Vector{datatype}(undef, n)
-    @inbounds @simd for i in eachindex(ic1)
+    Threads.@threads for i in eachindex(ic1)
         ic2[i] = f(ic1[i], para)
     end
     newpara = addpoints!(f, para, d, curve, ic2, olds, Δsmin, αmax, flawpoints)
@@ -211,16 +222,14 @@ function paramise(data::Vector{S}; interp=LinearInterpolation) where {S}
     end
 end
 
+
 """
     initialize(prob, points)
 
 This is a function to initialize the continuation process. Its output is a manifold struct.
 # Parameters
 - `prob` the problem such as `OneDManifoldProblem`.
-- `points` the points in the local manifold. For one dimensional manifolds, these points should be a `Vector{SVector}` and 
-the start point should be the saddle. For two dimensional manifolds, these points should be a `Vector{Vector{S}}` and its first
-element should like `[saddle, saddle, saddle]`. Note that in the both cases, the functions [`segment`](@ref) and
-[`disk`](@ref) can generate these points easily.
+- `points` the points in the local manifold. For one dimensional manifolds, these points should be a `Vector{SVector}` and the start point should be the saddle. For two dimensional manifolds, these points should be a `Vector{Vector{S}}` and its first element should like `[saddle, saddle, saddle]`. Note that in the both cases, the functions [`gen_segment`](@ref), [`gen_disk`](@ref), and [`gen_circle`](@ref) can generate these points easily.
 
 # Keyword argument
 - `interp` the interpolation method used, default to be `LinearInterpolation`.
@@ -263,10 +272,7 @@ end
 This is the mani function to continuate the numerical manifolds. Its output is a manifold struct.
 # Parameters
 - `prob` the problem such as `OneDManifoldProblem`.
-- `points` the points in the local manifold. For one dimensional manifolds, these points should be a `Vector{SVector}` and 
-the start point should be the saddle. For two dimensional manifolds, these points should be a `Vector{Vector{S}}` and its first
-element should like `[saddle, saddle, saddle]`. Note that in the both cases, the functions [`segment`](@ref) and
-[`disk`](@ref) can generate these points easily.
+- `points` the points in the local manifold. For one dimensional manifolds, these points should be a `Vector{SVector}` and the start point should be the saddle. For two dimensional manifolds, these points should be a `Vector{Vector{S}}` and its first element should like `[saddle, saddle, saddle]`. Note that in the both cases, the functions [`segment`](@ref) and [`disk`](@ref) can generate these points easily.
 - `N` the number of iterations.
 
 # Keyword argument

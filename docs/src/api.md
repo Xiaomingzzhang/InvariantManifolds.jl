@@ -9,6 +9,8 @@ NSOneDManifoldProblem
 NSOneDManifold
 TwoDManifoldProblem
 TwoDManifold
+VTwoDManifoldProblem
+VTwoDManifold
 NSState
 NSSolution
 NSSetUp
@@ -18,11 +20,11 @@ ns_solver
 PiecewiseV
 BilliardV
 SFilippovV
-PiecewiseImpactV
-segment
-disk
-initialise
-grow
+FlawPoint
+gen_segment
+gen_disk
+initialize
+grow!
 growmanifold
 Saddle
 findsaddle

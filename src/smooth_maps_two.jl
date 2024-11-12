@@ -8,8 +8,7 @@
 - `amax` the maximum angle between points when continuing the manifold;
 - `d` the maximum distance between points when continuing the manifold;
 - `dcircle` the maximum distance between circles when continuing the manifold;
-- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the 
-distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
+- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
 
 Convenient consturctors are `TwoDManifoldProblem(f)` and `TwoDManifoldProblem(f,para)`
 """
@@ -25,11 +24,10 @@ end
 """
     TwoDManifold{F,S,N,T}
 
-`TwoDManifold` is a struct contains all the information of the two-dimensional numerical manifold.
+`TwoDManifold` is a struct contains all the information of the two-dimensional numerical manifold of a nonlinear map.
 # Fields
 - `prob` the problem `TwoDManifoldProblem`;
-- `data` the numerical data that should be `Vector{Vector{Vector{S}}}`, where `S` is the interpolation curve 
-(we use `DataInterpolation` in this package);
+- `data` the numerical data that should be `Vector{S}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
 """
 mutable struct TwoDManifold{F,S,N,T}
@@ -51,14 +49,26 @@ end
 
 function Base.show(io::IO, m::MIME"text/plain", A::TwoDManifold)
     m = 0
-    n = 0
+    n = length(A.data)
     for i in eachindex(A.data)
         n = n + length(A.data[i])
         for j in eachindex(A.data[i])
             m = m + length(A.data[i][j].t)
         end
     end
-    println(io, "Two dimensional manifold with $n circles and $m points")
+    k = length(A.flawpoints)
+    println(io, "Two-dimensional manifold")
+    println(io, "Circles number: $n")
+    println(io, "Points number: $m")
+    amax = A.prob.amax
+    d = A.prob.d
+    prend = findall(x -> x.d > d, A.flawpoints)
+    nd = length(prend)
+    prenc = findall(x -> x.α > amax, A.flawpoints)
+    nc = length(prenc)
+    println(io, "Flaw points number: $k")
+    println(io, "Distance failed points number: $nd")
+    println(io, "Curvature failed points number: $nc")
 end
 
 """
@@ -96,21 +106,19 @@ function welldistributedpoints!(pcurve, points, para, d)
     end
 end
 """
-    disk(p, times)
+    gen_disk(p, times)
 
-`disk` is a function to generate circles around the saddle, which represented as the local manifold.
+`gen_disk` is a function to generate circles around the saddle, which represented as the local manifold.
 # Parameters
-- `p` the struct `Saddle` which should contains two unstable directions; the complex eigenvalues and eigenvectors
-are allowed.
-- `times` the iteration times; this parameter is needed to adjust the torsion in different directions in the 
-process of continuation.
+- `p` the struct `Saddle` which should contains two unstable directions; the complex eigenvalues and eigenvectors are allowed.
+- `times` the iteration times; this parameter is needed to adjust the torsion in different directions in the process of continuation.
 # Keyword argument
 - `n` the number of point in each circle, default to be `150`;
 - `d` the max distance between points in a single circle, default to be `0.002`;
 - `r` the size of the disk, default to be `0.05`;
 - `circles` the number of the circles, default to be `10`.
 """
-function disk(p::Saddle{N,T,S}, times; n=150, d=0.002, r=0.05, circles=10) where {N,T,S}
+function gen_disk(p::Saddle{N,T,S}, times; n=150, d=0.002, r=0.05, circles=10) where {N,T,S}
     if S <: Real
         v1 = p.unstable_directions[1]
         v2 = p.unstable_directions[2]
@@ -160,7 +168,7 @@ end
 function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=LinearInterpolation)
     newdata = deepcopy(circles)
     k = length(newdata)
-    for i in 1:k
+    Threads.@threads for i in 1:k
         states = similar(circles[i].u)
         ss = copy(circles[i].t)
         for j in eachindex(circles[i].u)
@@ -169,7 +177,7 @@ function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; int
         newdata[i] = interp(states, ss)
     end
     # first interpolate every circle
-    for j in 1:k
+    Threads.@threads for j in 1:k
         ic = newdata[j].u
         olds = newdata[j].t
         oldcurve = circles[j]
@@ -206,7 +214,7 @@ function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; int
     newdata
 end
 
-function inintialise(prob::TwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=LinearInterpolation) where {N,T}
+function initialize(prob::TwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=LinearInterpolation) where {N,T}
     para = prob.para
     f = prob.f
     αmax = prob.amax
@@ -248,7 +256,7 @@ function grow!(manifold::TwoDManifold; interp=LinearInterpolation)
 end
 
 function growmanifold(prob::TwoDManifoldProblem, disk, N; interp=LinearInterpolation)
-    manifold = inintialise(prob, disk, interp=interp)
+    manifold = initialize(prob, disk, interp=interp)
     for i in 1:N
         grow!(manifold; interp=interp)
     end

@@ -72,8 +72,7 @@ which maps a `SVector` and parameters of ODE to a `SVector`, i.e. the time-T-map
 
 # Parameters
 - `v` a `ContinuousVectorField` or `JumpVectorField` like `PiecewiseV` or `BilliardV`.
-- `timespan` the time span of the time-T-map.
-To ensure type stable, the numbers `timespan` should be type of float numbers you are using.
+- `timespan` the time span of the time-T-map. To ensure type stable, the numbers `timespan` should be type of float numbers you are using.
 - `alg` algorithm in `OrdinaryDiffEq` to solve ODE.
 
 # Keyword arguments

@@ -9,14 +9,8 @@ the time-T-map of a non-smooth ODE.
 - `para` the parameters of the nonlinear map;
 - `amax` the maximum angle between points when continuing the manifold;
 - `d` the maximum distance between points when continuing the manifold;
-- `ϵ` the max value of the following expression:
-
-``\\max\\{|H(x_0,T)|,H(x_1,T)\\},``
-
-where ``H(x,t)`` is the hypersurface the manifold cross, ``x_0`` and ``x_1`` are points before and after the cross,
-``T`` is the end of the time-``T``-map (from 0 to ``T``).
-- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the 
-distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
+- `ϵ` the max value of the following expression: ``\\max\\{|H(x_0,T)|,H(x_1,T)\\},`` where ``H(x,t)`` is the hypersurface the manifold cross, ``x_0`` and ``x_1`` are points before and after the cross, ``T`` is the end of the time-``T``-map (from 0 to ``T``).
+- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
 
 Convenient consturctors are `NSOneDManifoldProblem(f)` and `NSOneDManifoldProblem(f,para)`
 """
@@ -29,22 +23,6 @@ struct NSOneDManifoldProblem{F,T}
     dsmin::T
 end
 
-"""
-    NSOneDManifold{F,S,N,T}
-
-`NSOneDManifold` is a struct contains all the information of the non-smooth one-dimensional numerical manifold.
-# Fields
-- `prob` the problem `OneDManifoldProblem`;
-- `data` the numerical data that should be `Vector{Vector{Vector{S}}}`, where `S` is the interpolation curve 
-(we use `DataInterpolation` in this package);
-- `flawpoints` the flaw points generated during continuation.
-"""
-mutable struct NSOneDManifold{F,S,N,T}
-    prob::NSOneDManifoldProblem{F,T}
-    data::Vector{Vector{S}}
-    flawpoints::Vector{FlawPoint{N,T}}
-end
-
 function NSOneDManifoldProblem(f; amax=0.5, d=0.001, ϵ=0.00001, dsmin=0.0001)
     NSOneDManifoldProblem(f, Float64[], amax, d, ϵ, dsmin)
 end
@@ -53,6 +31,45 @@ end
 function NSOneDManifoldProblem(f, para::Vector{T};
     amax=T(0.5), d=T(0.001), ϵ=T(0.00001), dsmin=T(0.0001)) where {T}
     NSOneDManifoldProblem(f, para, amax, d, ϵ, dsmin)
+end
+
+"""
+    NSOneDManifold{F,S,N,T}
+
+`NSOneDManifold` is a struct contains all the information of the non-smooth one-dimensional numerical manifold.
+# Fields
+- `prob` the problem `OneDManifoldProblem`;
+- `data` the numerical data that should be `Vector{Vector{Vector{S}}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
+- `flawpoints` the flaw points generated during continuation.
+"""
+mutable struct NSOneDManifold{F,S,N,T}
+    prob::NSOneDManifoldProblem{F,T}
+    data::Vector{Vector{S}}
+    flawpoints::Vector{FlawPoint{N,T}}
+end
+
+function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
+    m = 0
+    n = length(A.data)
+    for i in eachindex(A.data)
+        n = n + length(A.data[i])
+        for j in eachindex(A.data[i])
+            m = m + length(A.data[i][j].t)
+        end
+    end
+    k = length(A.flawpoints)
+    println(io, "Non-smooth one-dimensional manifold")
+    println(io, "Curves number: $n")
+    println(io, "Points number: $m")
+    amax = A.prob.amax
+    d = A.prob.d
+    prend = findall(x -> x.d > d, A.flawpoints)
+    nd = length(prend)
+    prenc = findall(x -> x.α > amax, A.flawpoints)
+    nc = length(prenc)
+    println(io, "Flaw points number: $k")
+    println(io, "Distance failed points number: $nd")
+    println(io, "Curvature failed points number: $nc")
 end
 
 function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=LinearInterpolation) where {N,T}
@@ -90,7 +107,7 @@ take_u(x) = x.u
 take_t(x) = x.t
 
 
-function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S<:AbstractInterpolation}
+function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S}
     if length(v) == 1
         v[1]
     else
@@ -111,7 +128,7 @@ function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S<:Ab
 end
 
 # Union broken lines with the same event
-function union_lines(v::Vector{S}; interp=LinearInterpolation) where {S<:AbstractInterpolation}
+function union_lines(v::Vector{S}; interp=LinearInterpolation) where {S}
     result = S[]
     event = v[1].u[1].event_at
     line = S[]

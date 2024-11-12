@@ -5,9 +5,7 @@ The struct `NSState` is to record the events data for a time-T-map.
 
 # Fields
 - `state` the final state of the time-T-map;
-- `event_t` the times when events happen;
-- `event_state` the solution's state when events happen;
-- `event_at` is a vector that contains integers indicating which event happen;
+- `event_at` is a integer vector that contains the history of the events happened.
 
 The meaning of `event_at` in `PiecewiseV` and `BilliardV` systems is quite clear.
 For a simple Fillippov system `SFilippovV`, we record three events:

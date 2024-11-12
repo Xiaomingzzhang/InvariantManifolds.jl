@@ -1,100 +1,109 @@
 """
-    AnnulusBoundaries
+    VTwoDManifoldProblem{F,T}
 
-A struct contains data when generating the two dimensional manifold.
-
+`VTwoDManifoldProblem` is a struct to contain the main information for continuing the two-dimensional manifold of an autonomous vector field.
 # Fields
-- `inner` an `IterationCurve` represents inner boundary;
-- `outer` an `IterationCurve` represents outer boundary;
+- `f` the time flow map of the vector field, which should has the form `f(x,p)` and return a `SVector`; note that the vector field should be regularized, e.g., ``\\dot{x}=v(x)`` should be rewritten as ``\\dot{x}=v(x)/|v(x)|``;
+- `para` the parameters of the time flow map;
+- `amax` the maximum angle between points when continuing the manifold;
+- `d` the maximum distance between points when continuing the manifold;
+- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
+
+Convenient consturctors are `VTwoDManifoldProblem(f)` and `VTwoDManifoldProblem(f,para)`
 """
-struct AnnulusBoundaries{T}
-    inner::T
-    outer::T
+struct VTwoDManifoldProblem{F,T}
+    f::F
+    para::Vector{T}
+    amax::T
+    d::T
+    dsmin::T
 end
 
-function inintialise_mesh(saddle, v1, v2, n, r; interp = LinearInterpolation)
-    A = hcat(v1, v2)
-    Q = SMatrix(qr(A).Q)
-    newv1 = Q[:, 1]
-    newv2 = Q[:, 2]
-    rag = range(0, 1, length=n + 1)
-    circle1 = [saddle for t in rag]
-    circle2 = [saddle + r * cospi(2 * t / 1) * newv1 + r * sinpi(2 * t / 1) * newv2 for t in rag]
-    ic1 = interp(circle1, rag)
-    ic2 = interp(circle2, rag)
-    [AnnulusBoundaries(ic1, ic2)]
+function VTwoDManifoldProblem(f; amax=0.5, d=0.001, dsmin=1e-5)
+    VTwoDManifoldProblem(f, Float64[], amax, d, dsmin)
 end
 
-function grow_surface!(f, p, annulus::Vector{AnnulusBoundaries{S}}, δ; interp = LinearInterpolation) where {S}
-    oldu0 = copy(annulus[end].outer.u)
-    olds0 = copy(annulus[end].outer.t)
-    oldcurve = annulus[end].outer
-    k = length(oldu0)
-    newu0 = similar(oldu0)
-    T = typeof(oldu0[1][1])
-    newss = T[0]
-    for i in eachindex(newu0)
-        newu0[i] = f(oldu0[i], p)
+
+function VTwoDManifoldProblem(f, para::Vector{T};
+    amax=T(0.5), d=T(0.001), dsmin=T(1e-5)) where {T}
+    VTwoDManifoldProblem(f, para, amax, d, dsmin)
+end
+
+"""
+    VTwoDManifold{F,S,N,T}
+
+`VTwoDManifold` is a struct contains all the information of the two-dimensional numerical manifold of an autonomous vector field.
+# Fields
+- `prob` the problem `VTwoDManifoldProblem`;
+- `data` the numerical data that should be `Vector{S}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
+- `flawpoints` the flaw points generated during continuation.
+"""
+mutable struct VTwoDManifold{F,S,N,T}
+    prob::VTwoDManifoldProblem{F,T}
+    data::Vector{S}
+    flawpoints::Vector{FlawPoint{N,T}}
+end
+
+
+function Base.show(io::IO, m::MIME"text/plain", A::VTwoDManifold)
+    m = 0
+    n = length(A.data)
+    for i in eachindex(A.data)
+        m = m + length(A.data[i].t)
     end
-    j = 1
-    while j + 1 <= k
-        dist = norm(newu0[j] - newu0[j+1])
-        if dist > δ
-            m = ceil(Int, dist / δ)
-            if m == 1
-                m = 2
-            end
-            s1 = olds0[j+1]
-            s0 = olds0[j]
-            plengh = (s1 - s0) / m
-            paras = [s0 + plengh * i for i in 1:m-1]
-            preaddps = similar(oldu0, m - 1)
-            addps = similar(oldu0, m - 1)
-            for i in 1:m-1
-                news = paras[i]
-                preaddps[i] = oldcurve(news)
-                addps[i] = f(oldcurve(news), p)
-            end
-            insert!(oldu0, j + 1, preaddps)
-            insert!(newu0, j + 1, addps)
-            insert!(olds0, j + 1, paras)
-            k = k + m - 1
-        else
-            j = j + 1
-            dd = newss[end]
-            append!(newss, [dd + dist])
-        end
-    end
-    ic1 = interp(newu0, newss)
-    ic2 = interp(oldu0, olds0)
-    newannulus = AnnulusBoundaries(ic2, ic1)
-    append!(annulus, [newannulus])
-    return nothing
+    k = length(A.flawpoints)
+    println(io, "Two-dimensional manifold")
+    println(io, "Circles number: $n")
+    println(io, "Points number: $m")
+    amax = A.prob.amax
+    d = A.prob.d
+    prend = findall(x -> x.d > d, A.flawpoints)
+    nd = length(prend)
+    prenc = findall(x -> x.α > amax, A.flawpoints)
+    nc = length(prenc)
+    println(io, "Flaw points number: $k")
+    println(io, "Distance failed points number: $nd")
+    println(io, "Curvature failed points number: $nc")
 end
 
+function initialize(prob::VTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=LinearInterpolation) where {N,T}
+    para = prob.para
+    f = prob.f
+    αmax = prob.amax
+    d = prob.d
+    dsmin = prob.dsmin
+    flawpoints = FlawPoint{N,T}[]
+    circles = [paramise(disk[i], interp=interp) for i in eachindex(disk)]
+    VTwoDManifold(prob, circles, flawpoints)
+end
 
-"""
-    generate_surface(f, p, saddle, v1, v2, N, r, δ)
+function grow!(manifold::VTwoDManifold{F,S,N,T}; interp=LinearInterpolation) where {F,S,N,T}
+    prob = manifold.prob
+    para = prob.para
+    f = prob.f
+    αmax = prob.amax
+    d = prob.d
+    dsmin = prob.dsmin
+    flawpoints = manifold.flawpoints
+    dsmin = prob.dsmin
+    data = manifold.data
+    circle = data[end]
+    olds = copy(circle.t)
+    newcircle = Vector{SVector{N,T}}(undef, length(olds))
+    points = circle.u
+    Threads.@threads for i in eachindex(newcircle)
+        newcircle[i] = f(points[i], para)
+    end
+    newpara = addpoints!(f, para, d, circle, newcircle, olds, dsmin, αmax, flawpoints)
+    finalnewcircle = interp(newcircle, newpara)
+    append!(data, [finalnewcircle])
+    manifold
+end
 
-Function to generate the two dimension manifold of a vector field.
-
-# Parameters
-- `f` the time-T-map a the vector field;
-- `p` parameter of the system;
-- `saddle` saddle fixed point of the ODE system;
-- `v1` an instable direction of the `saddle`;
-- `v2` another instable direction of the `saddle`;
-- `N` iteration times;
-- `r` the radius of origin disk to extend;
-- `δ` the max distance between points when iterating.
-
-# Keyword arguments
-- `n=150` the number of points in the boundary of the origin disk to extend.
-"""
-function generate_surface(f, p, saddle, v1, v2, N, r, δ; n=150, interp = LinearInterpolation)
-    myannulus = inintialise_mesh(saddle, v1, v2, n, r, interp=interp)
+function growmanifold(prob::VTwoDManifoldProblem, disk, N; interp=LinearInterpolation)
+    manifold = initialize(prob, disk, interp=interp)
     for i in 1:N
-        grow_surface!(f, p, myannulus,  δ; interp=interp)
+        grow!(manifold; interp=interp)
     end
-    myannulus
+    manifold
 end
