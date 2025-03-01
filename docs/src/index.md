@@ -1,11 +1,11 @@
 # InvariantManifolds.jl
 
-The purpose of this package is to provide a convenience tool to numerically investigate the low dimensional
-invariant manifolds. We don't provide any numerical stability or reliable commitment. 
+This package aims to provide a convenient tool for numerically investigating low-dimensional invariant manifolds. We offer no guarantees regarding numerical stability or reliability.
 
-The main idea of this package is quite simple. By using the local manifolds of saddles, extend this manifolds
-step by step. We just keep the points near enough (with the distance and curvature control) to ensure the accuracy of the numerical manifolds.
+**Main idea:**
 
-The two-dimensional algorithm for smooth mapping of this package is based on the one-dimensional algorithm. The numerical manifolds are represented as plenty near enough circles.
+The core concept of this package is straightforward. By utilizing the local manifolds of saddle points, we progressively extend these manifolds. We maintain points in close proximity (controlled by distance and curvature) to ensure the accuracy of the numerical manifolds.
 
-The most interesting part of this package is the computing of the non-smooth invariant manifolds in a reliable way. See the examples for more details.
+In this package, the two-dimensional algorithm for smooth mappings is built upon the one-dimensional algorithm. Numerical manifolds are represented as a collection of sufficiently close points, forming circles.
+
+The most compelling aspect of this package lies in its ability to reliably compute non-smooth invariant manifolds. Please refer to the examples for further details.

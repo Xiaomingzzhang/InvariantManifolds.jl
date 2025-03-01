@@ -7,15 +7,27 @@ function (v::Jacobi)(x, p, t)
     v.dv(v.sol(t), p, t) * x
 end
 
+"""
+    ODESolver{F1,F2,T}
+
+A wrapper struct for solving ordinary differential equations (ODEs).
+
+# Fields
+- `f`: Vector field function of the ODE system in the form `f(x,p,t)`
+- `timespan`: Time interval for solving the ODE, of type `Tuple{T,T}`
+- `alg`: The numerical algorithm used for solving the ODE
+- `abstol`: Absolute tolerance for the numerical solver
+"""
 struct ODESolver{F1,F2,T}
     f::F1
     timespan::Tuple{T,T}
     alg::F2
+    abstol::T
 end
 
 function (v::ODESolver)(x, p)
     prob = ODEProblem{false}(v.f, x, v.timespan, p)
-    solve(prob, v.alg)
+    solve(prob, v.alg, abstol=v.abstol)
 end
 
 """
@@ -30,16 +42,18 @@ end
 # Keyword arguments
 - `n` maximum iterate times, default to be 100;
 - `abstol` absolute tolerance for the fixed point, default to be `1e-8`;
-- `alg` the algorithm used to solve the ODE, default to be `Tsit5()`.
+- `alg` the algorithm used to solve the ODE, default to be `Vern9()`.
+# Returns
+A [`Saddle`](@ref) object, which contains the fixed point and the directions of the stable manifold.
 """
-function findsaddle(v, dv, timespan, x::SVector{N,T}, p; n=100, abstol=1e-8, alg=Tsit5()) where{N,T}
-    timemap = ODESolver(v, timespan, alg)
+function findsaddle(v, dv, timespan, x::SVector{N,T}, p; n=100, abstol=1e-8, alg=Vern9()) where{N,T}
+    timemap = ODESolver(v, timespan, alg, abstol)
     ii = SMatrix{N,N,T}(I)
     function jac(u, p)
         sol = timemap(u, p)
         df = Jacobi(sol, dv)
         nprob = ODEProblem{false}(df, ii, timespan, p)
-        solve(nprob, alg)[end]
+        solve(nprob, alg, abstol=abstol)[end]
     end
     xn = x - inv(jac(x, p) - ii) * (timemap(x, p)[end] - x)
     data = [x, xn]
@@ -47,6 +61,7 @@ function findsaddle(v, dv, timespan, x::SVector{N,T}, p; n=100, abstol=1e-8, alg
     while norm(data[2] - data[1]) > abstol && i <= n
         data[1] = data[2]
         data[2] = data[1] - inv(jac(data[1], p) - ii) * (timemap(data[1], p)[end] - data[1])
+        i += 1
     end
     if norm(data[2] - data[1]) < abstol
         eigendata = eigen(jac(data[2], p))

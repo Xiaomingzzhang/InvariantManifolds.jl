@@ -21,12 +21,34 @@ struct TwoDManifoldProblem{F,T}
     dsmin::T
 end
 
+function show(io::IO, m::MIME"text/plain", A::TwoDManifoldProblem)
+    printstyled(io, "TwoDManifoldProblem:"; color=:cyan)
+    println(io)
+    print(io, "f:")
+    show(io, A.f)
+    println(io)
+    print(io, "para: ")
+    show(io, A.para)
+    println(io)
+    print(io, "amax: ")
+    show(io, m, A.amax)
+    println(io)
+    print(io, "d: ")
+    show(io, m, A.d)
+    println(io)
+    print(io, "dcircle: ")
+    show(io, m, A.dcircle)
+    println(io)
+    print(io, "dsmin: ")
+    show(io, m, A.dsmin)
+end
+
 """
     TwoDManifold{F,S,N,T}
 
 `TwoDManifold` is a struct contains all the information of the two-dimensional numerical manifold of a nonlinear map.
 # Fields
-- `prob` the problem `TwoDManifoldProblem`;
+- `prob` the problem [`TwoDManifoldProblem`](@ref);
 - `data` the numerical data that should be `Vector{S}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
 """
@@ -41,7 +63,7 @@ function TwoDManifoldProblem(f; amax=0.5, d=0.001, dcircle=0.01, dsmin=1e-5)
 end
 
 
-function TwoDManifoldProblem(f, para::Vector{T};
+function TwoDManifoldProblem(f, para::AbstractVector{T};
     amax=T(0.5), d=T(0.001), dcircle=T(0.01), dsmin=T(1e-5)) where {T}
     TwoDManifoldProblem(f, para, amax, d, dcircle, dsmin)
 end
@@ -57,24 +79,30 @@ function Base.show(io::IO, m::MIME"text/plain", A::TwoDManifold)
         end
     end
     k = length(A.flawpoints)
-    println(io, "Two-dimensional manifold")
-    println(io, "Circles number: $n")
-    println(io, "Points number: $m")
+    printstyled(io, "Two-dimensional manifold:"; bold=true, color=:cyan)
+    println(io)
+    printstyled(io, "Circles number: "; color=:cyan)
+    println(io, "$n")
+    printstyled(io, "Points number: "; color=:cyan)
+    println(io, "$m")
     amax = A.prob.amax
     d = A.prob.d
     prend = findall(x -> x.d > d, A.flawpoints)
     nd = length(prend)
     prenc = findall(x -> x.α > amax, A.flawpoints)
     nc = length(prenc)
-    println(io, "Flaw points number: $k")
-    println(io, "Distance failed points number: $nd")
-    println(io, "Curvature failed points number: $nc")
+    printstyled(io, "Flaw points number: "; color=:cyan)
+    println(io, "$k")
+    printstyled(io, "Distance failed points number: "; color=:cyan)
+    println(io, "$nd")
+    printstyled(io, "Curvature failed points number: "; color=:cyan)
+    print(io, "$nc")
 end
 
 """
-    kd_distence
+    InvariantManifolds.kd_distence
 
-The function to measure the distance between two circles by using the package `NearestNeighbors`.
+The function to measure the distance between two circles by using the package `NearestNeighbors.jl`.
 """
 @inline function kd_distence(point::SVector{N,T}, someset::Vector{SVector{N,T}}) where {N,T}
     btree = KDTree(someset)
@@ -85,6 +113,18 @@ end
     btree = KDTree(someset1)
     dd = [nn(btree, x)[2] for x in someset2]
     maximum(dd)
+end
+
+"""
+    InvariantManifolds.set_distence
+
+The function to measure the distance between two sets by using the package `NearestNeighbors.jl`.
+"""
+@inline function set_distence(someset1::Vector{SVector{N,T}}, someset2::Vector{SVector{N,T}}) where {N,T}
+    btree = KDTree(someset1)
+    dd = [nn(btree, x)[2] for x in someset2]
+    @show minimum(dd)
+    minimum(dd)
 end
 
 function welldistributedpoints!(pcurve, points, para, d)
@@ -110,15 +150,15 @@ end
 
 `gen_disk` is a function to generate circles around the saddle, which represented as the local manifold.
 # Parameters
-- `p` the struct `Saddle` which should contains two unstable directions; the complex eigenvalues and eigenvectors are allowed.
-- `times` the iteration times; this parameter is needed to adjust the torsion in different directions in the process of continuation.
-# Keyword argument
+- `p` the struct [`Saddle`](@ref) which should contains two unstable directions; the complex eigenvalues and eigenvectors are allowed.
+# Keyword arguments
+- `times` the iteration time, default to be `1`; for the computation of invariant manifolds of nonlinear map, this parameter is needed to adjust the torsion in different directions in the process of continuation.
 - `n` the number of point in each circle, default to be `150`;
-- `d` the max distance between points in a single circle, default to be `0.002`;
+- `d` the max distance between points in a single circle, default to be `0.0002`;
 - `r` the size of the disk, default to be `0.05`;
 - `circles` the number of the circles, default to be `10`.
 """
-function gen_disk(p::Saddle{N,T,S}, times; n=150, d=0.002, r=0.05, circles=10) where {N,T,S}
+function gen_disk(p::Saddle{N,T,S}; times=1, n=150, d=0.0002, r=0.01, circles=2) where {N,T,S}
     if S <: Real
         v1 = p.unstable_directions[1]
         v2 = p.unstable_directions[2]
@@ -165,6 +205,32 @@ function gen_disk(p::Saddle{N,T,S}, times; n=150, d=0.002, r=0.05, circles=10) w
     end
 end
 
+"""
+    InvariantManifolds.addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=LinearInterpolation)
+
+Adds and refines circles in the two-dimensional manifold computation by iterating the map and ensuring proper point distribution.
+
+# Arguments
+- `f`: The nonlinear map function
+- `para`: Vector of parameters for the map
+- `d`: Maximum allowed distance between points in a circle
+- `circles`: Vector of interpolated curves representing the current circles
+- `dsmin`: Minimum allowed arc length between points
+- `αmax`: Maximum allowed angle between consecutive points
+- `dcircle`: Maximum allowed distance between consecutive circles
+- `flawpoints`: Vector to store problematic points during computation
+- `interp`: Interpolation method (default: LinearInterpolation)
+
+# Returns
+A vector of new interpolated curves representing the refined circles after one iteration of the map.
+
+# Details
+The function performs two main steps:
+1. Iterates each circle forward under the map and refines point distribution within each circle
+2. Adds intermediate circles where the distance between consecutive circles exceeds `dcircle`
+
+Points are added to maintain proper spacing and curvature constraints specified by `d` and `αmax`.
+"""
 function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=LinearInterpolation)
     newdata = deepcopy(circles)
     k = length(newdata)
@@ -223,18 +289,12 @@ function initialize(prob::TwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}
     flawpoints = FlawPoint{N,T}[]
     dcircle = prob.dcircle
     circles = [paramise(disk[i], interp=interp) for i in eachindex(disk)]
-    newcircles = addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=interp)
-    circle0 = first(disk)
-    circlen = last(disk)
-    j = 1
-    dist = kd_distence(circle0, circlen)
-    while kd_distence(newcircles[j].u, circle0) < dist
-        j = j + 1
-    end
-    j = j + 1
-    newcircles = newcircles[j:end]
-    prepend!(newcircles, [paramise(circlen, interp=interp)])
-    result = [circles, newcircles]
+    outercircle = last(disk)
+    poutcircle = paramise(outercircle, interp=interp)
+    newoutcircle = [f(outercircle[i], para) for i in eachindex(outercircle)]
+    addpoints!(f, para, d, poutcircle, newoutcircle, copy(poutcircle.t), dsmin, αmax, flawpoints)
+    pnewoutcircle = paramise(newoutcircle, interp=interp)
+    result = [circles, [poutcircle, pnewoutcircle]]
     TwoDManifold(prob, result, flawpoints)
 end
 

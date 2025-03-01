@@ -1,13 +1,13 @@
 """
-    PiecewiseV <: ContinuousVectorField
+    PiecewiseV
 
-Piecewise smooth vector field. 
+A callable struct to represent a piecewise smooth vector field. 
 
 # Fields
-- `fs` is a vector of smooth vector fields in different regions.
-- `regions` is a vector of the region functions: `[r1,r2,...]`, where `r1(x,p,t)` should return a Bool value to indicate that `x` is in this region or not.
-- `hypers` is a vector of the hyper surfaces separating the regions.
-- `n` is a integer to switch between vector fields. It can be set to any integer when construct a `PiecewiseV`.
+- `fs` is a tuple of smooth vector fields in different regions.
+- `regions` is a tuple of the region functions: `(r1,r2,...)`, where `r1(x,p,t)` should return a Bool value to indicate that `x` is in this region or not.
+- `hypers` is a tuple of the hyper surfaces separating the regions.
+- `n` is a integer to switch between vector fields. Default to be zero.
 
 # Example
 
@@ -59,9 +59,9 @@ end
 
 
 """
-    BilliardV <: JumpVectorField
+    BilliardV
 
-A vector field with multiple hyper surfaces such that the flow jump when hits these hyper surfaces.
+A callable struct to represent a vector field with multiple hyper surfaces such that the flow jump when hits these hyper surfaces.
 
 # Fields
 - `f` is the vector field, of type `f(x,p,t)`, and its output is a SVector;
@@ -79,43 +79,34 @@ function (v::BilliardV)(x, p, t)
     v.f(x, p, t)
 end
 
-
 """
-    SFilippovV <: ContinuousVectorField
+    PiecewiseImpactV
 
-`SFilippovV` means simple Fillippov vector fields, which means that there only exists one hyper surface to separate the phase space.
+A callable struct to represent a vector field with both piecewise non-smoothness and impacts.
 
-# Fields
-- `fs` vector fields in two sides of hyper surface. The slide vector field can be generated automatically.
-- `hyper` hyper surface.
-- `dhyper` grad of hyper surface. Warn!!! The grad must point to the second of `fs`.
-- `exit` conditions to exit the hyper surface, which can also be generated automatically.
-- `n` is a integer to switch between vector fields. It can be set to any integer when construct a `SFilippovV`.
+- `fs` is a tuple of smooth vector fields in different regions.
+- `regions` is a tuple of the region functions: `(r1,r2,...)`, where `r1(x,p,t)` should return a Bool value to indicate that `x` is in this region or not.
+- `hypers` is a tuple of the hyper surfaces separating the regions.
+- `rules` is a tuple of rules on hyper surfaces:`(r1,r2,r3,...)`. Note that for hypersurfaces that only switch between two vector fields, we can set `r1=id`.
+- `idxs` is a vector of integer to indicate hypersurfaces with impact effects.
+- `n` is a integer to switch between vector fields. Default to be zero.
 """
-mutable struct SFilippovV{F,H,DH,E,G,Q}
-    fs::F
-    hyper::H
-    dhyper::DH
-    exit::E
+mutable struct PiecewiseImpactV{F1,F2,F3,F4}
+    fs::F1
+    regions::F4
+    hypers::F2
+    rules::F3
+    idxs::Vector{Int}
     n::Int
 end
 
-function SFilippovV(fs, h, ∇h)
-    f1 = fs[1]
-    f2 = fs[2]
-    function sv(x, p, t)
-        α = dot(∇h(x, p, t), f1(x, p, t)) / dot(∇h(x, p, t), f1(x, p, t) - f2(x, p, t))
-        (1 - α) * f1(x, p, t) + α * f2(x, p, t)
-    end
-    function exit(x, p, t)
-        dot(∇h(x, p, t), f2(x, p, t)) * dot(∇h(x, p, t), f1(x, p, t))
-    end
-    SFilippovV((f1, f2, sv), h, ∇h, exit, 0)
-end
-
-function (v::SFilippovV)(x, p, t)
+function (v::PiecewiseImpactV)(x, p, t)
     n = v.n
     v.fs[n](x, p, t)
+end
+
+function PiecewiseImpactV(fs, regions, hypers,  rules, idxs)
+    PiecewiseImpactV(fs, regions, hypers, rules, idxs, 0)
 end
 
 
@@ -125,9 +116,9 @@ end
 `NSSetUp` is a struct to contain all the information needed in continuing the manifold of non-smooth ODE.
 
 # Fields
-- `f` the Non-smooth vector field, like `PiecewiseV`;
+- `f` the Non-smooth vector field, like [`PiecewiseV`](@ref);
 - `timespan` the time span of time-T-map;
-- `timetmap` the time-t-map of non-smooth ODE, which maps a `NSState` and parameters of ODE to a `NSState`.
+- `timetmap` the time-t-map of non-smooth ODE, which maps a [`NSState`](@ref) and parameters of ODE to a [`NSState`](@ref).
 """
 struct NSSetUp{F1,T,F2}
     f::F1
@@ -136,15 +127,46 @@ struct NSSetUp{F1,T,F2}
 end
 
 function show(io::IO, m::MIME"text/plain", A::NSSetUp{T}) where {T}
-    println(io, "NSSetUp{$T}: ")
+    printstyled(io, "NSSetUp:"; color=:cyan)
+    println(io)
     print(io, "f: ")
-    show(io, m, A.f)
+    show(io, A.f)
     println(io)
     print(io, "timespan: ")
     show(io, m, A.timespan)
+end
+
+
+"""
+    NSSolution{N,T<:Number}
+
+The `NSSolution` is a struct to contain all information of the solution of a non-smooth ODE system.
+
+# Fields
+- `sol` `ODESolution` solved by `OrdinaryDiffEq`;
+- `event_t` the times when events happen;
+- `event_state` the solution's state when events happen;
+- `event_at` is a vector that contains integers indicating which event happen.
+"""
+struct NSSolution{N,T<:Number}
+    sol
+    event_t::Vector{T}
+    event_state::Vector{SVector{N,T}}
+    event_at::Vector{Int64}
+end
+
+function show(io::IO, m::MIME"text/plain", A::NSSolution{N,T}) where {N,T}
+    println(io, "NSSolution{$N, $T}: ")
+    show(io, m, A.sol)
     println(io)
-    print(io, "timetmap: ")
-    show(io, m, A.timetmap)
+    print(io, "event_t: ")
+    show(io, m, A.event_t)
+    println(io)
+    print(io, "event_state: ")
+    show(io, m, A.event_state)
+    println(io)
+    print(io, "event_at: ")
+    show(io, m, A.event_at)
 end
 
 """
@@ -163,11 +185,15 @@ struct Saddle{N,T,S}
     unstable_eigen_values::Vector{S}
 end
 
-function show(io::IO, m::MIME"text/plain", A::Saddle{N,T}) where {N, T}
-    println(io, "Saddle{$N,$T}: ")
+function show(io::IO, m::MIME"text/plain", A::Saddle{N,T,S}) where {N,T,S}
+    println(io, "Saddle{$N,$T,$S}: ")
     print(io, "saddle: ")
-    show(io, m, A.saddle)
+    show(io, A.saddle)
     println(io)
     print(io, "unstable_directions: ")
-    show(io, m, A.unstable_directions)
+    show(io, A.unstable_directions)
+    println(io)
+    print(io, "unstable_eigen_values: ")
+    show(io, A.unstable_eigen_values)
 end
+

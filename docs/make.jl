@@ -16,11 +16,12 @@ makedocs(;
         collapselevel = 1
     ),
     pages = [
-        "Home"=>"index.md",
-        # "State of art"=>"art.md",
-        "Examples"=>"examples.md",
-        "Extensions"=>"extensions.md",
-        "API"=>"api.md"
+        "主页"=>"index.md",
+        "开始使用: 一维光滑流形"=>"smooth_one.md",
+        "光滑两维流形"=>"smooth_two.md",
+        "非光滑一维流形"=>"non_smooth_one.md",
+        "非光滑两维流形"=>"non_smooth_two.md",
+        "类型与函数"=>"api.md"
     ]
 )
 

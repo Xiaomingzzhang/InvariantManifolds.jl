@@ -2,3 +2,5 @@
 /docs/Manifest.toml
 /docs/build/
 /.vscode
+/src/simple_filippov
+/src/filippov_impact

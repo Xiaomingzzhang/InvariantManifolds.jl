@@ -4,22 +4,23 @@ using LinearAlgebra, StaticArrays, OrdinaryDiffEq, DataInterpolations, NearestNe
 
 import Base: -, +, *, /, length, eltype, getindex, size, show
 
-export NSState, NSSolution, NSSetUp
+export NSState, NSSetUp
 
-export PiecewiseV, BilliardV, SFilippovV
+export PiecewiseV, BilliardV, PiecewiseImpactV
 
-export OneDManifoldProblem, OneDManifold, NSOneDManifoldProblem, NSOneDManifold, FlawPoint
+export OneDManifoldProblem, NSOneDManifoldProblem, VTwoDManifoldProblem
 
-export TwoDManifoldProblem, TwoDManifold, VTwoDManifoldProblem, VTwoDManifold
+export TwoDManifoldProblem, NSVTwoDManifoldProblem
 
-export setmap, timetmap, ns_solver
+export id, setmap, ns_solver
 
 export gen_segment, gen_disk, initialize
 
 export grow!, growmanifold, Saddle, findsaddle
 
-include("basic_constructors.jl")
+
 include("nsstate_construction.jl")
+include("basic_constructors.jl")
 
 # the algorithm for smooth nonlinear maps' one dimensional manifolds
 include("smooth-one.jl")
@@ -33,13 +34,13 @@ include("smooth_vectorfield_two.jl")
 # construct the time-T-map for different non-smooth ODE systems
 include("piecewise.jl")
 include("impact.jl")
-include("simple_filippov.jl")
-
+include("piecewise_impact.jl")
+# include("simple_filippov.jl")
+# include("filippov_impact.jl")
 # the one dimensional non-smooth manifold algorithm
 include("nonsmooth-one.jl")
-
+include("nonsmooth_vectorfield_two.jl")
 
 # newton method to locate the saddles of smooth vector fields' time-T-map
 include("newton.jl")
-
 end
