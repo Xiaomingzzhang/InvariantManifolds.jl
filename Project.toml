@@ -11,12 +11,7 @@ OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-julia = "1.10"
-DataInterpolations ="^7.2.0"
-NearestNeighbors = "^0.4.21"
-OrdinaryDiffEq = "^6.91.0"
-StaticArrays = "^1.9.12"
-LinearAlgebra = "^1.11.0"
+julia = "1.9"
 
 
 [extras]
