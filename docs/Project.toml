@@ -2,3 +2,6 @@
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 InvariantManifolds = "8e6e46ff-12cc-43ef-8840-ba5cab270546"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

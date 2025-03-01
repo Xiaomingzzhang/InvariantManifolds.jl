@@ -1,3 +1,4 @@
+```@setup smooth_one
 using InvariantManifolds, StaticArrays, OrdinaryDiffEq, CairoMakie
 ```
 # Getting Started: One-Dimensional Smooth Manifolds
