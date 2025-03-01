@@ -1,6 +1,5 @@
 /Manifest.toml
 /docs/Manifest.toml
 /docs/build/
+/cndocs
 /.vscode
-/src/simple_filippov
-/src/filippov_impact

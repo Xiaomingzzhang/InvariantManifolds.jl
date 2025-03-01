@@ -29,6 +29,13 @@ mutable struct PiecewiseV{F1,F2,F3}
     regions::F2
     hypers::F3
     n::Int
+
+    function PiecewiseV(fs::F1, regions::F2, hypers::F3, n::Int=0) where {F1,F2,F3}
+        if length(fs) != length(regions)
+            throw(ArgumentError("Number of vector fields ($(length(fs))) and regions ($(length(regions))) must match"))
+        end
+        new{F1,F2,F3}(fs, regions, hypers, n)
+    end
 end
 
 function show(io::IO, m::MIME"text/plain", A::PiecewiseV)
@@ -46,12 +53,6 @@ function show(io::IO, m::MIME"text/plain", A::PiecewiseV)
     show(io, m, A.n)
 end
 
-id(x, p, t) = x
-
-function PiecewiseV(f1, f2, f3)
-    PiecewiseV(f1, f2, f3, 0)
-end
-
 function (v::PiecewiseV)(x, p, t)
     n = v.n
     v.fs[n](x, p, t)
@@ -66,14 +67,20 @@ A callable struct to represent a vector field with multiple hyper surfaces such 
 # Fields
 - `f` is the vector field, of type `f(x,p,t)`, and its output is a SVector;
 - `hypers` is tuple of hyper surfaces:`(h1,h2,...)`, `h1(x,p,t)`;
-- `irules` is tuple of rules on hyper surfaces:`(r1,r2,r3,...)`.
+- `rules` is tuple of rules on hyper surfaces:`(r1,r2,r3,...)`.
 """
 struct BilliardV{F1,F2,F3}
     f::F1
     hypers::F2
     rules::F3
-end
 
+    function BilliardV(f::F1, hypers::F2, rules::F3) where {F1,F2,F3}
+        if length(hypers) != length(rules)
+            throw(ArgumentError("Number of hypersurfaces ($(length(hypers))) and rules ($(length(rules))) must match"))
+        end
+        new{F1,F2,F3}(f, hypers, rules)
+    end
+end
 
 function (v::BilliardV)(x, p, t)
     v.f(x, p, t)
@@ -98,6 +105,16 @@ mutable struct PiecewiseImpactV{F1,F2,F3,F4}
     rules::F3
     idxs::Vector{Int}
     n::Int
+
+    function PiecewiseImpactV(fs::F1, regions::F4, hypers::F2, rules::F3, idxs::Vector{Int}, n::Int=0) where {F1,F2,F3,F4}
+        if !(length(fs) == length(regions) == length(hypers) == length(rules))
+            throw(ArgumentError("Number of vector fields ($(length(fs))), regions ($(length(regions))), hypersurfaces ($(length(hypers))), and rules ($(length(rules))) must match"))
+        end
+        if !isempty(idxs) && maximum(idxs) > length(hypers)
+            throw(ArgumentError("Impact indices must not exceed the number of hypersurfaces"))
+        end
+        new{F1,F2,F3,F4}(fs, regions, hypers, rules, idxs, n)
+    end
 end
 
 function (v::PiecewiseImpactV)(x, p, t)
@@ -105,7 +122,7 @@ function (v::PiecewiseImpactV)(x, p, t)
     v.fs[n](x, p, t)
 end
 
-function PiecewiseImpactV(fs, regions, hypers,  rules, idxs)
+function PiecewiseImpactV(fs, regions, hypers, rules, idxs)
     PiecewiseImpactV(fs, regions, hypers, rules, idxs, 0)
 end
 
@@ -196,4 +213,3 @@ function show(io::IO, m::MIME"text/plain", A::Saddle{N,T,S}) where {N,T,S}
     print(io, "unstable_eigen_values: ")
     show(io, A.unstable_eigen_values)
 end
-
