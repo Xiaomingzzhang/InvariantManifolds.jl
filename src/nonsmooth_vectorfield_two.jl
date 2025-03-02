@@ -100,7 +100,7 @@ end
 
 function initialize(prob::NSVTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=LinearInterpolation) where {N,T}
     flawpoints = FlawPoint{N,T}[]
-    newdisk = Vector{SVector{N,T}}[]
+    newdisk = Vector{NSState{N,T}}[]
     for i in eachindex(disk)
         points = Vector{NSState{N,T}}(undef, length(disk[i]))
         for j in eachindex(points)
@@ -141,6 +141,7 @@ function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=LinearInterpolation) w
         append!(result, _result)
     end
     append!(data, [union_lines(result, interp=interp)])
+    manifold
 end
 
 function growmanifold(prob::NSVTwoDManifoldProblem, disk, N; interp=LinearInterpolation)
