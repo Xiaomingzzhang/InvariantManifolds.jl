@@ -172,27 +172,34 @@ Vector of parameter values for the new points
             u0 = newu[i]
             u1 = newu[i+1]
             u2 = newu[i+2]
-            δ = norm(u0 - u1)
-            baru0 = u1 + (u1 - u2) * norm(u1 - u0) / norm(u1 - u2)
-            α = norm(baru0 - u0) / (norm(u1 - u0))
-            if δ <= d && α <= αmax
-                i = i + 1
-                dd = newpara[end]
-                append!(newpara, [dd + δ])
+            δ1 = norm(u0 - u1)
+            δ2 = norm(u1 - u2)
+            if δ1 == 0 || (δ1 != 0 && δ2 == 0)
+                deleteat!(newu, i + 1)
+                deleteat!(olds, i + 1)
+                n = n - 1
             else
-                if olds[i+1] - olds[i] > dsmin
-                    s0 = olds[i]
-                    s1 = olds[i+1]
-                    paras = (s0 + s1) / 2
-                    addps = f(oldcurve(paras), p)
-                    insert!(newu, i + 1, addps)
-                    insert!(olds, i + 1, paras)
-                    n = n + 1
-                else
+                baru0 = u1 + (u1 - u2) * δ1 / δ2
+                α = norm(baru0 - u0) / δ1
+                if δ1 <= d && α <= αmax
                     i = i + 1
-                    append!(flawpoints, [FlawPoint(u0, α, δ)])
                     dd = newpara[end]
-                    append!(newpara, [dd + δ])
+                    append!(newpara, [dd + δ1])
+                else
+                    if olds[i+1] - olds[i] > dsmin
+                        s0 = olds[i]
+                        s1 = olds[i+1]
+                        paras = (s0 + s1) / 2
+                        addps = f(oldcurve(paras), p)
+                        insert!(newu, i + 1, addps)
+                        insert!(olds, i + 1, paras)
+                        n = n + 1
+                    else
+                        i = i + 1
+                        append!(flawpoints, [FlawPoint(u0, α, δ1)])
+                        dd = newpara[end]
+                        append!(newpara, [dd + δ1])
+                    end
                 end
             end
         else
@@ -253,13 +260,14 @@ function grow!(manifold::OneDManifold; interp=LinearInterpolation)
     newpara = addpoints!(f, para, d, curve, ic2, olds, Δsmin, αmax, flawpoints)
     newintep = interp(ic2, newpara)
     append!(data, [newintep])
+    manifold
 end
 
 function paramise(data::Vector{S}; interp=LinearInterpolation) where {S}
     m = length(data)
     if m == 1
         T = typeof(data[1][1])
-        interp(data, [T(0)])
+        interp([data[1], data[1]], [T(0), T(0)])
     else
         T = typeof(data[1][1])
         s0 = Vector{T}(undef, m)
@@ -268,6 +276,15 @@ function paramise(data::Vector{S}; interp=LinearInterpolation) where {S}
             dd = norm(data[i] - data[i-1])
             s0[i] = s0[i-1] + dd
         end
+        interp(data, s0)
+    end
+end
+
+function paramise(data::Vector{S}, s0::Vector{T}; interp=LinearInterpolation) where {S,T}
+    m = length(data)
+    if m == 1
+        interp([data[1], data[1]], [s0[1], s0[1]])
+    else
         interp(data, s0)
     end
 end
