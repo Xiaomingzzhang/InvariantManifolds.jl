@@ -86,7 +86,7 @@ f(X)=\varphi\circ\Lambda\circ\varphi^{-1}(X)
 where $\varphi(x,y,z)=(x,y,z-\alpha x^2-\beta y^2)$ is a nonlinear mapping, and $\Lambda$ is a diagonal matrix whose diagonal elements can be used to control the Jacobian matrix of mapping $f$ near the origin. Here's the code for computing its invariant manifold:
 ```@example nonlinearmap
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
-Λ = SDiagonal(SA[2.1, 6.3, 0.6])
+const Λ = SDiagonal(SA[2.1, 6.3, 0.6])
 φ(x, p)= SA[x[1],x[2],x[3]-p[1]*x[1]^2-p[2]*x[2]^2]
 iφ(x, p)= SA[x[1],x[2],x[3]+p[1]*x[1]^2+p[2]*x[2]^2]
 f(x,p) = φ(Λ*iφ(x, p),p)

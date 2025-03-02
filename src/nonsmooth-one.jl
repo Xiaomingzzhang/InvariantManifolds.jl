@@ -127,7 +127,7 @@ function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=LinearInterpol
             result_s[i][j] = result_s[i][j] - first_s
         end
     end
-    [interp(result[i], result_s[i]) for i in eachindex(result)]
+    [paramise(result[i], result_s[i], interp=interp) for i in eachindex(result)]
 end
 
 take_state(x) = x.state
@@ -151,7 +151,7 @@ function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S}
             final_s = s0 .+ v[i+1].t
             append!(totals, final_s)
         end
-        interp(totalu, totals)
+        paramise(totalu, totals, interp=interp)
     end
 end
 
@@ -216,7 +216,7 @@ The function adaptively adds points to maintain:
 
 If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
 """
-@inline function ns_addpoints!(tmap, p, d, dsmin, oldcurve, 
+@inline function ns_addpoints!(tmap, p, d, dsmin, oldcurve,
     newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ, flawpoints) where {N,T}
     n = length(newu)
     i = 1
@@ -228,27 +228,34 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
             u1 = newu[i+1]
             u2 = newu[i+2]
             if u0.event_at == u1.event_at == u2.event_at
-                δ = norm(u0 - u1)
-                baru0 = u1 + (u1 - u2) * norm(u1 - u0) / norm(u1 - u2)
-                α = norm(baru0 - u0) / (norm(u1 - u0))
-                if δ <= d && α <= αmax
-                    i = i + 1
-                    dd = newpara[end]
-                    append!(newpara, [dd + δ])
+                δ1 = norm(u0 - u1)
+                δ2 = norm(u1 - u2)
+                if δ1 == 0 || (δ1 != 0 && δ2 == 0)
+                    deleteat!(newu, i + 1)
+                    deleteat!(olds, i + 1)
+                    n = n - 1
                 else
-                    if olds[i+1] - olds[i] > dsmin
-                        s0 = olds[i]
-                        s1 = olds[i+1]
-                        paras = (s0 + s1) / 2
-                        addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
-                        insert!(newu, i + 1, addps)
-                        insert!(olds, i + 1, paras)
-                        n = n + 1
-                    else
+                    baru0 = u1 + (u1 - u2) * δ1 / δ2
+                    α = norm(baru0 - u0) / δ1
+                    if δ1 <= d && α <= αmax
                         i = i + 1
-                        append!(flawpoints, [FlawPoint(u0.state, α, δ)])
                         dd = newpara[end]
-                        append!(newpara, [dd + δ])
+                        append!(newpara, [dd + δ1])
+                    else
+                        if olds[i+1] - olds[i] > dsmin
+                            s0 = olds[i]
+                            s1 = olds[i+1]
+                            paras = (s0 + s1) / 2
+                            addps = tmap(NSState(oldcurve(paras), copy(oldcurve_event)), p)
+                            insert!(newu, i + 1, addps)
+                            insert!(olds, i + 1, paras)
+                            n = n + 1
+                        else
+                            i = i + 1
+                            append!(flawpoints, [FlawPoint(u0.state, α, δ1)])
+                            dd = newpara[end]
+                            append!(newpara, [dd + δ1])
+                        end
                     end
                 end
             elseif u0.event_at == u1.event_at && u1.event_at != u2.event_at
@@ -433,8 +440,8 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
     end
     oldcurve = result[1][1]
     olds = copy(oldcurve.t)
-    ns_addpoints!(tmap, parameters, d, dsmin, oldcurve, 
-    image, olds, αmax, tend, hypers, ϵ, flawpoints)
+    ns_addpoints!(tmap, parameters, d, dsmin, oldcurve,
+        image, olds, αmax, tend, hypers, ϵ, flawpoints)
     if ispartitioned(image) == false
         error("The initial curve has to be chosen more small")
     end
@@ -476,8 +483,8 @@ function grow!(manifold::NSOneDManifold{F,S,N,T}; interp=LinearInterpolation) wh
             ic2_states[k] = tmap(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap, para, d, dsmin, curve, 
-        ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
+        newpara = ns_addpoints!(tmap, para, d, dsmin, curve,
+            ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end
