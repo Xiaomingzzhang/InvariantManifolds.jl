@@ -26,6 +26,11 @@ function NSState{N,T}(v::NSState{N,T}) where {N,T}
     v
 end
 
+function zero(::Type{NSState{N,T}}) where {N,T}
+    NSState{N,T}(zero(SVector{N,T}), Int64[])
+end
+
+
 +(a::NSState, b::NSState) = a.state + b.state
 
 -(a::NSState, b::NSState) = a.state - b.state
