@@ -94,18 +94,26 @@ function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
-    amax = A.prob.amax
-    d = A.prob.d
-    prend = findall(x -> x.d > d, A.flawpoints)
-    nd = length(prend)
-    prenc = findall(x -> x.α > amax, A.flawpoints)
-    nc = length(prenc)
-    printstyled(io, "Flaw points number: "; color=:cyan)
-    println(io, "$k")
-    printstyled(io, "Distance failed points number: "; color=:cyan)
-    println(io, "$nd")
-    printstyled(io, "Curvature failed points number: "; color=:cyan)
-    print(io, "$nc")
+    if  k == 0
+        printstyled(io, "Flaw points number: "; color=:cyan)
+        print(io, "0")
+    else
+        amax = A.prob.amax
+        d = A.prob.d
+        prend = findall(x -> x.d > d, A.flawpoints)
+        nd = length(prend)
+        prenc = findall(x -> x.α > amax, A.flawpoints)
+        nc = length(prenc)
+        printstyled(io, "Flaw points number: "; color=:cyan)
+        println(io, "$k")
+        printstyled(io, "Distance failed points number: "; color=:cyan)
+        println(io, "$nd")
+        printstyled(io, "Curvature failed points number: "; color=:cyan)
+        println(io, "$nc")
+        dα = maximum([x.α*x.d for x in A.flawpoints])
+        printstyled(io, "Max dα in Flaw Points: "; color=:cyan)
+        print(io, "$dα")
+    end
 end
 
 """
@@ -265,13 +273,15 @@ end
 
 function paramise(data::Vector{S}; interp=QuadraticInterpolation) where {S}
     m = length(data)
+    T = typeof(data[1][1])
     if m == 1
-        T = typeof(data[1][1])
-        interp([data[1], data[1]], [T(0), T(0)])
+        interp([data[1], data[1], data[1]], [T(0), T(0), T(0)])
+    elseif m == 2
+        s1 = norm(data[2] - data[1])
+        interp([data[1], data[2], data[2]], [0, s1, s1])
     else
-        T = typeof(data[1][1])
         s0 = Vector{T}(undef, m)
-        s0[1] = 0
+        s0[1] = T(0)
         for i in 2:m
             dd = norm(data[i] - data[i-1])
             s0[i] = s0[i-1] + dd
@@ -283,7 +293,10 @@ end
 function paramise(data::Vector{S}, s0::Vector{T}; interp=QuadraticInterpolation) where {S,T}
     m = length(data)
     if m == 1
-        interp([data[1], data[1]], [s0[1], s0[1]])
+        interp([data[1], data[1], data[1]], [T(0), T(0), T(0)])
+    elseif m == 2
+        s1 = norm(data[2] - data[1])
+        interp([data[1], data[2], data[2]], [0, s1, s1])
     else
         interp(data, s0)
     end

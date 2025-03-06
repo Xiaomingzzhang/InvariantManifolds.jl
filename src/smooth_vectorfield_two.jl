@@ -77,18 +77,26 @@ function Base.show(io::IO, A::VTwoDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
-    amax = A.prob.amax
-    d = A.prob.d
-    prend = findall(x -> x.d > d, A.flawpoints)
-    nd = length(prend)
-    prenc = findall(x -> x.α > amax, A.flawpoints)
-    nc = length(prenc)
-    printstyled(io, "Flaw points number: "; color=:cyan)
-    println(io, "$k")
-    printstyled(io, "Distance failed points number: "; color=:cyan)
-    println(io, "$nd")
-    printstyled(io, "Curvature failed points number: "; color=:cyan)
-    print(io, "$nc")
+    if  k == 0
+        printstyled(io, "Flaw points number: "; color=:cyan)
+        print(io, "0")
+    else
+        amax = A.prob.amax
+        d = A.prob.d
+        prend = findall(x -> x.d > d, A.flawpoints)
+        nd = length(prend)
+        prenc = findall(x -> x.α > amax, A.flawpoints)
+        nc = length(prenc)
+        printstyled(io, "Flaw points number: "; color=:cyan)
+        println(io, "$k")
+        printstyled(io, "Distance failed points number: "; color=:cyan)
+        println(io, "$nd")
+        printstyled(io, "Curvature failed points number: "; color=:cyan)
+        println(io, "$nc")
+        dα = maximum([x.α*x.d for x in A.flawpoints])
+        printstyled(io, "Max dα in Flaw Points: "; color=:cyan)
+        print(io, "$dα")
+    end
 end
 
 function initialize(prob::VTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=QuadraticInterpolation) where {N,T}
