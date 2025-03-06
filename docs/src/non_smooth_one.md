@@ -226,7 +226,7 @@ The parameters passed to the `PiecewiseImpactV` structure are: vector fields, th
 Next, we'll encapsulate the key information for solving the time-periodic mapping in another structure [`NSSetUp`](@ref):
 
 ```@repl piecewiseimpact
-setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8, reltol=1e-8)
 ```
 The function [`setmap`](@ref) is used to encapsulate the time mapping computation information. Now we have defined everything needed to solve the time-periodic mapping.
 
@@ -245,7 +245,7 @@ saddle = findsaddle(f1, df1, (0.0,1.0), initialguess, para, abstol=1e-10)
 
 Next, create the problem, generate the local manifold, and perform the extension
 ```@repl piecewiseimpact
-prob = NSOneDManifoldProblem(setup, para, ϵ = 1e-3)
+prob = NSOneDManifoldProblem(setup, para)
 segment = gen_segment(saddle)
 manifold = growmanifold(prob, segment, 9)
 ```

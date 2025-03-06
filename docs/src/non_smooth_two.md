@@ -3,11 +3,11 @@
 Next, we will continue using the Lorenz system as an example, but this time we will introduce an artificial non-smooth factor into this system. First, let's load the required packages:
 
 ```@setup non_smooth_two
-using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie, DataInterpolations
 ```
 
 ```@repl non_smooth_two
-using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie, DataInterpolations
 ```
 
 Next, define a vector field that normalizes when far from the origin:
@@ -50,7 +50,7 @@ prob = NSVTwoDManifoldProblem(setup, para, amax=0.5, d=0.5, ϵ=0.2, dsmin=1e-3)
 ```
 Finally, calculate the manifold and plot the image:
 ```@example non_smooth_two
-manifold = growmanifold(prob, disk, 90)
+manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
 function manifold_plot(annulus)
     fig = Figure()
     axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
