@@ -1,7 +1,7 @@
 name = "InvariantManifolds"
 uuid = "8e6e46ff-12cc-43ef-8840-ba5cab270546"
 authors = ["XiaomingZhang"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
