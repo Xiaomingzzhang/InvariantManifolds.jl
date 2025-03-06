@@ -238,9 +238,9 @@ One time iteration to grow the manifold.
 # Parameters
 - `manifold` the manifold struct.
 # Keyword argument
-- `interp` the interpolation method used, default to be `LinearInterpolation`.
+- `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 """
-function grow!(manifold::OneDManifold; interp=LinearInterpolation)
+function grow!(manifold::OneDManifold; interp=QuadraticInterpolation)
     αmax = manifold.prob.amax
     d = manifold.prob.d
     f = manifold.prob.f
@@ -263,7 +263,7 @@ function grow!(manifold::OneDManifold; interp=LinearInterpolation)
     manifold
 end
 
-function paramise(data::Vector{S}; interp=LinearInterpolation) where {S}
+function paramise(data::Vector{S}; interp=QuadraticInterpolation) where {S}
     m = length(data)
     if m == 1
         T = typeof(data[1][1])
@@ -280,7 +280,7 @@ function paramise(data::Vector{S}; interp=LinearInterpolation) where {S}
     end
 end
 
-function paramise(data::Vector{S}, s0::Vector{T}; interp=LinearInterpolation) where {S,T}
+function paramise(data::Vector{S}, s0::Vector{T}; interp=QuadraticInterpolation) where {S,T}
     m = length(data)
     if m == 1
         interp([data[1], data[1]], [s0[1], s0[1]])
@@ -299,9 +299,9 @@ This is a function to initialize the continuation process. Its output is a manif
 - `points` the points in the local manifold. For one dimensional manifolds, these points should be a `Vector{SVector}` and the start point should be the saddle. For two dimensional manifolds, these points should be a `Vector{Vector{S}}` and its first element should like `[saddle, saddle, saddle]`. Note that in the both cases, the functions [`gen_segment`](@ref) and [`gen_disk`](@ref) can generate these points easily.
 
 # Keyword argument
-- `interp` the interpolation method used, default to be `LinearInterpolation`.
+- `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 """
-function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}}; interp=LinearInterpolation) where {N,T}
+function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}}; interp=QuadraticInterpolation) where {N,T}
     parameters = prob.para
     map = prob.f
     αmax = prob.amax
@@ -343,9 +343,9 @@ This is the mani function to continuate the numerical manifolds. Its output is a
 - `N` the number of iterations.
 
 # Keyword argument
-- `interp` the interpolation method used, default to be `LinearInterpolation`.
+- `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 """
-function growmanifold(prob::OneDManifoldProblem, points, N; interp=LinearInterpolation)
+function growmanifold(prob::OneDManifoldProblem, points, N; interp=QuadraticInterpolation)
     manifold = initialize(prob, points, interp=interp)
     for i in 1:N
         grow!(manifold, interp=interp)

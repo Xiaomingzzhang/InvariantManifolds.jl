@@ -100,7 +100,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
     print(io, "$nc")
 end
 
-function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=LinearInterpolation) where {N,T}
+function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=QuadraticInterpolation) where {N,T}
     ctime1 = v[1].event_at
     n = length(v)
     a0 = NSState{N,T}[]
@@ -135,7 +135,7 @@ take_u(x) = x.u
 take_t(x) = x.t
 
 
-function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S}
+function union_same_event(v::Vector{S}; interp=QuadraticInterpolation) where {S}
     if length(v) == 1
         v[1]
     else
@@ -156,7 +156,7 @@ function union_same_event(v::Vector{S}; interp=LinearInterpolation) where {S}
 end
 
 # Union broken lines with the same event
-function union_lines(v::Vector{S}; interp=LinearInterpolation) where {S}
+function union_lines(v::Vector{S}; interp=QuadraticInterpolation) where {S}
     result = S[]
     event = v[1].u[1].event_at
     line = S[]
@@ -417,7 +417,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
 end
 
 
-function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; interp=LinearInterpolation, event=Int[]) where {N,T}
+function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; interp=QuadraticInterpolation, event=Int[]) where {N,T}
     parameters = prob.para
     tmap = prob.f.timetmap
     d = prob.d
@@ -460,7 +460,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
     NSOneDManifold(prob, result, flawpoints)
 end
 
-function grow!(manifold::NSOneDManifold{F,S,N,T}; interp=LinearInterpolation) where {F,S,N,T}
+function grow!(manifold::NSOneDManifold{F,S,N,T}; interp=QuadraticInterpolation) where {F,S,N,T}
     αmax = manifold.prob.amax
     d = manifold.prob.d
     v = manifold.prob.f
@@ -491,7 +491,7 @@ function grow!(manifold::NSOneDManifold{F,S,N,T}; interp=LinearInterpolation) wh
     append!(data, [union_lines(result, interp=interp)])
 end
 
-function growmanifold(prob::NSOneDManifoldProblem, segment, N; interp=LinearInterpolation)
+function growmanifold(prob::NSOneDManifoldProblem, segment, N; interp=QuadraticInterpolation)
     manifold = initialize(prob, segment, interp=interp)
     for i in 1:N
         grow!(manifold, interp=interp)

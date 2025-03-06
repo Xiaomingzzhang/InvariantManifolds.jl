@@ -91,7 +91,7 @@ function Base.show(io::IO, A::VTwoDManifold)
     print(io, "$nc")
 end
 
-function initialize(prob::VTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=LinearInterpolation) where {N,T}
+function initialize(prob::VTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=QuadraticInterpolation) where {N,T}
     para = prob.para
     f = prob.f
     αmax = prob.amax
@@ -102,7 +102,7 @@ function initialize(prob::VTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}
     VTwoDManifold(prob, circles, flawpoints)
 end
 
-function grow!(manifold::VTwoDManifold{F,S,N,T}; interp=LinearInterpolation) where {F,S,N,T}
+function grow!(manifold::VTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation) where {F,S,N,T}
     prob = manifold.prob
     para = prob.para
     f = prob.f
@@ -125,7 +125,7 @@ function grow!(manifold::VTwoDManifold{F,S,N,T}; interp=LinearInterpolation) whe
     manifold
 end
 
-function growmanifold(prob::VTwoDManifoldProblem, disk, N; interp=LinearInterpolation)
+function growmanifold(prob::VTwoDManifoldProblem, disk, N; interp=QuadraticInterpolation)
     manifold = initialize(prob, disk, interp=interp)
     for i in 1:N
         grow!(manifold; interp=interp)

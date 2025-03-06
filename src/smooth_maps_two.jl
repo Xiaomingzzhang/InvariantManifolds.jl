@@ -219,7 +219,7 @@ Adds and refines circles in the two-dimensional manifold computation by iteratin
 - `αmax`: Maximum allowed angle between consecutive points
 - `dcircle`: Maximum allowed distance between consecutive circles
 - `flawpoints`: Vector to store problematic points during computation
-- `interp`: Interpolation method (default: LinearInterpolation)
+- `interp`: Interpolation method (default: QuadraticInterpolation)
 
 # Returns
 A vector of new interpolated curves representing the refined circles after one iteration of the map.
@@ -231,7 +231,7 @@ The function performs two main steps:
 
 Points are added to maintain proper spacing and curvature constraints specified by `d` and `αmax`.
 """
-function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=LinearInterpolation)
+function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=QuadraticInterpolation)
     newdata = deepcopy(circles)
     k = length(newdata)
     Threads.@threads for i in 1:k
@@ -280,7 +280,7 @@ function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; int
     newdata
 end
 
-function initialize(prob::TwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=LinearInterpolation) where {N,T}
+function initialize(prob::TwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=QuadraticInterpolation) where {N,T}
     para = prob.para
     f = prob.f
     αmax = prob.amax
@@ -298,7 +298,7 @@ function initialize(prob::TwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}
     TwoDManifold(prob, result, flawpoints)
 end
 
-function grow!(manifold::TwoDManifold; interp=LinearInterpolation)
+function grow!(manifold::TwoDManifold; interp=QuadraticInterpolation)
     prob = manifold.prob
     para = prob.para
     f = prob.f
@@ -315,7 +315,7 @@ function grow!(manifold::TwoDManifold; interp=LinearInterpolation)
     manifold
 end
 
-function growmanifold(prob::TwoDManifoldProblem, disk, N; interp=LinearInterpolation)
+function growmanifold(prob::TwoDManifoldProblem, disk, N; interp=QuadraticInterpolation)
     manifold = initialize(prob, disk, interp=interp)
     for i in 1:N
         grow!(manifold; interp=interp)

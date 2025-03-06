@@ -98,7 +98,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSVTwoDManifold)
     print(io, "$nc")
 end
 
-function initialize(prob::NSVTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=LinearInterpolation) where {N,T}
+function initialize(prob::NSVTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}}; interp=QuadraticInterpolation) where {N,T}
     flawpoints = FlawPoint{N,T}[]
     newdisk = Vector{NSState{N,T}}[]
     for i in eachindex(disk)
@@ -112,7 +112,7 @@ function initialize(prob::NSVTwoDManifoldProblem, disk::Vector{Vector{SVector{N,
     NSVTwoDManifold(prob, circles, flawpoints)
 end
 
-function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=LinearInterpolation) where {F,S,N,T}
+function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation) where {F,S,N,T}
     αmax = manifold.prob.amax
     d = manifold.prob.d
     v = manifold.prob.f
@@ -144,7 +144,7 @@ function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=LinearInterpolation) w
     manifold
 end
 
-function growmanifold(prob::NSVTwoDManifoldProblem, disk, N; interp=LinearInterpolation)
+function growmanifold(prob::NSVTwoDManifoldProblem, disk, N; interp=QuadraticInterpolation)
     manifold = initialize(prob, disk, interp=interp)
     for i in 1:N
         grow!(manifold, interp=interp)
