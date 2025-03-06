@@ -64,10 +64,10 @@ dsmin: 0.0001</code><br/><code class="language-julia-repl hljs" style="display:b
  [0.005734754364803036, -0.08277833328298333]
  [0.005773502705017105, -0.08272353485473313]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; manifold = growmanifold(prob, segment, 8)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">Non-smooth one-dimensional manifold</span></span>
 <span class="sgr36">Curves number: </span>30
-<span class="sgr36">Points number: </span>168633
-<span class="sgr36">Flaw points number: </span>10
+<span class="sgr36">Points number: </span>168647
+<span class="sgr36">Flaw points number: </span>12
 <span class="sgr36">Distance failed points number: </span>0
-<span class="sgr36">Curvature failed points number: </span>10</code></pre><p>Note that the data type of <code>manifold.data</code> is <code>Vector{Vector{S}}</code>, where <code>S</code> is an interpolation function. So we need to use the following function to plot the results:</p><pre><code class="language-julia hljs">using CairoMakie
+<span class="sgr36">Curvature failed points number: </span>12</code></pre><p>Note that the data type of <code>manifold.data</code> is <code>Vector{Vector{S}}</code>, where <code>S</code> is an interpolation function. So we need to use the following function to plot the results:</p><pre><code class="language-julia hljs">using CairoMakie
 function manifold_plot(data)
     fig = Figure()
     axes = Axis(fig[1,1])
@@ -79,7 +79,7 @@ function manifold_plot(data)
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre><img src="dbbaa3e9.png" alt="Example block output"/><h2 id="Impact-Systems"><a class="docs-heading-anchor" href="#Impact-Systems">Impact Systems</a><a id="Impact-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Impact-Systems" title="Permalink"></a></h2><p>Consider the following forced inverted pendulum equation:</p><p class="math-container">\[\begin{aligned}
+manifold_plot(manifold.data)</code></pre><img src="98c5a967.png" alt="Example block output"/><h2 id="Impact-Systems"><a class="docs-heading-anchor" href="#Impact-Systems">Impact Systems</a><a id="Impact-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Impact-Systems" title="Permalink"></a></h2><p>Consider the following forced inverted pendulum equation:</p><p class="math-container">\[\begin{aligned}
 \dot{x}&amp;= y,\\
 \dot{y}&amp;= \sin(x) - \epsilon \cos(2\pi t),
 \end{aligned}\]</p><p>Assume there are walls on both sides of the inverted pendulum: when <span>$x=\xi$</span> or <span>$x=-\xi$</span>, we have <span>$y\rightarrow - ry$</span>. Similarly, we need to first construct the non-smooth vector field</p><pre><code class="language-julia hljs">f(x, p, t) = SA[x[2], sin(x[1])-p[1]*cos(2 * pi * t)]
@@ -128,10 +128,10 @@ dsmin: 0.0001</code><br/><code class="language-julia-repl hljs" style="display:b
  [0.011964527002091451, 0.007023600034653957]
  [0.012011983907242967, 0.007071056791406562]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; manifold = growmanifold(prob, segment, 11)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">Non-smooth one-dimensional manifold</span></span>
 <span class="sgr36">Curves number: </span>38
-<span class="sgr36">Points number: </span>98311
-<span class="sgr36">Flaw points number: </span>15
+<span class="sgr36">Points number: </span>98315
+<span class="sgr36">Flaw points number: </span>16
 <span class="sgr36">Distance failed points number: </span>0
-<span class="sgr36">Curvature failed points number: </span>15</code></pre><p>Finally, plot the results: </p><pre><code class="language-julia hljs">manifold_plot(manifold.data)</code></pre><img src="8def44cb.png" alt="Example block output"/><h2 id="Combined-Piecewise-Smooth-and-Impact-ODE-Systems"><a class="docs-heading-anchor" href="#Combined-Piecewise-Smooth-and-Impact-ODE-Systems">Combined Piecewise Smooth and Impact ODE Systems</a><a id="Combined-Piecewise-Smooth-and-Impact-ODE-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Combined-Piecewise-Smooth-and-Impact-ODE-Systems" title="Permalink"></a></h2><p>Now consider an ODE system with both piecewise smooth functions and impacts:</p><p class="math-container">\[\begin{aligned}
+<span class="sgr36">Curvature failed points number: </span>16</code></pre><p>Finally, plot the results: </p><pre><code class="language-julia hljs">manifold_plot(manifold.data)</code></pre><img src="4e66bdc0.png" alt="Example block output"/><h2 id="Combined-Piecewise-Smooth-and-Impact-ODE-Systems"><a class="docs-heading-anchor" href="#Combined-Piecewise-Smooth-and-Impact-ODE-Systems">Combined Piecewise Smooth and Impact ODE Systems</a><a id="Combined-Piecewise-Smooth-and-Impact-ODE-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Combined-Piecewise-Smooth-and-Impact-ODE-Systems" title="Permalink"></a></h2><p>Now consider an ODE system with both piecewise smooth functions and impacts:</p><p class="math-container">\[\begin{aligned}
 \dot{x}&amp;=y,\\
 \dot{y}&amp;=f(x) + \epsilon \sin(2\pi t),
 \end{aligned}\]</p><p>where</p><p class="math-container">\[f(x) =
@@ -191,11 +191,11 @@ dsmin: 0.0001</code><br/><code class="language-julia-repl hljs" style="display:b
  [0.005696006024588967, -0.0828331317112335]
  [0.005734754364803036, -0.08277833328298333]
  [0.005773502705017105, -0.08272353485473313]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; manifold = growmanifold(prob, segment, 9)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">Non-smooth one-dimensional manifold</span></span>
-<span class="sgr36">Curves number: </span>52
-<span class="sgr36">Points number: </span>346533
-<span class="sgr36">Flaw points number: </span>13
-<span class="sgr36">Distance failed points number: </span>0
-<span class="sgr36">Curvature failed points number: </span>13</code></pre><p>Note that the data type of <code>manifold.data</code> is <code>Vector{Vector{S}}</code>, where <code>S</code> is an interpolation function. So we need to use the following function to plot the results:</p><pre><code class="language-julia hljs">using CairoMakie
+<span class="sgr36">Curves number: </span>56
+<span class="sgr36">Points number: </span>389398
+<span class="sgr36">Flaw points number: </span>19
+<span class="sgr36">Distance failed points number: </span>2
+<span class="sgr36">Curvature failed points number: </span>18</code></pre><p>Note that the data type of <code>manifold.data</code> is <code>Vector{Vector{S}}</code>, where <code>S</code> is an interpolation function. So we need to use the following function to plot the results:</p><pre><code class="language-julia hljs">using CairoMakie
 function manifold_plot(data)
     fig = Figure()
     axes = Axis(fig[1,1])
@@ -207,4 +207,4 @@ function manifold_plot(data)
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre><img src="ce4e251e.png" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../smooth_two/">« Two-Dimensional Smooth Manifolds</a><a class="docs-footer-nextpage" href="../non_smooth_two/">Two-dimensional Non-Smooth Manifolds »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Sunday 2 March 2025 04:20">Sunday 2 March 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+manifold_plot(manifold.data)</code></pre><img src="da26bfd6.png" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../smooth_two/">« Two-Dimensional Smooth Manifolds</a><a class="docs-footer-nextpage" href="../non_smooth_two/">Two-dimensional Non-Smooth Manifolds »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Thursday 6 March 2025 01:44">Thursday 6 March 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
