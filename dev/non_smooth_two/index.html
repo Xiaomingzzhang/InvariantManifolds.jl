@@ -37,4 +37,38 @@ function manifold_plot(annulus)
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre><img src="d1cd9eee.png" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../non_smooth_one/">« One-Dimensional Non-Smooth Manifolds</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Thursday 6 March 2025 04:03">Thursday 6 March 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+manifold_plot(manifold.data)</code></pre><img src="d1cd9eee.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie, DataInterpolations
+function lorenz(x, p, t)
+    σ, ρ, β = p
+    v = SA[σ*(x[2]-x[1]),
+        ρ*x[1]-x[2]-x[1]*x[3],
+        x[1]*x[2]-β*x[3]
+    ]
+    v / sqrt(0.1 + norm(v)^2)
+end
+hyper(x,p,t) = x[3]-p[4]
+rule(x,p,t) = SA[x[1], -x[2], x[3]]
+vectorfield =BilliardV(lorenz, (hyper,),(rule,))
+setup = setmap(vectorfield, (0.0, -1.0), Tsit5(), abstol=1e-8)
+para = [10.0, 28.0, 8/3, 10.0]
+function eigenv(p)
+    σ, ρ, β = p
+    [SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0]]
+end
+saddle = Saddle(SA[0, 0, 0.0], eigenv(para), [1.0, 1.0])
+disk = gen_disk(saddle, r=1.0, d=0.1)
+prob = NSVTwoDManifoldProblem(setup, para, amax=0.5, d=0.5, ϵ=0.2, dsmin=1e-3)
+manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
+function manifold_plot(annulus)
+    fig = Figure()
+    axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
+    second(x) = x[2]
+    for i in eachindex(annulus)
+        for j in eachindex(annulus[i])
+            points = annulus[i][j].u
+            lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../non_smooth_one/">« One-Dimensional Non-Smooth Manifolds</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Friday 7 March 2025 06:57">Friday 7 March 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
