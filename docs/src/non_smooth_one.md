@@ -69,7 +69,7 @@ The function [`setmap`](@ref) is used to encapsulate the time mapping computatio
 
 Next, to generate the local manifold, we also need to locate the saddle point and its unstable eigenvector. Let's set the parameters:
 ```@repl piecewise
-para = para = [2, 5, 5, 0.6, 2]
+para = [2, 5, 5, 0.6, 2]
 ```
 Since the perturbation is small, the saddle-type periodic orbit should still be in `dom1`. Therefore, we can use `findsaddle` to calculate the position of the saddle point:
 ```@example piecewise
@@ -104,7 +104,42 @@ end
 manifold_plot(manifold.data)
 ```
 
-
+Full codes without comments:
+```julia
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+f1(x, p, t) = SA[x[2], p[1]*x[1]+p[4]*sin(2pi * t)]
+f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[4]*sin(2pi * t)]
+f3(x, p, t) = SA[x[2], -p[3]*x[1]+p[4]*sin(2pi * t)]
+hyper1(x, p, t) = x[1] - p[5]
+hyper2(x, p, t) = x[1] + p[5]
+dom1(x, p, t) = -p[5] < x[1] < p[5]
+dom2(x, p, t) = x[1] > p[5]
+dom3(x, p, t) = x[1] < -p[5]
+vectorfield = PiecewiseV((f1, f2, f3), (dom1, dom2, dom3), (hyper1, hyper2))
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)
+para = [2, 5, 5, 0.6, 2]
+function df1(x, p, t)
+    SA[0 1; p[1] 0]
+end
+initialguess = SA[0.0, 0.0]
+saddle = findsaddle(f1, df1, (0.0,1.0), initialguess, para, abstol=1e-10)
+prob = NSOneDManifoldProblem(setup, para, ϵ = 1e-3)
+segment = gen_segment(saddle)
+manifold = growmanifold(prob, segment, 8)
+using CairoMakie
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=data[k][j].u
+            lines!(axes,first.(points),last.(points))
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)
+```
 ## Impact Systems
 
 Consider the following forced inverted pendulum equation:
@@ -166,6 +201,41 @@ Finally, plot the results:
 manifold_plot(manifold.data)
 ```
 
+Full codes without comments:
+```julia
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+f(x, p, t) = SA[x[2], sin(x[1])-p[1]*cos(2 * pi * t)]
+hyper1(x, p, t) = x[1] + p[2]
+hyper2(x, p, t) = x[1] - p[2]
+rule1(x, p, t) = SA[x[1], -p[3]*x[2]]
+rule2(x, p, t) = SA[x[1], -p[3]*x[2]]
+vectorfield = BilliardV(f, (hyper1, hyper2), (rule1, rule2))
+setup = setmap(vectorfield, (0.0, 1.0), Vern9(), abstol=1e-10)
+function df(x, p, t)
+    SA[0 1; cos(x[1]) 0]
+end
+para = [0.2, pi / 4, 0.98]
+initialguess = SA[0.0, 0.0]
+saddle = findsaddle(f, df, (0.0,1.0), initialguess, para, abstol=1e-10)
+prob = NSOneDManifoldProblem(setup, para)
+segment = gen_segment(saddle)
+manifold = growmanifold(prob, segment, 11)
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=data[k][j].u
+            lines!(axes,first.(points),last.(points))
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)
+```
+
+
+
 ## Combined Piecewise Smooth and Impact ODE Systems
 ```@setup piecewiseimpact
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
@@ -213,7 +283,7 @@ f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[3]*sin(2pi * t)]
 hyper1(x, p, t) = x[1] - p[4]
 hyper2(x, p, t) = x[1] + p[4]
 
-dom1(x, p, t) = -p[4] < x[1] < p[4]
+dom1(x, p, t) = -p[4] < x[1]
 dom2(x, p, t) = x[1] < -p[4]
 
 impact_rule(x, p, t) = SA[x[1], -p[5]*x[2]]
@@ -232,7 +302,7 @@ The function [`setmap`](@ref) is used to encapsulate the time mapping computatio
 
 Next, to generate the local manifold, we also need to locate the saddle point and its unstable eigenvector. Let's set the parameters:
 ```@repl piecewiseimpact
-para = [2, 5, 0.6, 2, 0.98]
+para = [2, 5, 0.5, 2, 0.98]
 ```
 Since the perturbation is small, the saddle-type periodic orbit should still be in `dom1`. Therefore, we can use `findsaddle` to calculate the position of the saddle point:
 ```@example piecewiseimpact
@@ -240,7 +310,7 @@ function df1(x, p, t)
     SA[0 1; p[1] 0]
 end
 initialguess = SA[0.0, 0.0]
-saddle = findsaddle(f1, df1, (0.0,1.0), initialguess, para, abstol=1e-10)
+saddle = findsaddle(f1, df1, (0.0, 1.0), initialguess, para, abstol=1e-10)
 ```
 
 Next, create the problem, generate the local manifold, and perform the extension
@@ -267,6 +337,40 @@ end
 manifold_plot(manifold.data)
 ```
 
-
+Full codes without comments:
+```julia
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+f1(x, p, t) = SA[x[2], p[1]*x[1]+p[3]*sin(2pi * t)]
+f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[3]*sin(2pi * t)]
+hyper1(x, p, t) = x[1] - p[4]
+hyper2(x, p, t) = x[1] + p[4]
+dom1(x, p, t) = -p[4] < x[1]
+dom2(x, p, t) = x[1] < -p[4]
+impact_rule(x, p, t) = SA[x[1], -p[5]*x[2]]
+id(x,p,t) = x
+vectorfield = PiecewiseImpactV((f1, f2), (dom1, dom2), (hyper1, hyper2), (impact_rule, id), [1])
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8, reltol=1e-8)
+para = [2, 5, 0.5, 2, 0.98]
+initialguess = SA[0.0, 0.0]
+function df1(x, p, t)
+    SA[0 1; p[1] 0]
+end
+saddle = findsaddle(f1, df1, (0.0,1.0), initialguess, para, abstol=1e-10)
+segment = gen_segment(saddle)
+prob = NSOneDManifoldProblem(setup, para)
+manifold = growmanifold(prob, segment, 9)
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=data[k][j].u
+            lines!(axes,first.(points),last.(points))
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)
+```
 
 

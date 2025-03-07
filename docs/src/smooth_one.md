@@ -115,6 +115,48 @@ end
 manifold_plot(manifold.data)
 ```
 
+Full codes without comments:
+```julia
+using StaticArrays, LinearAlgebra, InvariantManifolds, CairoMakie
+function fixedpoints(p)
+    a , b = p
+    x1 = (-sqrt(4 * a + b^2 - 2 * b + 1) + b - 1) / (2 * a)
+    y1 = (1 / 2) * (b^2 / a - b * sqrt(4 * a + b^2 - 2 * b + 1) / a - b / a)
+    x2 = (sqrt(4 * a + b^2 - 2 * b + 1) + b - 1) / (2 * a)
+    y2 = (1 / 2) * (b^2 / a + b * sqrt(4 * a + b^2 - 2 * b + 1) / a - b / a)
+    return SA[x1, y1], SA[x2, y2]
+end
+function jacobian(x, p)
+    a, b = p
+    J = @SMatrix [-2 * a * x[1] 1.0; b 0.0]
+    return J
+end
+function henonmap(x, p)
+    y1 = 1 - p[1] * x[1]^2 + x[2]
+    y2 = p[2] * x[1]
+    SA[y1, y2]
+end
+function henonmap2(x, p)
+    henonmap(henonmap(x, p), p)
+end
+para = [1.4, 0.3]
+prob = OneDManifoldProblem(henonmap2, para)
+saddle = fixedpoints(para)[2]
+unstable_direction = eigen(jacobian(fixedpoints([1.4, 0.3])[2], [1.4, 0.3])).vectors[:,1]
+segment = gen_segment(saddle, unstable_direction)
+manifold = growmanifold(prob, segment, 8)
+function manifold_plot(data)
+    figure = Figure()
+    axes = Axis(figure[1,1])
+    for k in eachindex(data)
+        points = data[k].u
+        lines!(axes, first.(points), last.(points))
+    end
+    figure
+end
+manifold_plot(manifold.data)
+```
+
 ## Oscillator with Periodic Forcing
 
 Now let's consider a higher-order example. Consider the following oscillator with periodic forcing:
@@ -159,5 +201,33 @@ manifold = growmanifold(prob, segment, 7)
 ```
 Finally, use the function defined in the previous section to plot the results:
 ```@example smooth_one
+manifold_plot(manifold.data)
+```
+
+Full codes without comments:
+```julia
+using StaticArrays, LinearAlgebra, InvariantManifolds, CairoMakie
+f(x, p, t) = SA[x[2], x[1] - p[1]*(x[1]^3) + p[2]*cos(p[3]*t)]
+df(x, p, t) = SA[0.0 1.0; 1-p[1]*3*(x[1]^2) 0.0]
+initial_guess = SA[0.0, 0.0]
+para = [1.0, 0.1, 2.2]
+timespan = (0.0, 2pi/para[3])
+saddle = findsaddle(f, df, timespan, initial_guess, para)
+segment = gen_segment(saddle)
+function timeTmap(x, p)
+    prob = ODEProblem{false}(f, x, (0.0, 2pi/p[3]), p)
+    solve(prob, Vern9(), abstol=1e-10)[end]
+end
+prob = OneDManifoldProblem(timeTmap, para)
+manifold = growmanifold(prob, segment, 7)
+function manifold_plot(data)
+    figure = Figure()
+    axes = Axis(figure[1,1])
+    for k in eachindex(data)
+        points = data[k].u
+        lines!(axes, first.(points), last.(points))
+    end
+    figure
+end
 manifold_plot(manifold.data)
 ```

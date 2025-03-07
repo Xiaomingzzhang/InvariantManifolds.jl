@@ -75,6 +75,39 @@ end
 manifold_plot(manifold.data)
 ```
 
+Full codes without comments:
+```julia
+using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+function lorenz(x, p, t)
+    σ, ρ, β = p
+    v = SA[σ*(x[2]-x[1]),
+        ρ*x[1]-x[2]-x[1]*x[3],
+        x[1]*x[2]-β*x[3]
+    ]
+    v / sqrt(0.1 + norm(v)^2)
+end
+function eigenv(p)
+    σ, ρ, β = p
+    [SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0]]
+end
+para = [10.0, 28.0, 8/3]
+saddle = Saddle(SA[0.0, 0.0, 0.0], eigenv(para), [1.0, 1.0])
+prob = VTwoDManifoldProblem(lorenz, para, d=1.0, amax=1.0, dsmin=1e-3)
+disk = gen_disk(saddle, r=1.0)
+manifold = growmanifold(prob, disk, 200)
+function manifold_plot(annulus)
+    fig = Figure()
+    axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
+    second(x) = x[2]
+    for i in eachindex(annulus)
+        points = annulus[i].u
+        lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+    end
+    fig
+end
+manifold_plot(manifold.data)
+```
+
 
 ## Nonlinear Mapping
 
