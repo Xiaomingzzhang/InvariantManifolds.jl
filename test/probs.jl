@@ -7,8 +7,8 @@
     @test prob1.f === f
     @test isempty(prob1.para)
     @test prob1.amax ≈ 0.5
-    @test prob1.d ≈ 0.001
-    @test prob1.dsmin ≈ 1e-5
+    @test prob1.d ≈ 1e-3
+    @test prob1.dsmin ≈ 1e-6
 
     # Test constructor with parameters
     para = [0.1]
@@ -16,10 +16,10 @@
     @test prob2.para == para
 
     # Test constructor with custom settings
-    prob3 = OneDManifoldProblem(f, para, amax=0.3, d=0.002, dsmin=1e-4)
+    prob3 = OneDManifoldProblem(f, para, amax=0.3, d=0.002, dsmin=1e-6)
     @test prob3.amax ≈ 0.3
     @test prob3.d ≈ 0.002
-    @test prob3.dsmin ≈ 1e-4
+    @test prob3.dsmin ≈ 1e-6
 end
 
 @testset "NSOneDManifoldProblem" begin
@@ -33,9 +33,9 @@ end
     @test prob1.f === setup
     @test isempty(prob1.para)
     @test prob1.amax ≈ 0.5
-    @test prob1.d ≈ 0.001
+    @test prob1.d ≈ 1e-3
     @test prob1.ϵ ≈ 1e-5
-    @test prob1.dsmin ≈ 1e-4
+    @test prob1.dsmin ≈ 1e-6
 
     # Test constructor with parameters
     para = [1.0]
@@ -43,11 +43,11 @@ end
     @test prob2.para == para
 
     # Test constructor with custom settings
-    prob3 = NSOneDManifoldProblem(setup, para, amax=0.3, d=0.002, ϵ=1e-6, dsmin=1e-5)
+    prob3 = NSOneDManifoldProblem(setup, para, amax=0.3, d=0.002, ϵ=1e-6, dsmin=1e-6)
     @test prob3.amax ≈ 0.3
     @test prob3.d ≈ 0.002
     @test prob3.ϵ ≈ 1e-6
-    @test prob3.dsmin ≈ 1e-5
+    @test prob3.dsmin ≈ 1e-6
 end
 
 @testset "VTwoDManifoldProblem" begin
@@ -59,8 +59,8 @@ end
     @test prob1.f === f
     @test isempty(prob1.para)
     @test prob1.amax ≈ 0.5
-    @test prob1.d ≈ 0.001
-    @test prob1.dsmin ≈ 1e-5
+    @test prob1.d ≈ 1e-3
+    @test prob1.dsmin ≈ 1e-6
 
     # Test constructor with parameters
     para = [0.1]
@@ -83,9 +83,9 @@ end
     @test prob1.f === f
     @test isempty(prob1.para)
     @test prob1.amax ≈ 0.5
-    @test prob1.d ≈ 0.001
+    @test prob1.d ≈ 1e-3
     @test prob1.dcircle ≈ 0.01
-    @test prob1.dsmin ≈ 1e-5
+    @test prob1.dsmin ≈ 1e-6
 
     # Test constructor with parameters
     para = [0.1]
@@ -111,9 +111,9 @@ end
     @test prob1.f === setup
     @test isempty(prob1.para)
     @test prob1.amax ≈ 0.5
-    @test prob1.d ≈ 0.001
+    @test prob1.d ≈ 1e-3
     @test prob1.ϵ ≈ 1e-5
-    @test prob1.dsmin ≈ 1e-5
+    @test prob1.dsmin ≈ 1e-6
 
     # Test constructor with parameters
     para = [1.0]

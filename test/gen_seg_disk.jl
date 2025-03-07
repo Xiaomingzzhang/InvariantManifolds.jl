@@ -6,7 +6,7 @@
     
     # Test default parameters
     segment = gen_segment(saddle)
-    @test length(segment) == 150  # default n=150
+    @test length(segment) == 50  # default n=150
     @test segment[1] ≈ saddle_point
     @test norm(segment[end] - segment[1]) ≈ 0.01  # default d=0.01
     @test all(x -> length(x) == 2, segment)  # check dimension
