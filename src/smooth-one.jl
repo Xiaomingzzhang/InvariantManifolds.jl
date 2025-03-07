@@ -19,13 +19,13 @@ struct OneDManifoldProblem{F,T}
     dsmin::T
 end
 
-function OneDManifoldProblem(f; amax=0.5, d=0.001, dsmin=1e-5)
+function OneDManifoldProblem(f; amax=0.5, d=1e-3, dsmin=1e-6)
     OneDManifoldProblem(f, Float64[], amax, d, dsmin)
 end
 
 
 function OneDManifoldProblem(f, para::AbstractVector{T};
-    amax=T(0.5), d=T(0.001), dsmin=T(1e-5)) where {T}
+    amax=T(0.5), d=T(1e-3), dsmin=T(1e-6)) where {T}
     OneDManifoldProblem(f, para, amax, d, dsmin)
 end
 
@@ -84,8 +84,10 @@ end
 function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
     m = 0
     n = length(A.data)
+    arclength = 0.0
     for i in eachindex(A.data)
         m = m + length(A.data[i].t)
+        arclength = arclength + A.data[i].t[end]
     end
     k = length(A.flawpoints)
     printstyled(io, "One-dimensional manifold"; bold=true, color=:cyan)
@@ -94,6 +96,8 @@ function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
+    printstyled(io, "Total arc length: "; color=:cyan)
+    println(io, "$arclength")
     if  k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
@@ -119,10 +123,10 @@ end
 """
     gen_segment(saddle, direction)
 
-Generating `n` points at `saddle` in the `direction`, with length `d`, with default `n=150` and `d=0.01`.
+Generating `n` points at `saddle` in the `direction`, with length `d`, with default `n=50` and `d=0.01`.
 Another Convenient consturctor is `gen_segment(p::Saddle)`.
 """
-function gen_segment(saddle::SVector{N,T}, direction; n=150, d=0.01) where {N,T}
+function gen_segment(saddle::SVector{N,T}, direction; n=50, d=0.01) where {N,T}
     tangent = normalize(direction)
     data = Vector{SVector{N,T}}(undef, n)
     for i in eachindex(data)
@@ -131,7 +135,7 @@ function gen_segment(saddle::SVector{N,T}, direction; n=150, d=0.01) where {N,T}
     data
 end
 
-function gen_segment(p::Saddle{N,T,S}; n=150, d=0.01) where {N,T,S}
+function gen_segment(p::Saddle{N,T,S}; n=50, d=0.01) where {N,T,S}
     saddle = p.saddle
     direction = p.unstable_directions[1]
     tangent = normalize(direction)
@@ -140,6 +144,16 @@ function gen_segment(p::Saddle{N,T,S}; n=150, d=0.01) where {N,T,S}
         data[i] = saddle + ((d * (i - 1)) / (n - 1)) * tangent
     end
     data
+end
+
+function newasin(x::T) where {T}
+    if  abs(x) <= 1
+        return asin(x)
+    elseif x > 1
+        return T(pi)/2
+    else
+        return -T(pi)/2
+    end
 end
 
 """
@@ -188,7 +202,7 @@ Vector of parameter values for the new points
                 n = n - 1
             else
                 baru0 = u1 + (u1 - u2) * δ1 / δ2
-                α = norm(baru0 - u0) / δ1
+                α = 2*newasin(norm(baru0 - u0) / (2*δ1))
                 if δ1 <= d && α <= αmax
                     i = i + 1
                     dd = newpara[end]

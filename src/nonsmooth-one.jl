@@ -23,13 +23,13 @@ struct NSOneDManifoldProblem{F,T}
     dsmin::T
 end
 
-function NSOneDManifoldProblem(f; amax=0.5, d=0.001, ϵ=0.00001, dsmin=0.0001)
+function NSOneDManifoldProblem(f; amax=0.5, d=1e-3, ϵ=1e-5, dsmin=1e-6)
     NSOneDManifoldProblem(f, Float64[], amax, d, ϵ, dsmin)
 end
 
 
 function NSOneDManifoldProblem(f, para::AbstractVector{T};
-    amax=T(0.5), d=T(0.001), ϵ=T(0.00001), dsmin=T(0.0001)) where {T}
+    amax=T(0.5), d=T(1e-3), ϵ=T(1e-5), dsmin=T(1e-6)) where {T}
     NSOneDManifoldProblem(f, para, amax, d, ϵ, dsmin)
 end
 
@@ -73,10 +73,12 @@ end
 function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
     m = 0
     n = 0
+    arclength = 0.0
     for i in eachindex(A.data)
         n = n + length(A.data[i])
         for j in eachindex(A.data[i])
             m = m + length(A.data[i][j].t)
+            arclength = arclength + A.data[i][j].t[end]
         end
     end
     k = length(A.flawpoints)
@@ -86,6 +88,8 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
+    printstyled(io, "Total arc length: "; color=:cyan)
+    println(io, "$arclength")
     if  k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
@@ -244,7 +248,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     n = n - 1
                 else
                     baru0 = u1 + (u1 - u2) * δ1 / δ2
-                    α = norm(baru0 - u0) / δ1
+                    α = 2*newasin(norm(baru0 - u0) / (2*δ1))
                     if δ1 <= d && α <= αmax
                         i = i + 1
                         dd = newpara[end]
@@ -460,7 +464,6 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
     while norm(image[j] - p0) < dd
         j = j + 1
     end
-    j = j + 1
     first_iteration_curve = image[j:end]
     event = copy(first_iteration_curve[1].event_at)
     prepend!(first_iteration_curve, [NSState(pn.state, event)])

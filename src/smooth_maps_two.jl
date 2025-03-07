@@ -58,13 +58,13 @@ mutable struct TwoDManifold{F,S,N,T}
     flawpoints::Vector{FlawPoint{N,T}}
 end
 
-function TwoDManifoldProblem(f; amax=0.5, d=0.001, dcircle=0.01, dsmin=1e-5)
+function TwoDManifoldProblem(f; amax=0.5, d=1e-3, dcircle=1e-2, dsmin=1e-6)
     TwoDManifoldProblem(f, Float64[], amax, d, dcircle, dsmin)
 end
 
 
 function TwoDManifoldProblem(f, para::AbstractVector{T};
-    amax=T(0.5), d=T(0.001), dcircle=T(0.01), dsmin=T(1e-5)) where {T}
+    amax=T(0.5), d=T(1e-3), dcircle=T(1e-2), dsmin=T(1e-6)) where {T}
     TwoDManifoldProblem(f, para, amax, d, dcircle, dsmin)
 end
 

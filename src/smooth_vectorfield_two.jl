@@ -19,13 +19,13 @@ struct VTwoDManifoldProblem{F,T}
     dsmin::T
 end
 
-function VTwoDManifoldProblem(f; amax=0.5, d=0.001, dsmin=1e-5)
+function VTwoDManifoldProblem(f; amax=0.5, d=1e-3, dsmin=1e-6)
     VTwoDManifoldProblem(f, Float64[], amax, d, dsmin)
 end
 
 
 function VTwoDManifoldProblem(f, para::AbstractVector{T};
-    amax=T(0.5), d=T(0.001), dsmin=T(1e-5)) where {T}
+    amax=T(0.5), d=T(1e-3), dsmin=T(1e-6)) where {T}
     VTwoDManifoldProblem(f, para, amax, d, dsmin)
 end
 
