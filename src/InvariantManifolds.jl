@@ -1,9 +1,8 @@
 module InvariantManifolds
 
-using LinearAlgebra, StaticArrays, OrdinaryDiffEq, DataInterpolations, NearestNeighbors
+using LinearAlgebra, StaticArrays, OrdinaryDiffEq, DataInterpolations, NearestNeighbors, FiniteDiff
 
 import Base: -, +, *, /, length, eltype, getindex, size, zero, show
-
 
 export NSState, NSSetUp
 
