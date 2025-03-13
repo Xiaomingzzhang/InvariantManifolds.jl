@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Two-Dimensional Smooth Manifolds · InvariantManifolds.jl</title><meta name="title" content="Two-Dimensional Smooth Manifolds · InvariantManifolds.jl"/><meta property="og:title" content="Two-Dimensional Smooth Manifolds · InvariantManifolds.jl"/><meta property="twitter:title" content="Two-Dimensional Smooth Manifolds · InvariantManifolds.jl"/><meta name="description" content="Documentation for InvariantManifolds.jl."/><meta property="og:description" content="Documentation for InvariantManifolds.jl."/><meta property="twitter:description" content="Documentation for InvariantManifolds.jl."/><meta property="og:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/smooth_two/"/><meta property="twitter:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/smooth_two/"/><link rel="canonical" href="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/smooth_two/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="InvariantManifolds.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">InvariantManifolds.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../smooth_one/">Getting Started: One-Dimensional Smooth Manifolds</a></li><li class="is-active"><a class="tocitem" href>Two-Dimensional Smooth Manifolds</a><ul class="internal"><li><a class="tocitem" href="#Autonomous-Vector-Field:-Lorenz-Manifold"><span>Autonomous Vector Field: Lorenz Manifold</span></a></li><li><a class="tocitem" href="#Nonlinear-Mapping"><span>Nonlinear Mapping</span></a></li></ul></li><li><a class="tocitem" href="../non_smooth_one/">One-Dimensional Non-Smooth Manifolds</a></li><li><a class="tocitem" href="../non_smooth_two/">Two-dimensional Non-Smooth Manifolds</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Two-Dimensional Smooth Manifolds</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Two-Dimensional Smooth Manifolds</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl/blob/master/docs/src/smooth_two.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Two-Dimensional-Smooth-Manifolds"><a class="docs-heading-anchor" href="#Two-Dimensional-Smooth-Manifolds">Two-Dimensional Smooth Manifolds</a><a id="Two-Dimensional-Smooth-Manifolds-1"></a><a class="docs-heading-anchor-permalink" href="#Two-Dimensional-Smooth-Manifolds" title="Permalink"></a></h1><p>Essentially, we haven&#39;t introduced new algorithms; the core functions for computing two-dimensional manifolds are the same as those for one-dimensional manifolds. We simply represent the two-dimensional manifold as circles of one-dimensional manifolds that are close enough to each other.</p><h2 id="Autonomous-Vector-Field:-Lorenz-Manifold"><a class="docs-heading-anchor" href="#Autonomous-Vector-Field:-Lorenz-Manifold">Autonomous Vector Field: Lorenz Manifold</a><a id="Autonomous-Vector-Field:-Lorenz-Manifold-1"></a><a class="docs-heading-anchor-permalink" href="#Autonomous-Vector-Field:-Lorenz-Manifold" title="Permalink"></a></h2><p>First, let&#39;s load the required packages and define the Lorenz vector field:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; function lorenz(x, p, t)
+           σ, ρ, β = p
+           v = SA[σ*(x[2]-x[1]),
+               ρ*x[1]-x[2]-x[1]*x[3],
+               x[1]*x[2]-β*x[3]
+           ]
+           v / sqrt(0.1 + norm(v)^2)
+       end</code><code class="nohighlight hljs ansi" style="display:block;">lorenz (generic function with 1 method)</code></pre><p>It&#39;s worth noting that we performed an approximate normalization of the vector field to keep its magnitude within a small range. This ensures uniform expansion of the manifold. Under the classical parameters:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; para = [10.0, 28.0, 8/3]</code><code class="nohighlight hljs ansi" style="display:block;">3-element Vector{Float64}:
+ 10.0
+ 28.0
+  2.6666666666666665</code></pre><p>the Jacobian matrix at the origin equilibrium point has two stable directions, which are:</p><pre><code class="language-julia hljs">function eigenv(p)
+    σ, ρ, β = p
+    [SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0]]
+end
+eigenv(para)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{StaticArraysCore.SVector{3, Float64}}:
+ [0.0, 0.0, 1.0]
+ [-0.7795615518272664, 1.0, 0.0]</code></pre><p>Then we can create a <a href="../api/#InvariantManifolds.Saddle"><code>Saddle</code></a> structure to store this saddle point:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; saddle = Saddle(SA[0, 0, 0.0], eigenv(para), [1.0, 1.0])</code><code class="nohighlight hljs ansi" style="display:block;">Saddle{3,Float64,Float64}:
+saddle: [0.0, 0.0, 0.0]
+unstable_directions: StaticArraysCore.SVector{3, Float64}[[0.0, 0.0, 1.0], [-0.7795615518272664, 1.0, 0.0]]
+unstable_eigen_values: [1.0, 1.0]</code></pre><p>The magnitude of the eigenvalues can be specified arbitrarily, as it won&#39;t affect the computation results. Since we&#39;re computing the stable manifold, we need to evolve the flow backward. Let&#39;s define the following mapping:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; function lorenz_map(x, p)
+           prob = ODEProblem{false}(lorenz, x, (0.0, -1.0), p)
+           sol = solve(prob, Vern9(), abstol = 1e-10)
+           sol[end]
+       end</code><code class="nohighlight hljs ansi" style="display:block;">lorenz_map (generic function with 1 method)</code></pre><p>Now we can create the problem:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; prob = VTwoDManifoldProblem(lorenz_map, para, d=1.0, amax=1.0, dsmin=1e-3)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">VTwoDManifoldProblem:</span>
+f:Main.lorenz_map
+para: [10.0, 28.0, 2.6666666666666665]
+amax: 1.0
+d: 1.0
+dsmin: 0.001</code></pre><p>For the meaning of these keyword arguments, please refer to <a href="../api/#InvariantManifolds.VTwoDManifoldProblem"><code>VTwoDManifoldProblem</code></a>.</p><p>Similar to one-dimensional manifolds, we need a local manifold to start the extension. The corresponding function for creating a local manifold is <a href="../api/#InvariantManifolds.gen_disk-Union{Tuple{Saddle{N, T, S}}, Tuple{S}, Tuple{T}, Tuple{N}} where {N, T, S}"><code>gen_disk</code></a>:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; disk = gen_disk(saddle, r=1.0)</code><code class="nohighlight hljs ansi" style="display:block;">2-element Vector{Vector{StaticArraysCore.SVector{3, Float64}}}:
+ [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+ [[0.0, 0.0, 1.0], [-0.00010127432293440568, 0.00012991190073063764, 0.9999999864332046], [-0.00020254864312087533, 0.00025982379793629897, 0.9999999457328191], [-0.00030382295781147296, 0.0003897356880920077, 0.9999998778988444], [-0.00040509726425826294, 0.0005196475676727878, 0.9999997829312824], [-0.0005063715597133095, 0.0006495594331536636, 0.9999996608301356], [-0.0006076458414286776, 0.0007794712810096597, 0.9999995115954075], [-0.000708920106656432, 0.000909383107715801, 0.9999993352271019], [-0.0008101943526486386, 0.0010392949097471134, 0.9999991317252238], [-0.0009114685766573632, 0.001169206683578623, 0.9999989010897786]  …  [0.0009114685766575245, -0.0011692066835788302, 0.9999989010897786], [0.0008101943526485436, -0.0010392949097469916, 0.9999991317252238], [0.0007089201066560809, -0.0009093831077153506, 0.9999993352271019], [0.000607645841428499, -0.0007794712810094307, 0.9999995115954075], [0.0005063715597133038, -0.0006495594331536562, 0.9999996608301356], [0.0004050972642584299, -0.000519647567673002, 0.9999997829312824], [0.0003038229578118127, -0.0003897356880924434, 0.9999998778988444], [0.00020254864312095882, -0.00025982379793640603, 0.9999999457328191], [0.00010127432293423296, -0.0001299119007304161, 0.9999999864332046], [0.0, 0.0, 1.0]]</code></pre><p>For detailed information about the <code>gen_disk</code> function, please refer to <a href="../api/#InvariantManifolds.gen_disk-Union{Tuple{Saddle{N, T, S}}, Tuple{S}, Tuple{T}, Tuple{N}} where {N, T, S}"><code>gen_disk</code></a>. Now we can proceed with the extension:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; manifold = growmanifold(prob, disk, 200)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">Two-dimensional manifold</span></span>
+<span class="sgr36">Circles number: </span>202
+<span class="sgr36">Points number: </span>8028260
+<span class="sgr36">Flaw points number: </span>0</code></pre><p>We can also define a plotting function to visualize the results:</p><pre><code class="language-julia hljs">using CairoMakie
+function manifold_plot(annulus)
+    fig = Figure()
+    axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
+    second(x) = x[2]
+    for i in eachindex(annulus)
+        points = annulus[i].u
+        lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><img src="52eac7d9.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+function lorenz(x, p, t)
+    σ, ρ, β = p
+    v = SA[σ*(x[2]-x[1]),
+        ρ*x[1]-x[2]-x[1]*x[3],
+        x[1]*x[2]-β*x[3]
+    ]
+    v / sqrt(0.1 + norm(v)^2)
+end
+function eigenv(p)
+    σ, ρ, β = p
+    [SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0]]
+end
+para = [10.0, 28.0, 8/3]
+saddle = Saddle(SA[0.0, 0.0, 0.0], eigenv(para), [1.0, 1.0])
+prob = VTwoDManifoldProblem(lorenz, para, d=1.0, amax=1.0, dsmin=1e-3)
+disk = gen_disk(saddle, r=1.0)
+manifold = growmanifold(prob, disk, 200)
+function manifold_plot(annulus)
+    fig = Figure()
+    axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
+    second(x) = x[2]
+    for i in eachindex(annulus)
+        points = annulus[i].u
+        lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><h2 id="Nonlinear-Mapping"><a class="docs-heading-anchor" href="#Nonlinear-Mapping">Nonlinear Mapping</a><a id="Nonlinear-Mapping-1"></a><a class="docs-heading-anchor-permalink" href="#Nonlinear-Mapping" title="Permalink"></a></h2><p>Consider the following nonlinear mapping:</p><p class="math-container">\[f(X)=\varphi\circ\Lambda\circ\varphi^{-1}(X)\]</p><p>where <span>$\varphi(x,y,z)=(x,y,z-\alpha x^2-\beta y^2)$</span> is a nonlinear mapping, and <span>$\Lambda$</span> is a diagonal matrix whose diagonal elements can be used to control the Jacobian matrix of mapping <span>$f$</span> near the origin. Here&#39;s the code for computing its invariant manifold:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+const Λ = SDiagonal(SA[2.1, 6.3, 0.6])
+φ(x, p)= SA[x[1],x[2],x[3]-p[1]*x[1]^2-p[2]*x[2]^2]
+iφ(x, p)= SA[x[1],x[2],x[3]+p[1]*x[1]^2+p[2]*x[2]^2]
+f(x,p) = φ(Λ*iφ(x, p),p)
+
+para = [1.2,-1.2]
+saddle = Saddle(SA[0.0, 0.0, 0.0], [SA[1.0, 0.0, 0.0], SA[0.0, 1.0, 0.0]], [2.1, 6.3])
+prob = TwoDManifoldProblem(f, para, dcircle=0.05, d = 0.02, dsmin=1e-3)
+
+disk = gen_disk(saddle, times=4, r= 0.05)
+manifold = growmanifold(prob, disk, 3)
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis3(fig[1,1])
+    second(x) = x[2]
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=data[k][j].u
+            scatter!(axes,first.(points),second.(points),last.(points),fxaa=true)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><img src="95a54e33.png" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../smooth_one/">« Getting Started: One-Dimensional Smooth Manifolds</a><a class="docs-footer-nextpage" href="../non_smooth_one/">One-Dimensional Non-Smooth Manifolds »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Thursday 13 March 2025 04:47">Thursday 13 March 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
