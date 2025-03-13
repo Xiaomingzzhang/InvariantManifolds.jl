@@ -1,5 +1,5 @@
 function setmap(v::PiecewiseImpactV, timespan, alg;
-    cross_time= 0.01, region_detect=_region_detect, extra1..., extra2...)
+    cross_time= 0.01, region_detect=_region_detect, repeat_nudge=1//100, extra...)
     nn = length(v.hypers)
     event_at = Int[]
     function affect!(integrator, idx)
@@ -18,13 +18,13 @@ function setmap(v::PiecewiseImpactV, timespan, alg;
             out[i] = v.hypers[i](u, integrator.p, t)
         end
     end
-    vcb = VectorContinuousCallback(condition, affect!, nn, extra1...)
+    vcb = VectorContinuousCallback(condition, affect!, nn, repeat_nudge=repeat_nudge)
     function tmap(X::NSState{N,T}, para) where {N,T}
         x = X.state
         event = copy(X.event_at)
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
-        sol = solve(prob, alg, callback=vcb; extra2...)
+        sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
         append!(event, newv_event_at)
         empty!(event_at)
@@ -34,7 +34,7 @@ function setmap(v::PiecewiseImpactV, timespan, alg;
 end
 
 function ns_solver(v::PiecewiseImpactV, timespan, alg, N, T;
-    cross_time= 0.01, region_detect=_region_detect, extra1..., extra2...)
+    cross_time= 0.01, region_detect=_region_detect, repeat_nudge=1//100, extra...)
     nn = length(v.hypers)
     event_at = Int[]
     event_state = SVector{N,T}[]
@@ -57,11 +57,11 @@ function ns_solver(v::PiecewiseImpactV, timespan, alg, N, T;
             out[i] = v.hypers[i](u, integrator.p, t)
         end
     end
-    vcb = VectorContinuousCallback(condition, affect!, nn, extra1...)
+    vcb = VectorContinuousCallback(condition, affect!, nn, repeat_nudge=repeat_nudge)
     function tmap(x, para)
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
-        sol = solve(prob, alg, callback=vcb; extra2...)
+        sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)
         newv_event_t = copy(event_t)
         newv_event_state = copy(event_state)
