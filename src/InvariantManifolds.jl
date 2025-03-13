@@ -13,11 +13,11 @@ export OneDManifoldProblem, NSOneDManifoldProblem, VTwoDManifoldProblem
 
 export TwoDManifoldProblem, NSVTwoDManifoldProblem
 
-export id, setmap, ns_solver
+export setmap, ns_solver
 
 export gen_segment, gen_disk, initialize
 
-export grow!, growmanifold, Saddle, findsaddle
+export grow!, growmanifold, Saddle, findsaddle, iscontact
 
 
 include("nsstate_construction.jl")

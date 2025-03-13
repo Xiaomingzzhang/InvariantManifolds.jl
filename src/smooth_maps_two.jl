@@ -123,17 +123,6 @@ end
     maximum(dd)
 end
 
-"""
-    InvariantManifolds.set_distence
-
-The function to measure the distance between two sets by using the package `NearestNeighbors.jl`.
-"""
-@inline function set_distence(someset1::Vector{SVector{N,T}}, someset2::Vector{SVector{N,T}}) where {N,T}
-    btree = KDTree(someset1)
-    dd = [nn(btree, x)[2] for x in someset2]
-    @show minimum(dd)
-    minimum(dd)
-end
 
 function welldistributedpoints!(pcurve, points, para, d)
     olds = collect(para)
