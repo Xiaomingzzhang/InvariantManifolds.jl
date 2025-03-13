@@ -85,7 +85,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::TwoDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
-    if  k == 0
+    if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
     else
@@ -101,7 +101,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::TwoDManifold)
         println(io, "$nd")
         printstyled(io, "Curvature failed points number: "; color=:cyan)
         println(io, "$nc")
-        dα = maximum([x.α*x.d for x in A.flawpoints])
+        dα = maximum([x.α * x.d for x in A.flawpoints])
         printstyled(io, "Max dα in Flaw Points: "; color=:cyan)
         print(io, "$dα")
     end

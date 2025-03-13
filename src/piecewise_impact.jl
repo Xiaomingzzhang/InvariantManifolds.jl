@@ -1,5 +1,5 @@
 function setmap(v::PiecewiseImpactV, timespan, alg;
-    cross_time= 0.01, region_detect=_region_detect, repeat_nudge=1//100, extra...)
+    cross_time=0.01, region_detect=_region_detect, repeat_nudge=1 // 100, extra...)
     nn = length(v.hypers)
     event_at = Int[]
     function affect!(integrator, idx)
@@ -34,7 +34,7 @@ function setmap(v::PiecewiseImpactV, timespan, alg;
 end
 
 function ns_solver(v::PiecewiseImpactV, timespan, alg, N, T;
-    cross_time= 0.01, region_detect=_region_detect, repeat_nudge=1//100, extra...)
+    cross_time=0.01, region_detect=_region_detect, repeat_nudge=1 // 100, extra...)
     nn = length(v.hypers)
     event_at = Int[]
     event_state = SVector{N,T}[]

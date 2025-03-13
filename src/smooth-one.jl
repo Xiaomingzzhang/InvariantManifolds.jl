@@ -98,7 +98,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
     println(io, "$m")
     printstyled(io, "Total arc length: "; color=:cyan)
     println(io, "$arclength")
-    if  k == 0
+    if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
     else
@@ -114,7 +114,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
         println(io, "$nd")
         printstyled(io, "Curvature failed points number: "; color=:cyan)
         println(io, "$nc")
-        dα = maximum([x.α*x.d for x in A.flawpoints])
+        dα = maximum([x.α * x.d for x in A.flawpoints])
         printstyled(io, "Max dα in Flaw Points: "; color=:cyan)
         print(io, "$dα")
     end
@@ -147,12 +147,12 @@ function gen_segment(p::Saddle{N,T,S}; n=50, d=0.01) where {N,T,S}
 end
 
 function newasin(x::T) where {T}
-    if  abs(x) <= 1
+    if abs(x) <= 1
         return asin(x)
     elseif x > 1
-        return T(pi)/2
+        return T(pi) / 2
     else
-        return -T(pi)/2
+        return -T(pi) / 2
     end
 end
 
@@ -202,7 +202,7 @@ Vector of parameter values for the new points
                 n = n - 1
             else
                 baru0 = u1 + (u1 - u2) * δ1 / δ2
-                α = 2*newasin(norm(baru0 - u0) / (2*δ1))
+                α = 2 * newasin(norm(baru0 - u0) / (2 * δ1))
                 if δ1 <= d && α <= αmax
                     i = i + 1
                     dd = newpara[end]

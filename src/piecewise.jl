@@ -12,7 +12,7 @@ end
 
 
 """
-    setmap(v, timespan::Tuple{T,T}, alg; extra...) where {T}
+    setmap(v, timespan::Tuple{T,T}, alg) where {T}
 
 The function `setmap` is to get a `NSSetUp`.
 
@@ -24,10 +24,12 @@ The function `setmap` is to get a `NSSetUp`.
 To ensure type stable, the numbers in `timespan` should be type of `T`.
 
 # Keyword arguments
+- `repeat_nudge=1//100` this is used to set the next testing point after a previously found zero.
+
 For vector fields [`PiecewiseV`](@ref) and [`PiecewiseImpactV`](@ref), we have two special keyword arguments:
 - `cross_time= 0.01` when the solution `sol` hits the hypersurface at time `t`, we need to know which domain it enters. We choose the state `sol(t+cross_time)` to determine which domain it enters.
 - `region_detect=_region_detect` the region detect function to determine which domain the state in.
-- `repeat_nudge=1//100` this is used to set the next testing point after a previously found zero.
+
 
 You can also pass the keywords of `solve` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
 except the `callback` and saving related keywords.
@@ -83,10 +85,11 @@ To ensure type stable, the numbers in `para` and `timespan` should be type of `T
 The last two parameters have to be specified, since we need to store the event data.
 
 # Keyword arguments
+- `repeat_nudge=1//100` this is used to set the next testing point after a previously found zero.
+
 For vector fields [`PiecewiseV`](@ref) and [`PiecewiseImpactV`](@ref), we have two special keyword arguments:
 - `cross_time= 0.01` when the solution `sol` hits the hypersurface at time `t`, we need to know which domain it enters. We choose the state `sol(t+cross_time)` to determine which domain it enters.
 - `region_detect=_region_detect` the region detect function to determine which domain the state in.
-- `repeat_nudge=1//100` this is used to set the next testing point after a previously found zero.
 
 You can also pass the keywords of `solve` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
 except the `callback` and saving related keywords.

@@ -84,7 +84,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSVTwoDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
-    if  k == 0
+    if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
     else
@@ -100,7 +100,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSVTwoDManifold)
         println(io, "$nd")
         printstyled(io, "Curvature failed points number: "; color=:cyan)
         println(io, "$nc")
-        dα = maximum([x.α*x.d for x in A.flawpoints])
+        dα = maximum([x.α * x.d for x in A.flawpoints])
         printstyled(io, "Max dα in Flaw Points: "; color=:cyan)
         print(io, "$dα")
     end
@@ -143,8 +143,8 @@ function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation
             ic2_states[k] = tmap(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap, para, d, dsmin, curve, 
-        ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
+        newpara = ns_addpoints!(tmap, para, d, dsmin, curve,
+            ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end

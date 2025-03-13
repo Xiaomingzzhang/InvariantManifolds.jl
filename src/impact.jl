@@ -1,4 +1,4 @@
-function setmap(v::BilliardV, timespan, alg;repeat_nudge=1//100, extra...)
+function setmap(v::BilliardV, timespan, alg; repeat_nudge=1 // 100, extra...)
     nn = length(v.hypers)
     event_at = Int[]
     function affect!(integrator, idx)
@@ -28,7 +28,7 @@ function setmap(v::BilliardV, timespan, alg;repeat_nudge=1//100, extra...)
 end
 
 
-function ns_solver(v::BilliardV, timespan, alg, N, T;repeat_nudge=1//100, extra...)
+function ns_solver(v::BilliardV, timespan, alg, N, T; repeat_nudge=1 // 100, extra...)
     nn = length(v.hypers)
     event_at = Int[]
     event_state = SVector{N,T}[]
@@ -47,7 +47,7 @@ function ns_solver(v::BilliardV, timespan, alg, N, T;repeat_nudge=1//100, extra.
         end
     end
     vcb = VectorContinuousCallback(condition, affect!, nn; repeat_nudge=repeat_nudge)
-    function tmap(x,para)
+    function tmap(x, para)
         prob = ODEProblem{false}(v, x, timespan, para)
         sol = solve(prob, alg, callback=vcb; extra...)
         newv_event_at = copy(event_at)

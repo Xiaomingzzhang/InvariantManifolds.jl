@@ -90,7 +90,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
     println(io, "$m")
     printstyled(io, "Total arc length: "; color=:cyan)
     println(io, "$arclength")
-    if  k == 0
+    if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
     else
@@ -106,7 +106,7 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
         println(io, "$nd")
         printstyled(io, "Curvature failed points number: "; color=:cyan)
         println(io, "$nc")
-        dα = maximum([x.α*x.d for x in A.flawpoints])
+        dα = maximum([x.α * x.d for x in A.flawpoints])
         printstyled(io, "Max dα in Flaw Points: "; color=:cyan)
         print(io, "$dα")
     end
@@ -248,7 +248,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     n = n - 1
                 else
                     baru0 = u1 + (u1 - u2) * δ1 / δ2
-                    α = 2*newasin(norm(baru0 - u0) / (2*δ1))
+                    α = 2 * newasin(norm(baru0 - u0) / (2 * δ1))
                     if δ1 <= d && α <= αmax
                         i = i + 1
                         dd = newpara[end]
