@@ -25,17 +25,18 @@ To ensure type stable, the numbers in `timespan` should be type of `T`.
 
 # Keyword arguments
 For vector fields [`PiecewiseV`](@ref) and [`PiecewiseImpactV`](@ref), we have two special keyword arguments:
-- `cross_time= 1//20` when the solution `sol` hits the hypersurface at time `t`, we need to know which domain it enters. We choose the state `sol(t+cross_time)` to determine which domain it enters.
+- `cross_time= 0.01` when the solution `sol` hits the hypersurface at time `t`, we need to know which domain it enters. We choose the state `sol(t+cross_time)` to determine which domain it enters.
 - `region_detect=_region_detect` the region detect function to determine which domain the state in.
 
-You can also pass the keywords of `solve` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
+You can also pass the keywords of `solve` and `VectorContinuousCallback` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
 except the `callback` and saving related keywords.
 """
-function setmap(v::PiecewiseV, timespan::Tuple{T,T}, alg; region_detect=_region_detect, extra...) where {T}
+function setmap(v::PiecewiseV, timespan::Tuple{T,T}, alg;
+    cross_time=0.01, region_detect=_region_detect, extra1..., extra2...) where {T}
     nn = length(v.hypers)
     event_at = Int[]
     function affect!(integrator, idx)
-        t0 = integrator.t + 1 // 20
+        t0 = integrator.t + cross_time
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
@@ -47,13 +48,13 @@ function setmap(v::PiecewiseV, timespan::Tuple{T,T}, alg; region_detect=_region_
             out[i] = v.hypers[i](u, integrator.p, t)
         end
     end
-    vcb = VectorContinuousCallback(condition, affect!, nn)
+    vcb = VectorContinuousCallback(condition, affect!, nn; extra1...)
     function tmap(X::NSState{N,T}, para) where {N,T}
         x = X.state
         event = copy(X.event_at)
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
-        sol = solve(prob, alg, callback=vcb; extra...)
+        sol = solve(prob, alg, callback=vcb; extra2...)
         newv_event_at = copy(event_at)
         append!(event, newv_event_at)
         empty!(event_at)
@@ -79,16 +80,23 @@ which maps a `SVector` to a [`NSSolution`](@ref). This `NSSolution` contain all 
 
 To ensure type stable, the numbers in `para` and `timespan` should be type of `T`.
 The last two parameters have to be specified, since we need to store the event data.
-You can also pass the keywords of `solve` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
+
+# Keyword arguments
+For vector fields [`PiecewiseV`](@ref) and [`PiecewiseImpactV`](@ref), we have two special keyword arguments:
+- `cross_time= 0.01` when the solution `sol` hits the hypersurface at time `t`, we need to know which domain it enters. We choose the state `sol(t+cross_time)` to determine which domain it enters.
+- `region_detect=_region_detect` the region detect function to determine which domain the state in.
+
+You can also pass the keywords of `solve` and `VectorContinuousCallback` of [OrdinaryDiffEq](https://github.com/SciML/OrdinaryDiffEq.jl) to this function, 
 except the `callback` and saving related keywords.
 """
-function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_detect, extra...)
+function ns_solver(v::PiecewiseV, timespan, alg, N, T;
+    cross_time=0.01, region_detect=_region_detect, extra1..., extra2...)
     nn = length(v.hypers)
     event_at = Int[]
     event_state = SVector{N,T}[]
     event_t = T[]
     function affect!(integrator, idx)
-        t0 = integrator.t + 1 // 20
+        t0 = integrator.t + cross_time
         p = integrator.p
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
@@ -102,11 +110,11 @@ function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_dete
             out[i] = v.hypers[i](u, integrator.p, t)
         end
     end
-    vcb = VectorContinuousCallback(condition, affect!, nn)
+    vcb = VectorContinuousCallback(condition, affect!, nn; extra1...)
     function tmap(x, para)
         v.n = region_detect(v.regions, x, para, timespan[1])
         prob = ODEProblem{false}(v, x, timespan, para)
-        sol = solve(prob, alg, callback=vcb; extra...)
+        sol = solve(prob, alg, callback=vcb; extra2...)
         newv_event_at = copy(event_at)
         newv_event_t = copy(event_t)
         newv_event_state = copy(event_state)
@@ -115,4 +123,28 @@ function ns_solver(v::PiecewiseV, timespan, alg, N, T;region_detect=_region_dete
         empty!(event_state)
         NSSolution(sol, newv_event_t, newv_event_state, newv_event_at)
     end
+end
+
+"""
+    iscontact(setup, saddle, para)
+
+Check if the saddle point of the time-T-map has contacts with the hypersurfaces.
+
+# Parameters
+- `setup` a [`NSSetUp`](@ref).
+- `saddle` a [`Saddle`](@ref) or a `SVector`.
+- `para` the parameter of the vector field.
+
+# Returns
+- `true` if the saddle point has contact with the hypersurfaces.
+- `false` if the saddle point has no contact with the hypersurfaces.
+"""
+function iscontact(setup, saddle::Saddle{N,T,S}, para) where {N,T,S}
+    event = setup.timetmap(NSState(saddle.saddle), para).event_at
+    !(isempty(event))
+end
+
+function iscontact(setup, saddle::SVector{N,T}, para) where {N,T}
+    event = setup.timetmap(NSState(saddle), para).event_at
+    !(isempty(event))
 end
