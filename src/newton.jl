@@ -45,8 +45,8 @@ end
 - `alg` the algorithm used to solve the ODE, default to be `Vern9()`.
 We also provide the finite difference method to find the saddle of the time-T-map of nonsmooth ODE systems:
 # Parameters
-- `setup` the [`NSState`](@ref) of the nonsmooth ODE system;
-- `x` the initial point to iterate.
+- `setup` the [`NSSetUp`](@ref) of the nonsmooth ODE system;
+- `x` the initial point to iterate, of type `SVector{N,T}`.
 - `p` the parameters of the nonsmooth ODE system.
 # Keyword arguments
 - `n` maximum iterate times, default to be 100;
@@ -73,7 +73,8 @@ function findsaddle(v, dv, timespan, x::SVector{N,T}, p; n=100, abstol=1e-8, alg
         eigendata = eigen(jac(data[2], p))
         indics = findall(>(1), abs.(eigendata.values))
         directions = [eigendata.vectors[:, i] for i in indics]
-        println("Fixed point found successfully:")
+        println("Fixed point found successfully!")
+        println("The fixed point: ")
         Saddle(data[2], directions, [eigendata.values[i] for i in indics])
     else
         println("Failed to find a fixed point after $n times iterations. The last point is:")
@@ -100,7 +101,9 @@ function findsaddle(setup::NSSetUp, x::SVector{N,T}, p; n=100, abstol=1e-8) wher
         eigendata = eigen(jac(data[2], p))
         indics = findall(>(1), abs.(eigendata.values))
         directions = [eigendata.vectors[:, i] for i in indics]
-        println("Fixed point found successfully:")
+        println("Fixed point found successfully!")
+        println("Has contact with hypersurfaces: ", iscontact(setup, data[2], p))
+        println("The fixed point: ")
         Saddle(data[2], directions, [eigendata.values[i] for i in indics])
     else
         println("Failed to find a fixed point after $n times iterations. The last point is:")
