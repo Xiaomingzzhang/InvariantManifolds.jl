@@ -75,13 +75,13 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes, points)
         end
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre><img src="bac13a37.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+manifold_plot(manifold.data)</code></pre><img src="a831fd7a.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
 f1(x, p, t) = SA[x[2], p[1]*x[1]+p[4]*sin(2pi * t)]
 f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[4]*sin(2pi * t)]
 f3(x, p, t) = SA[x[2], -p[3]*x[1]+p[4]*sin(2pi * t)]
@@ -107,8 +107,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
@@ -167,7 +167,7 @@ dsmin: 1.0e-6</code><br/><code class="language-julia-repl hljs" style="display:b
 <span class="sgr36">Flaw points number: </span>3
 <span class="sgr36">Distance failed points number: </span>0
 <span class="sgr36">Curvature failed points number: </span>3
-<span class="sgr36">Max dα in Flaw Points: </span>2.4211133394507654e-7</code></pre><p>Finally, plot the results: </p><pre><code class="language-julia hljs">manifold_plot(manifold.data)</code></pre><img src="5479840c.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+<span class="sgr36">Max dα in Flaw Points: </span>2.4211133394507654e-7</code></pre><p>Finally, plot the results: </p><pre><code class="language-julia hljs">manifold_plot(manifold.data)</code></pre><img src="ca5e9d12.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
 f(x, p, t) = SA[x[2], sin(x[1])-p[1]*cos(2 * pi * t)]
 hyper1(x, p, t) = x[1] + p[2]
 hyper2(x, p, t) = x[1] - p[2]
@@ -189,8 +189,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
@@ -267,13 +267,13 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre><img src="41f8f0bb.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+manifold_plot(manifold.data)</code></pre><img src="1c950287.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
 f1(x, p, t) = SA[x[2], p[1]*x[1]+p[3]*sin(2pi * t)]
 f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[3]*sin(2pi * t)]
 hyper1(x, p, t) = x[1] - p[4]
@@ -298,10 +298,10 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../smooth_two/">« Two-Dimensional Smooth Manifolds</a><a class="docs-footer-nextpage" href="../non_smooth_two/">Two-dimensional Non-Smooth Manifolds »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Saturday 15 March 2025 04:12">Saturday 15 March 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+manifold_plot(manifold.data)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../smooth_two/">« Two-Dimensional Smooth Manifolds</a><a class="docs-footer-nextpage" href="../non_smooth_two/">Two-dimensional Non-Smooth Manifolds »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.9.0 on <span class="colophon-date" title="Thursday 27 March 2025 01:12">Thursday 27 March 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
