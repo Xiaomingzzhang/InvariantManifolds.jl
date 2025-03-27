@@ -35,9 +35,8 @@ include("smooth_vectorfield_two.jl")
 include("piecewise.jl")
 include("impact.jl")
 include("piecewise_impact.jl")
-# include("simple_filippov.jl")
-# include("filippov_impact.jl")
-# the one dimensional non-smooth manifold algorithm
+
+# non-smooth manifold algorithm
 include("nonsmooth-one.jl")
 include("nonsmooth_vectorfield_two.jl")
 
