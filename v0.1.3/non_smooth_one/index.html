@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>One-Dimensional Non-Smooth Manifolds · InvariantManifolds.jl</title><meta name="title" content="One-Dimensional Non-Smooth Manifolds · InvariantManifolds.jl"/><meta property="og:title" content="One-Dimensional Non-Smooth Manifolds · InvariantManifolds.jl"/><meta property="twitter:title" content="One-Dimensional Non-Smooth Manifolds · InvariantManifolds.jl"/><meta name="description" content="Documentation for InvariantManifolds.jl."/><meta property="og:description" content="Documentation for InvariantManifolds.jl."/><meta property="twitter:description" content="Documentation for InvariantManifolds.jl."/><meta property="og:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/non_smooth_one/"/><meta property="twitter:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/non_smooth_one/"/><link rel="canonical" href="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/non_smooth_one/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="InvariantManifolds.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">InvariantManifolds.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../smooth_one/">Getting Started: One-Dimensional Smooth Manifolds</a></li><li><a class="tocitem" href="../smooth_two/">Two-Dimensional Smooth Manifolds</a></li><li class="is-active"><a class="tocitem" href>One-Dimensional Non-Smooth Manifolds</a><ul class="internal"><li><a class="tocitem" href="#Piecewise-Smooth-Systems"><span>Piecewise Smooth Systems</span></a></li><li><a class="tocitem" href="#Impact-Systems"><span>Impact Systems</span></a></li><li><a class="tocitem" href="#Combined-Piecewise-Smooth-and-Impact-ODE-Systems"><span>Combined Piecewise Smooth and Impact ODE Systems</span></a></li></ul></li><li><a class="tocitem" href="../non_smooth_two/">Two-dimensional Non-Smooth Manifolds</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>One-Dimensional Non-Smooth Manifolds</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>One-Dimensional Non-Smooth Manifolds</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl/blob/master/docs/src/non_smooth_one.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="One-Dimensional-Non-Smooth-Manifolds"><a class="docs-heading-anchor" href="#One-Dimensional-Non-Smooth-Manifolds">One-Dimensional Non-Smooth Manifolds</a><a id="One-Dimensional-Non-Smooth-Manifolds-1"></a><a class="docs-heading-anchor-permalink" href="#One-Dimensional-Non-Smooth-Manifolds" title="Permalink"></a></h1><p>Perhaps the most notable feature of this package is its ability to compute non-smooth manifolds. Currently, it supports the computation of non-smooth manifolds for two types of systems:</p><ul><li>One-dimensional manifold computation for time-periodic non-smooth differential equations</li><li>Two-dimensional manifold computation for non-smooth autonomous systems</li></ul><p>The manifolds in both cases are invariant manifolds of saddle points. The former requires taking time-periodic mappings, while the latter requires taking fixed-step time-T-mappings. The non-smooth factors in these two types of systems can be diverse, including piecewise smooth functions, collisions, and combinations thereof. Users don&#39;t need to solve these three types of non-smooth systems themselves, as we provide three encapsulated structures:</p><ul><li><a href="../api/#InvariantManifolds.PiecewiseV"><code>PiecewiseV</code></a></li><li><a href="../api/#InvariantManifolds.BilliardV"><code>BilliardV</code></a></li><li><a href="../api/#InvariantManifolds.PiecewiseImpactV"><code>PiecewiseImpactV</code></a></li></ul><p>We use the Callback functionality from <a href="https://github.com/SciML/OrdinaryDiffEq.jl">OrdinaryDiffEq.jl</a> to compute time mappings. The following three examples will demonstrate the methods for computing invariant manifolds of these three types of non-smooth systems.</p><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The computation of non-smooth manifolds heavily depends on the ODE solving algorithm and precision. When the solution fails or performs poorly, try changing the algorithm, increasing the ODE solving precision, or reducing the values of parameters <code>ϵ</code>, <code>d</code>, <code>amax</code> in <a href="../api/#InvariantManifolds.NSOneDManifoldProblem"><code>NSOneDManifoldProblem</code></a>.</p></div></div><h2 id="Piecewise-Smooth-Systems"><a class="docs-heading-anchor" href="#Piecewise-Smooth-Systems">Piecewise Smooth Systems</a><a id="Piecewise-Smooth-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Piecewise-Smooth-Systems" title="Permalink"></a></h2><p>Consider a simple piecewise smooth system:</p><p class="math-container">\[\begin{aligned}
+\dot{x}&amp;=y,\\
+\dot{y}&amp;=f(x) + \epsilon \sin(2\pi t),
+\end{aligned}\]</p><p>where</p><p class="math-container">\[f(x) =
+\begin{cases}
+-k_1 x&amp; \text{if } x &lt; -d,\\
+k_2 x &amp; \text{if } -d&lt;x&lt;d,\\
+-k_3 x&amp; \text{if } x &gt; d.
+\end{cases}\]</p><p class="math-container">\[k_1,k_2,k_3,d&gt;0\]</p><p>are all positive constants. We will compute the invariant manifold of the time-periodic mapping. Note that when the periodic perturbation is small, the saddle point should be close to the origin.</p><p>First, let&#39;s load the required packages</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie</code><code class="nohighlight hljs ansi" style="display:block;"></code></pre><p>Next, define the piecewise smooth vector field:</p><pre><code class="language-julia hljs">f1(x, p, t) = SA[x[2], p[1]*x[1]+p[4]*sin(2pi * t)]
+f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[4]*sin(2pi * t)]
+f3(x, p, t) = SA[x[2], -p[3]*x[1]+p[4]*sin(2pi * t)]
+
+hyper1(x, p, t) = x[1] - p[5]
+hyper2(x, p, t) = x[1] + p[5]
+
+dom1(x, p, t) = -p[5] &lt; x[1] &lt; p[5]
+dom2(x, p, t) = x[1] &gt; p[5]
+dom3(x, p, t) = x[1] &lt; -p[5]
+
+vectorfield = PiecewiseV((f1, f2, f3), (dom1, dom2, dom3), (hyper1, hyper2))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">PiecewiseV: 
+fs: (Main.f1, Main.f2, Main.f3)
+regions: (Main.dom1, Main.dom2, Main.dom3)
+hypers: (Main.hyper1, Main.hyper2)
+n: 0</code></pre><p>The parameters passed to the <code>PiecewiseV</code> structure are: vector fields, their domains, and the hyperplanes that divide these domains. For more details, refer to <a href="../api/#InvariantManifolds.PiecewiseV"><code>PiecewiseV</code></a>.</p><p>Next, we&#39;ll encapsulate the key information for solving the time-periodic mapping in another structure <a href="../api/#InvariantManifolds.NSSetUp"><code>NSSetUp</code></a>:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSSetUp:</span>
+f: PiecewiseV{Tuple{typeof(Main.f1), typeof(Main.f2), typeof(Main.f3)}, Tuple{typeof(Main.dom1), typeof(Main.dom2), typeof(Main.dom3)}, Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}}((Main.f1, Main.f2, Main.f3), (Main.dom1, Main.dom2, Main.dom3), (Main.hyper1, Main.hyper2), 0)
+timespan: (0.0, 1.0)</code></pre><p>The function <a href="../api/#InvariantManifolds.setmap-Union{Tuple{T}, Tuple{PiecewiseV, Tuple{T, T}, Any}} where T"><code>setmap</code></a> is used to encapsulate the time mapping computation information. Now we have defined everything needed to solve the time-periodic mapping.</p><p>Next, to generate the local manifold, we also need to locate the saddle point and its unstable eigenvector. Let&#39;s set the parameters:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; para = [2, 5, 5, 0.6, 2]</code><code class="nohighlight hljs ansi" style="display:block;">5-element Vector{Float64}:
+ 2.0
+ 5.0
+ 5.0
+ 0.6
+ 2.0</code></pre><p>Since the perturbation is small, the saddle-type periodic orbit should still be in <code>dom1</code>. Therefore, we can use <code>findsaddle</code> to calculate the position of the saddle point:</p><pre><code class="language-julia hljs">function df1(x, p, t)
+    SA[0 1; p[1] 0]
+end
+initialguess = SA[0.0, 0.0]
+saddle = findsaddle(f1, df1, (0.0,1.0), initialguess, para, abstol=1e-10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Saddle{2,Float64,Float64}: 
+saddle: [1.3120846754625683e-11, -0.0908885006640104]
+unstable_directions: StaticArraysCore.SVector{2, Float64}[[0.5773502691896258, 0.816496580927726]]
+unstable_eigen_values: [4.113250379341709]</code></pre><p>Next, create the problem, generate the local manifold, and perform the extension</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; prob = NSOneDManifoldProblem(setup, para, ϵ = 1e-3)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSOneDManifoldProblem:</span>
+f: NSSetUp generated by non-smooth vector field: PiecewiseV{Tuple{typeof(Main.f1), typeof(Main.f2), typeof(Main.f3)}, Tuple{typeof(Main.dom1), typeof(Main.dom2), typeof(Main.dom3)}, Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}}((Main.f1, Main.f2, Main.f3), (Main.dom1, Main.dom2, Main.dom3), (Main.hyper1, Main.hyper2), 0)
+para: [2.0, 5.0, 5.0, 0.6, 2.0]
+amax: 0.5
+d: 0.001
+ϵ: 0.001
+dsmin: 1.0e-6</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; segment = gen_segment(saddle)</code><code class="nohighlight hljs ansi" style="display:block;">50-element Vector{StaticArraysCore.SVector{2, Float64}}:
+ [1.3120846754625683e-11, -0.0908885006640104]
+ [0.00011782659866974998, -0.09072186870871903]
+ [0.00023565318421865322, -0.09055523675342765]
+ [0.0003534797697675564, -0.09038860479813628]
+ [0.0004713063553164597, -0.0902219728428449]
+ [0.000589132940865363, -0.09005534088755354]
+ [0.0007069595264142661, -0.08988870893226217]
+ [0.0008247861119631695, -0.0897220769769708]
+ [0.0009426126975120726, -0.08955544502167942]
+ [0.001060439283060976, -0.08938881306638805]
+ ⋮
+ [0.0048308900206258795, -0.08405659049706411]
+ [0.004948716606174783, -0.08388995854177275]
+ [0.005066543191723685, -0.08372332658648138]
+ [0.005184369777272589, -0.08355669463119]
+ [0.005302196362821493, -0.08339006267589863]
+ [0.005420022948370395, -0.08322343072060726]
+ [0.005537849533919299, -0.08305679876531588]
+ [0.005655676119468201, -0.08289016681002451]
+ [0.005773502705017105, -0.08272353485473313]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; manifold = growmanifold(prob, segment, 8)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">Non-smooth one-dimensional manifold</span></span>
+<span class="sgr36">Curves number: </span>30
+<span class="sgr36">Points number: </span>158521
+<span class="sgr36">Total arc length: </span>91.63468743374115
+<span class="sgr36">Flaw points number: </span>11
+<span class="sgr36">Distance failed points number: </span>0
+<span class="sgr36">Curvature failed points number: </span>11
+<span class="sgr36">Max dα in Flaw Points: </span>1.2460760164693181e-6</code></pre><p>Note that the data type of <code>manifold.data</code> is <code>Vector{Vector{S}}</code>, where <code>S</code> is an interpolation function. So we need to use the following function to plot the results:</p><pre><code class="language-julia hljs">using CairoMakie
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=Point2f.(data[k][j].u)
+            lines!(axes, points)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><img src="a831fd7a.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+f1(x, p, t) = SA[x[2], p[1]*x[1]+p[4]*sin(2pi * t)]
+f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[4]*sin(2pi * t)]
+f3(x, p, t) = SA[x[2], -p[3]*x[1]+p[4]*sin(2pi * t)]
+hyper1(x, p, t) = x[1] - p[5]
+hyper2(x, p, t) = x[1] + p[5]
+dom1(x, p, t) = -p[5] &lt; x[1] &lt; p[5]
+dom2(x, p, t) = x[1] &gt; p[5]
+dom3(x, p, t) = x[1] &lt; -p[5]
+vectorfield = PiecewiseV((f1, f2, f3), (dom1, dom2, dom3), (hyper1, hyper2))
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)
+para = [2, 5, 5, 0.6, 2]
+function df1(x, p, t)
+    SA[0 1; p[1] 0]
+end
+initialguess = SA[0.0, 0.0]
+saddle = findsaddle(f1, df1, (0.0,1.0), initialguess, para, abstol=1e-10)
+prob = NSOneDManifoldProblem(setup, para, ϵ = 1e-3)
+segment = gen_segment(saddle)
+manifold = growmanifold(prob, segment, 8)
+using CairoMakie
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><h2 id="Impact-Systems"><a class="docs-heading-anchor" href="#Impact-Systems">Impact Systems</a><a id="Impact-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Impact-Systems" title="Permalink"></a></h2><p>Consider the following forced inverted pendulum equation:</p><p class="math-container">\[\begin{aligned}
+\dot{x}&amp;= y,\\
+\dot{y}&amp;= \sin(x) - \epsilon \cos(2\pi t),
+\end{aligned}\]</p><p>Assume there are walls on both sides of the inverted pendulum: when <span>$x=\xi$</span> or <span>$x=-\xi$</span>, we have <span>$y\rightarrow - ry$</span>. Similarly, we need to first construct the non-smooth vector field</p><pre><code class="language-julia hljs">f(x, p, t) = SA[x[2], sin(x[1])-p[1]*cos(2 * pi * t)]
+
+hyper1(x, p, t) = x[1] + p[2]
+hyper2(x, p, t) = x[1] - p[2]
+
+rule1(x, p, t) = SA[x[1], -p[3]*x[2]]
+rule2(x, p, t) = SA[x[1], -p[3]*x[2]]
+
+vectorfield = BilliardV(f, (hyper1, hyper2), (rule1, rule2))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BilliardV{typeof(Main.f), Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}, Tuple{typeof(Main.rule1), typeof(Main.rule2)}}(Main.f, (Main.hyper1, Main.hyper2), (Main.rule1, Main.rule2))</code></pre><p>Next, encapsulate the information for solving the time-periodic mapping:</p><pre><code class="language-julia hljs">setup = setmap(vectorfield, (0.0, 1.0), Vern9(), abstol=1e-10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"><span class="sgr36">NSSetUp:</span>
+f: BilliardV{typeof(Main.f), Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}, Tuple{typeof(Main.rule1), typeof(Main.rule2)}}(Main.f, (Main.hyper1, Main.hyper2), (Main.rule1, Main.rule2))
+timespan: (0.0, 1.0)</code></pre><p>Find the saddle point:</p><pre><code class="language-julia hljs">function df(x, p, t)
+    SA[0 1; cos(x[1]) 0]
+end
+para = [0.2, pi / 4, 0.98]
+initialguess = SA[0.0, 0.0]
+saddle = findsaddle(f, df, (0.0,1.0), initialguess, para, abstol=1e-10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Saddle{2,Float64,Float64}: 
+saddle: [0.004940905039667357, 3.526850741022572e-11]
+unstable_directions: StaticArraysCore.SVector{2, Float64}[[0.707107886757561, 0.7071056756138054]]
+unstable_eigen_values: [2.7182735331462027]</code></pre><p>Next, create the problem, generate the local manifold, and perform the extension</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; prob = NSOneDManifoldProblem(setup, para)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSOneDManifoldProblem:</span>
+f: NSSetUp generated by non-smooth vector field: BilliardV{typeof(Main.f), Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}, Tuple{typeof(Main.rule1), typeof(Main.rule2)}}(Main.f, (Main.hyper1, Main.hyper2), (Main.rule1, Main.rule2))
+para: [0.2, 0.7853981633974483, 0.98]
+amax: 0.5
+d: 0.001
+ϵ: 1.0e-5
+dsmin: 1.0e-6</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; segment = gen_segment(saddle)</code><code class="nohighlight hljs ansi" style="display:block;">50-element Vector{StaticArraysCore.SVector{2, Float64}}:
+ [0.004940905039667357, 3.526850741022572e-11]
+ [0.005085212771658696, 0.00014430731600601873]
+ [0.0052295205036500345, 0.00028861459674353005]
+ [0.005373828235641373, 0.00043292187748104134]
+ [0.005518135967632713, 0.0005772291582185527]
+ [0.005662443699624052, 0.000721536438956064]
+ [0.005806751431615391, 0.0008658437196935753]
+ [0.00595105916360673, 0.001010151000431087]
+ [0.006095366895598068, 0.001154458281168598]
+ [0.006239674627589407, 0.0012987655619061092]
+ ⋮
+ [0.010857522051312256, 0.005916598545506473]
+ [0.011001829783303593, 0.006060905826243983]
+ [0.011146137515294932, 0.006205213106981494]
+ [0.011290445247286271, 0.006349520387719005]
+ [0.011434752979277612, 0.006493827668456517]
+ [0.011579060711268949, 0.0066381349491940285]
+ [0.01172336844326029, 0.00678244222993154]
+ [0.011867676175251626, 0.006926749510669051]
+ [0.012011983907242967, 0.007071056791406562]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; manifold = growmanifold(prob, segment, 11)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">Non-smooth one-dimensional manifold</span></span>
+<span class="sgr36">Curves number: </span>38
+<span class="sgr36">Points number: </span>96016
+<span class="sgr36">Total arc length: </span>63.81546496551908
+<span class="sgr36">Flaw points number: </span>3
+<span class="sgr36">Distance failed points number: </span>0
+<span class="sgr36">Curvature failed points number: </span>3
+<span class="sgr36">Max dα in Flaw Points: </span>2.4211133394507654e-7</code></pre><p>Finally, plot the results: </p><pre><code class="language-julia hljs">manifold_plot(manifold.data)</code></pre><img src="ca5e9d12.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+f(x, p, t) = SA[x[2], sin(x[1])-p[1]*cos(2 * pi * t)]
+hyper1(x, p, t) = x[1] + p[2]
+hyper2(x, p, t) = x[1] - p[2]
+rule1(x, p, t) = SA[x[1], -p[3]*x[2]]
+rule2(x, p, t) = SA[x[1], -p[3]*x[2]]
+vectorfield = BilliardV(f, (hyper1, hyper2), (rule1, rule2))
+setup = setmap(vectorfield, (0.0, 1.0), Vern9(), abstol=1e-10)
+function df(x, p, t)
+    SA[0 1; cos(x[1]) 0]
+end
+para = [0.2, pi / 4, 0.98]
+initialguess = SA[0.0, 0.0]
+saddle = findsaddle(f, df, (0.0,1.0), initialguess, para, abstol=1e-10)
+prob = NSOneDManifoldProblem(setup, para)
+segment = gen_segment(saddle)
+manifold = growmanifold(prob, segment, 11)
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><h2 id="Combined-Piecewise-Smooth-and-Impact-ODE-Systems"><a class="docs-heading-anchor" href="#Combined-Piecewise-Smooth-and-Impact-ODE-Systems">Combined Piecewise Smooth and Impact ODE Systems</a><a id="Combined-Piecewise-Smooth-and-Impact-ODE-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Combined-Piecewise-Smooth-and-Impact-ODE-Systems" title="Permalink"></a></h2><p>Now consider an ODE system with both piecewise smooth functions and impacts:</p><p class="math-container">\[\begin{aligned}
+\dot{x}&amp;=y,\\
+\dot{y}&amp;=f(x) + \epsilon \sin(2\pi t),
+\end{aligned}\]</p><p>where</p><p class="math-container">\[f(x) =
+\begin{cases}
+-k_1 x&amp; \text{if } x &lt; -d,\\
+k_2 x &amp; \text{if } -d&lt;x&lt;d
+\end{cases}\]</p><p class="math-container">\[k_1,k_2,d&gt;0\]</p><p>are all positive constants. When <span>$x=d$</span>, we have <span>$\dot{y}-&gt;-r\dot{y}$</span>. We will compute the invariant manifold of the time-periodic mapping. Note that when the periodic perturbation is small, the saddle point should be close to the origin. First, let&#39;s load the required packages</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie</code><code class="nohighlight hljs ansi" style="display:block;"></code></pre><p>Next, define the non-smooth vector field:</p><pre><code class="language-julia hljs">f1(x, p, t) = SA[x[2], p[1]*x[1]+p[3]*sin(2pi * t)]
+f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[3]*sin(2pi * t)]
+
+hyper1(x, p, t) = x[1] - p[4]
+hyper2(x, p, t) = x[1] + p[4]
+
+dom1(x, p, t) = -p[4] &lt; x[1]
+dom2(x, p, t) = x[1] &lt; -p[4]
+
+impact_rule(x, p, t) = SA[x[1], -p[5]*x[2]]
+id(x,p,t) = x
+
+vectorfield = PiecewiseImpactV((f1, f2), (dom1, dom2), (hyper1, hyper2), (impact_rule, id), [1])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">PiecewiseImpactV{Tuple{typeof(Main.f1), typeof(Main.f2)}, Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}, Tuple{typeof(Main.impact_rule), typeof(Main.id)}, Tuple{typeof(Main.dom1), typeof(Main.dom2)}}((Main.f1, Main.f2), (Main.dom1, Main.dom2), (Main.hyper1, Main.hyper2), (Main.impact_rule, Main.id), [1], 0)</code></pre><p>The parameters passed to the <code>PiecewiseImpactV</code> structure are: vector fields, their domains, the hyperplanes that divide these domains, the rules that act on the hyperplanes, and a list of rules that have impact effects. For more details, refer to <a href="../api/#InvariantManifolds.PiecewiseImpactV"><code>PiecewiseImpactV</code></a>.</p><p>Next, we&#39;ll encapsulate the key information for solving the time-periodic mapping in another structure <a href="../api/#InvariantManifolds.NSSetUp"><code>NSSetUp</code></a>:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8, reltol=1e-8)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSSetUp:</span>
+f: PiecewiseImpactV{Tuple{typeof(Main.f1), typeof(Main.f2)}, Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}, Tuple{typeof(Main.impact_rule), typeof(Main.id)}, Tuple{typeof(Main.dom1), typeof(Main.dom2)}}((Main.f1, Main.f2), (Main.dom1, Main.dom2), (Main.hyper1, Main.hyper2), (Main.impact_rule, Main.id), [1], 0)
+timespan: (0.0, 1.0)</code></pre><p>The function <a href="../api/#InvariantManifolds.setmap-Union{Tuple{T}, Tuple{PiecewiseV, Tuple{T, T}, Any}} where T"><code>setmap</code></a> is used to encapsulate the time mapping computation information. Now we have defined everything needed to solve the time-periodic mapping.</p><p>Next, to generate the local manifold, we also need to locate the saddle point and its unstable eigenvector. Let&#39;s set the parameters:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; para = [2, 5, 0.5, 2, 0.98]</code><code class="nohighlight hljs ansi" style="display:block;">5-element Vector{Float64}:
+ 2.0
+ 5.0
+ 0.5
+ 2.0
+ 0.98</code></pre><p>Since the perturbation is small, the saddle-type periodic orbit should still be in <code>dom1</code>. Therefore, we can use <code>findsaddle</code> to calculate the position of the saddle point:</p><pre><code class="language-julia hljs">function df1(x, p, t)
+    SA[0 1; p[1] 0]
+end
+initialguess = SA[0.0, 0.0]
+saddle = findsaddle(f1, df1, (0.0, 1.0), initialguess, para, abstol=1e-10)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Saddle{2,Float64,Float64}: 
+saddle: [7.410052858050141e-12, -0.0757404172152893]
+unstable_directions: StaticArraysCore.SVector{2, Float64}[[0.5773502691896258, 0.816496580927726]]
+unstable_eigen_values: [4.113250379341709]</code></pre><p>Next, create the problem, generate the local manifold, and perform the extension</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; prob = NSOneDManifoldProblem(setup, para)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSOneDManifoldProblem:</span>
+f: NSSetUp generated by non-smooth vector field: PiecewiseImpactV{Tuple{typeof(Main.f1), typeof(Main.f2)}, Tuple{typeof(Main.hyper1), typeof(Main.hyper2)}, Tuple{typeof(Main.impact_rule), typeof(Main.id)}, Tuple{typeof(Main.dom1), typeof(Main.dom2)}}((Main.f1, Main.f2), (Main.dom1, Main.dom2), (Main.hyper1, Main.hyper2), (Main.impact_rule, Main.id), [1], 0)
+para: [2.0, 5.0, 0.5, 2.0, 0.98]
+amax: 0.5
+d: 0.001
+ϵ: 1.0e-5
+dsmin: 1.0e-6</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; segment = gen_segment(saddle)</code><code class="nohighlight hljs ansi" style="display:block;">50-element Vector{StaticArraysCore.SVector{2, Float64}}:
+ [7.410052858050141e-12, -0.0757404172152893]
+ [0.0001178265929589561, -0.07557378525999793]
+ [0.00023565317850785932, -0.07540715330470656]
+ [0.00035347976405676254, -0.07524052134941518]
+ [0.0004713063496056658, -0.07507388939412381]
+ [0.000589132935154569, -0.07490725743883245]
+ [0.0007069595207034722, -0.07474062548354107]
+ [0.0008247861062523756, -0.0745739935282497]
+ [0.0009426126918012787, -0.07440736157295832]
+ [0.001060439277350182, -0.07424072961766695]
+ ⋮
+ [0.004830890014915086, -0.06890850704834302]
+ [0.004948716600463989, -0.06874187509305166]
+ [0.0050665431860128915, -0.06857524313776028]
+ [0.005184369771561795, -0.06840861118246891]
+ [0.005302196357110699, -0.06824197922717753]
+ [0.0054200229426596015, -0.06807534727188616]
+ [0.005537849528208505, -0.06790871531659479]
+ [0.005655676113757407, -0.06774208336130341]
+ [0.0057735026993063114, -0.06757545140601204]</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; manifold = growmanifold(prob, segment, 9)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36"><span class="sgr1">Non-smooth one-dimensional manifold</span></span>
+<span class="sgr36">Curves number: </span>52
+<span class="sgr36">Points number: </span>292201
+<span class="sgr36">Total arc length: </span>175.48287334895554
+<span class="sgr36">Flaw points number: </span>2
+<span class="sgr36">Distance failed points number: </span>0
+<span class="sgr36">Curvature failed points number: </span>2
+<span class="sgr36">Max dα in Flaw Points: </span>1.4116867284183935e-7</code></pre><p>Note that the data type of <code>manifold.data</code> is <code>Vector{Vector{S}}</code>, where <code>S</code> is an interpolation function. So we need to use the following function to plot the results:</p><pre><code class="language-julia hljs">using CairoMakie
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><img src="1c950287.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie
+f1(x, p, t) = SA[x[2], p[1]*x[1]+p[3]*sin(2pi * t)]
+f2(x, p, t) = SA[x[2], -p[2]*x[1]+p[3]*sin(2pi * t)]
+hyper1(x, p, t) = x[1] - p[4]
+hyper2(x, p, t) = x[1] + p[4]
+dom1(x, p, t) = -p[4] &lt; x[1]
+dom2(x, p, t) = x[1] &lt; -p[4]
+impact_rule(x, p, t) = SA[x[1], -p[5]*x[2]]
+id(x,p,t) = x
+vectorfield = PiecewiseImpactV((f1, f2), (dom1, dom2), (hyper1, hyper2), (impact_rule, id), [1])
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8, reltol=1e-8)
+para = [2, 5, 0.5, 2, 0.98]
+initialguess = SA[0.0, 0.0]
+function df1(x, p, t)
+    SA[0 1; p[1] 0]
+end
+saddle = findsaddle(f1, df1, (0.0,1.0), initialguess, para, abstol=1e-10)
+segment = gen_segment(saddle)
+prob = NSOneDManifoldProblem(setup, para)
+manifold = growmanifold(prob, segment, 9)
+function manifold_plot(data)
+    fig = Figure()
+    axes = Axis(fig[1,1])
+    for k in eachindex(data)
+        for j in eachindex(data[k])
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../smooth_two/">« Two-Dimensional Smooth Manifolds</a><a class="docs-footer-nextpage" href="../non_smooth_two/">Two-dimensional Non-Smooth Manifolds »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.9.0 on <span class="colophon-date" title="Thursday 27 March 2025 01:37">Thursday 27 March 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

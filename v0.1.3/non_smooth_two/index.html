@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Two-dimensional Non-Smooth Manifolds · InvariantManifolds.jl</title><meta name="title" content="Two-dimensional Non-Smooth Manifolds · InvariantManifolds.jl"/><meta property="og:title" content="Two-dimensional Non-Smooth Manifolds · InvariantManifolds.jl"/><meta property="twitter:title" content="Two-dimensional Non-Smooth Manifolds · InvariantManifolds.jl"/><meta name="description" content="Documentation for InvariantManifolds.jl."/><meta property="og:description" content="Documentation for InvariantManifolds.jl."/><meta property="twitter:description" content="Documentation for InvariantManifolds.jl."/><meta property="og:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/non_smooth_two/"/><meta property="twitter:url" content="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/non_smooth_two/"/><link rel="canonical" href="https://Xiaomingzzhang.github.io/InvariantManifolds.jl/non_smooth_two/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="InvariantManifolds.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">InvariantManifolds.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../smooth_one/">Getting Started: One-Dimensional Smooth Manifolds</a></li><li><a class="tocitem" href="../smooth_two/">Two-Dimensional Smooth Manifolds</a></li><li><a class="tocitem" href="../non_smooth_one/">One-Dimensional Non-Smooth Manifolds</a></li><li class="is-active"><a class="tocitem" href>Two-dimensional Non-Smooth Manifolds</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Two-dimensional Non-Smooth Manifolds</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Two-dimensional Non-Smooth Manifolds</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Xiaomingzzhang/InvariantManifolds.jl/blob/master/docs/src/non_smooth_two.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Two-dimensional-Non-smooth-Manifold"><a class="docs-heading-anchor" href="#Two-dimensional-Non-smooth-Manifold">Two-dimensional Non-smooth Manifold</a><a id="Two-dimensional-Non-smooth-Manifold-1"></a><a class="docs-heading-anchor-permalink" href="#Two-dimensional-Non-smooth-Manifold" title="Permalink"></a></h1><p>Next, we will continue using the Lorenz system as an example, but this time we will introduce an artificial non-smooth factor into this system. First, let&#39;s load the required packages:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie, DataInterpolations</code><code class="nohighlight hljs ansi" style="display:block;"></code></pre><p>Next, define a vector field that normalizes when far from the origin:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; function lorenz(x, p, t)
+           σ, ρ, β = p
+           v = SA[σ*(x[2]-x[1]),
+               ρ*x[1]-x[2]-x[1]*x[3],
+               x[1]*x[2]-β*x[3]
+           ]
+           v / sqrt(0.1 + norm(v)^2)
+       end</code><code class="nohighlight hljs ansi" style="display:block;">lorenz (generic function with 1 method)</code></pre><p>Unlike the previous example, we will introduce the following non-smooth factor: when <span>$z=\xi$</span>, <span>$(x,y,z)\rightarrow(x,-y,z)$</span>. Therefore, we need to define a vector field with a collision factor:</p><pre><code class="language-julia hljs">hyper(x,p,t) = x[3]-p[4]
+rule(x,p,t) = SA[x[1], -x[2], x[3]]
+vectorfield =BilliardV(lorenz, (hyper,),(rule,))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BilliardV{typeof(Main.lorenz), Tuple{typeof(Main.hyper)}, Tuple{typeof(Main.rule)}}(Main.lorenz, (Main.hyper,), (Main.rule,))</code></pre><p>Then, as in the previous example, we need to encapsulate the specific information for solving this differential equation into <a href="../api/#InvariantManifolds.NSSetUp"><code>NSSetUp</code></a>, which requires using the <code>setmap</code> function:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; setup = setmap(vectorfield, (0.0, -1.0), Tsit5(), abstol=1e-8)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSSetUp:</span>
+f: BilliardV{typeof(Main.lorenz), Tuple{typeof(Main.hyper)}, Tuple{typeof(Main.rule)}}(Main.lorenz, (Main.hyper,), (Main.rule,))
+timespan: (0.0, -1.0)</code></pre><p>Next, we need to generate a local manifold:</p><pre><code class="language-julia hljs">para = [10.0, 28.0, 8/3, 10.0]
+function eigenv(p)
+    σ, ρ, β = p
+    [SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0]]
+end
+saddle = Saddle(SA[0, 0, 0.0], eigenv(para), [1.0, 1.0])
+disk = gen_disk(saddle, r=1.0, d=0.1)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-element Vector{Vector{StaticArraysCore.SVector{3, Float64}}}:
+ [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+ [[0.0, 0.0, 1.0], [-0.02591854368552384, 0.033247591065479865, 0.9991110182465031], [-0.05179100514622039, 0.06643606912734985, 0.9964456535631284], [-0.07757138408977644, 0.09950642628276328, 0.9920086448710159], [-0.10321384394323385, 0.1323998646435346, 0.9858078810097003], [-0.12867279334874365, 0.16505790087663877, 0.9778543867110426], [-0.1539029672233364, 0.19742247018544326, 0.9681623029976588], [-0.17885950723858804, 0.2294360295467975, 0.956748862040698], [-0.20349804157709053, 0.261041660020428, 0.9436343565216709], [-0.22777476382392425, 0.292183167948737, 0.9288421035528028]  …  [0.2277747638239243, -0.2921831679487371, 0.9288421035528028], [0.20349804157709064, -0.2610416600204281, 0.9436343565216709], [0.17885950723858818, -0.2294360295467977, 0.9567488620406979], [0.1539029672233366, -0.19742247018544354, 0.9681623029976587], [0.12867279334874349, -0.16505790087663855, 0.9778543867110426], [0.1032138439432337, -0.1323998646435344, 0.9858078810097004], [0.07757138408977632, -0.09950642628276313, 0.9920086448710159], [0.051791005146220315, -0.06643606912734974, 0.9964456535631284], [0.025918543685523803, -0.033247591065479816, 0.9991110182465031], [0.0, 0.0, 1.0]]</code></pre><p>Then create the problem:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; prob = NSVTwoDManifoldProblem(setup, para, amax=0.5, d=0.5, ϵ=0.2, dsmin=1e-3)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSVTwoDManifoldProblem:</span>
+f: NSSetUp generated by non-smooth vector field: BilliardV{typeof(Main.lorenz), Tuple{typeof(Main.hyper)}, Tuple{typeof(Main.rule)}}(Main.lorenz, (Main.hyper,), (Main.rule,))
+para: [10.0, 28.0, 2.6666666666666665, 10.0]
+amax: 0.5
+d: 0.5
+ϵ: 0.2
+dsmin: 0.001</code></pre><p>Finally, calculate the manifold and plot the image:</p><pre><code class="language-julia hljs">manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
+function manifold_plot(annulus)
+    fig = Figure()
+    axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
+    second(x) = x[2]
+    for i in eachindex(annulus)
+        for j in eachindex(annulus[i])
+            points = Point3f.(annulus[i][j].u)
+            lines!(axes, points, fxaa=true)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre><img src="64b6f76e.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie, DataInterpolations
+function lorenz(x, p, t)
+    σ, ρ, β = p
+    v = SA[σ*(x[2]-x[1]),
+        ρ*x[1]-x[2]-x[1]*x[3],
+        x[1]*x[2]-β*x[3]
+    ]
+    v / sqrt(0.1 + norm(v)^2)
+end
+hyper(x,p,t) = x[3]-p[4]
+rule(x,p,t) = SA[x[1], -x[2], x[3]]
+vectorfield =BilliardV(lorenz, (hyper,),(rule,))
+setup = setmap(vectorfield, (0.0, -1.0), Tsit5(), abstol=1e-8)
+para = [10.0, 28.0, 8/3, 10.0]
+function eigenv(p)
+    σ, ρ, β = p
+    [SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0]]
+end
+saddle = Saddle(SA[0, 0, 0.0], eigenv(para), [1.0, 1.0])
+disk = gen_disk(saddle, r=1.0, d=0.1)
+prob = NSVTwoDManifoldProblem(setup, para, amax=0.5, d=0.5, ϵ=0.2, dsmin=1e-3)
+manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
+function manifold_plot(annulus)
+    fig = Figure()
+    axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
+    second(x) = x[2]
+    for i in eachindex(annulus)
+        for j in eachindex(annulus[i])
+            points = Point3f.(annulus[i][j].u)
+            lines!(axes, points, fxaa=true)
+        end
+    end
+    fig
+end
+manifold_plot(manifold.data)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../non_smooth_one/">« One-Dimensional Non-Smooth Manifolds</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.9.0 on <span class="colophon-date" title="Thursday 27 March 2025 01:37">Thursday 27 March 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
