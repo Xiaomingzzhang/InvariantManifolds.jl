@@ -2,6 +2,8 @@
 
 [![](https://img.shields.io/badge/docs-online-blue.svg)](https://Xiaomingzzhang.github.io/InvariantManifolds.jl/dev/)
 [![Build Status](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/Xiaomingzzhang/InvariantManifolds.jl/actions/workflows/CI.yml?query=branch%3Amaster)
+[![DOI](https://zenodo.org/badge/764506891.svg)](https://doi.org/10.5281/zenodo.15093006)
+
 
 This package is designed to compute the invariant manifolds of dynamical systems.
 
