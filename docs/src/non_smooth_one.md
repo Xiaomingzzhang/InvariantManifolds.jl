@@ -95,8 +95,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes, points)
         end
     end
     fig
@@ -132,8 +132,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
@@ -158,8 +158,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
@@ -225,8 +225,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
@@ -244,8 +244,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
@@ -328,8 +328,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig
@@ -364,8 +364,8 @@ function manifold_plot(data)
     axes = Axis(fig[1,1])
     for k in eachindex(data)
         for j in eachindex(data[k])
-            points=data[k][j].u
-            lines!(axes,first.(points),last.(points))
+            points=Point2f.(data[k][j].u)
+            lines!(axes,points)
         end
     end
     fig

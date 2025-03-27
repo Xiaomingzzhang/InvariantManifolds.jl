@@ -65,10 +65,9 @@ using CairoMakie
 function manifold_plot(annulus)
     fig = Figure()
     axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
-    second(x) = x[2]
     for i in eachindex(annulus)
-        points = annulus[i].u
-        lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+        points = Point3f.(annulus[i].u)
+        lines!(axes, points, fxaa=true)
     end
     fig
 end
@@ -98,10 +97,9 @@ manifold = growmanifold(prob, disk, 200)
 function manifold_plot(annulus)
     fig = Figure()
     axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
-    second(x) = x[2]
     for i in eachindex(annulus)
-        points = annulus[i].u
-        lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+        points = Point3f.(annulus[i].u)
+        lines!(axes, points, fxaa=true)
     end
     fig
 end
@@ -133,11 +131,10 @@ manifold = growmanifold(prob, disk, 3)
 function manifold_plot(data)
     fig = Figure()
     axes = Axis3(fig[1,1])
-    second(x) = x[2]
     for k in eachindex(data)
         for j in eachindex(data[k])
             points=data[k][j].u
-            scatter!(axes,first.(points),second.(points),last.(points),fxaa=true)
+            scatter!(axes,Point3f.(points),fxaa=true)
         end
     end
     fig

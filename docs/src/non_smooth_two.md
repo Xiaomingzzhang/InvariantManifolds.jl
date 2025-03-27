@@ -57,8 +57,8 @@ function manifold_plot(annulus)
     second(x) = x[2]
     for i in eachindex(annulus)
         for j in eachindex(annulus[i])
-            points = annulus[i][j].u
-            lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+            points = Point3f.(annulus[i][j].u)
+            lines!(axes, points, fxaa=true)
         end
     end
     fig
@@ -96,8 +96,8 @@ function manifold_plot(annulus)
     second(x) = x[2]
     for i in eachindex(annulus)
         for j in eachindex(annulus[i])
-            points = annulus[i][j].u
-            lines!(axes, first.(points), second.(points), last.(points), fxaa=true)
+            points = Point3f.(annulus[i][j].u)
+            lines!(axes, points, fxaa=true)
         end
     end
     fig
