@@ -300,7 +300,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     dd = newpara[end]
                     append!(newpara, [dd + ϵ0])
                 else
-                    if olds[i+1] - olds[i] > 1e-12
+                    if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
                         s1 = olds[i+1]
                         paras = (s0 + s1) / 2
@@ -320,7 +320,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     dd = newpara[end]
                     append!(newpara, [dd + ϵ0])
                 else
-                    if olds[i+1] - olds[i] > 1e-12
+                    if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
                         s1 = olds[i+1]
                         paras = (s0 + s1) / 2
@@ -378,7 +378,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     dd = newpara[end]
                     append!(newpara, [dd + ϵ0])
                 else
-                    if olds[i+1] - olds[i] > 1e-12
+                    if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
                         s1 = olds[i+1]
                         paras = (s0 + s1) / 2
@@ -398,7 +398,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     dd = newpara[end]
                     append!(newpara, [dd + ϵ0])
                 else
-                    if olds[i+1] - olds[i] > 1e-12
+                    if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
                         s1 = olds[i+1]
                         paras = (s0 + s1) / 2
@@ -411,7 +411,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     end
                 end
             else
-                if olds[i+1] - olds[i] > 1e-12
+                if olds[i+1] - olds[i] > 10eps()
                     s0 = olds[i]
                     s1 = olds[i+1]
                     paras = (s0 + s1) / 2
