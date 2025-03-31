@@ -71,8 +71,9 @@ end
 
 function Base.show(io::IO, m::MIME"text/plain", A::NSVTwoDManifold)
     m = 0
-    n = length(A.data)
+    n = 0
     for i in eachindex(A.data)
+        n = n + length(A.data[i])
         for j in eachindex(A.data[i])
             m = m + length(A.data[i][j].t)
         end
