@@ -206,7 +206,7 @@ manifold_plot(manifold.data)
 
 Full codes without comments:
 ```julia
-using StaticArrays, LinearAlgebra, InvariantManifolds, CairoMakie
+using StaticArrays, LinearAlgebra, InvariantManifolds, CairoMakie, OrdinaryDiffEq
 f(x, p, t) = SA[x[2], x[1] - p[1]*(x[1]^3) + p[2]*cos(p[3]*t)]
 df(x, p, t) = SA[0.0 1.0; 1-p[1]*3*(x[1]^2) 0.0]
 initial_guess = SA[0.0, 0.0]
