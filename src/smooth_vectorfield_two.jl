@@ -129,7 +129,7 @@ function grow!(manifold::VTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation) 
     end
     newpara = addpoints!(f, para, d, circle, newcircle, olds, dsmin, αmax, flawpoints)
     finalnewcircle = interp(newcircle, newpara)
-    append!(data, [finalnewcircle])
+    push!(data, finalnewcircle)
     manifold
 end
 

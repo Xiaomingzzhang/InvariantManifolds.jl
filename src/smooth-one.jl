@@ -206,7 +206,7 @@ Vector of parameter values for the new points
                 if δ1 <= d && α <= αmax
                     i = i + 1
                     dd = newpara[end]
-                    append!(newpara, [dd + δ1])
+                    push!(newpara, dd + δ1)
                 else
                     if olds[i+1] - olds[i] > dsmin
                         s0 = olds[i]
@@ -218,9 +218,9 @@ Vector of parameter values for the new points
                         n = n + 1
                     else
                         i = i + 1
-                        append!(flawpoints, [FlawPoint(u0, α, δ1)])
+                        push!(flawpoints, FlawPoint(u0, α, δ1))
                         dd = newpara[end]
-                        append!(newpara, [dd + δ1])
+                        push!(newpara, dd + δ1)
                     end
                 end
             end
@@ -231,7 +231,7 @@ Vector of parameter values for the new points
             if δ <= d
                 i = i + 1
                 dd = newpara[end]
-                append!(newpara, [dd + δ])
+                push!(newpara, dd + δ)
             else
                 if olds[i+1] - olds[i] > dsmin
                     s0 = olds[i]
@@ -243,9 +243,9 @@ Vector of parameter values for the new points
                     n = n + 1
                 else
                     i = i + 1
-                    append!(flawpoints, [FlawPoint(u0, T(0), δ)])
+                    push!(flawpoints, FlawPoint(u0, T(0), δ))
                     dd = newpara[end]
-                    append!(newpara, [dd + δ])
+                    push!(newpara, dd + δ)
                 end
             end
         end
@@ -281,7 +281,7 @@ function grow!(manifold::OneDManifold; interp=QuadraticInterpolation)
     end
     newpara = addpoints!(f, para, d, curve, ic2, olds, Δsmin, αmax, flawpoints)
     newintep = interp(ic2, newpara)
-    append!(data, [newintep])
+    push!(data, newintep)
     manifold
 end
 
@@ -355,7 +355,7 @@ function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}}; int
     j = j + 1
     data = data[j:end]
     prepend!(data, [pn])
-    append!(result, [paramise(data, interp=interp)])
+    push!(result, paramise(data, interp=interp))
     OneDManifold(prob, result, flawpoints)
 end
 

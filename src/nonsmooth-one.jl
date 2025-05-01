@@ -6,6 +6,7 @@
 the time-T-map of a non-smooth ODE.
 # Fields
 - `f` the struct [`NSSetUp`](@ref);
+- `distance_f` the distance function between two points with different events. This function should be the form `distance_f(idx, u0, u1)`, where `idx` is the index of the hypersurface, `u0` and `u1` are the points before and after the cross. The default is `max(abs(hypers[idx](u0, para, tend)), abs(hypers[idx](u1, para, tend)))`, where `para` is the parameters of the system, `tend` is the end of the time-``T``-map.
 - `para` the parameters of the nonlinear map;
 - `amax` the maximum angle between points when continuing the manifold;
 - `d` the maximum distance between points when continuing the manifold;
@@ -14,8 +15,9 @@ the time-T-map of a non-smooth ODE.
 
 Convenient consturctors are `NSOneDManifoldProblem(f)` and `NSOneDManifoldProblem(f,para)`
 """
-struct NSOneDManifoldProblem{F,T}
-    f::F
+struct NSOneDManifoldProblem{F1,F2,T}
+    f::F1
+    distance_f::F2
     para::Vector{T}
     amax::T
     d::T
@@ -23,14 +25,26 @@ struct NSOneDManifoldProblem{F,T}
     dsmin::T
 end
 
+
 function NSOneDManifoldProblem(f; amax=0.5, d=1e-3, ϵ=1e-5, dsmin=1e-6)
-    NSOneDManifoldProblem(f, Float64[], amax, d, ϵ, dsmin)
+    hypers = f.f.hypers
+    tend = f.timespan[end]
+    function distance_f(idx, u0, u1)
+        p=Float64[]
+        max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+    end
+    NSOneDManifoldProblem(f, distance_f, Float64[], amax, d, ϵ, dsmin)
 end
 
 
 function NSOneDManifoldProblem(f, para::AbstractVector{T};
     amax=T(0.5), d=T(1e-3), ϵ=T(1e-5), dsmin=T(1e-6)) where {T}
-    NSOneDManifoldProblem(f, para, amax, d, ϵ, dsmin)
+    hypers = f.f.hypers
+    tend = f.timespan[end]
+    function distance_f(idx, u0, u1)
+        max(abs(hypers[idx](u0, para, tend)), abs(hypers[idx](u1, para, tend)))
+    end
+    NSOneDManifoldProblem(f, distance_f, para, amax, d, ϵ, dsmin)
 end
 
 function show(io::IO, m::MIME"text/plain", A::NSOneDManifoldProblem)
@@ -64,8 +78,8 @@ end
 - `data` the numerical data that should be `Vector{Vector{Vector{S}}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
 """
-mutable struct NSOneDManifold{F,S,N,T}
-    prob::NSOneDManifoldProblem{F,T}
+mutable struct NSOneDManifold{F1,F2,S,N,T}
+    prob::NSOneDManifoldProblem{F1,F2,T}
     data::Vector{Vector{S}}
     flawpoints::Vector{FlawPoint{N,T}}
 end
@@ -121,18 +135,18 @@ function partition(v::Vector{NSState{N,T}}, s0::Vector{T}; interp=QuadraticInter
     s00 = T[]
     for j in 1:n
         if v[j].event_at == ctime1
-            append!(a0, [v[j]])
-            append!(s00, [s0[j]])
+            push!(a0, v[j])
+            push!(s00, s0[j])
         else
-            append!(result, [a0])
-            append!(result_s, [s00])
+            push!(result, a0)
+            push!(result_s, s00)
             a0 = [v[j]]
             s00 = [s0[j]]
             ctime1 = v[j].event_at
         end
     end
-    append!(result, [a0])
-    append!(result_s, [s00])
+    push!(result, a0)
+    push!(result_s, s00)
     for i in eachindex(result_s)
         first_s = result_s[i][1]
         for j in eachindex(result_s[i])
@@ -174,14 +188,14 @@ function union_lines(v::Vector{S}; interp=QuadraticInterpolation) where {S}
     line = S[]
     for j in eachindex(v)
         if (v[j].u[1].event_at) == event
-            append!(line, [v[j]])
+            push!(line, v[j])
         else
-            append!(result, [union_same_event(line, interp=interp)])
+            push!(result, union_same_event(line, interp=interp))
             line = [v[j]]
             event = v[j].u[1].event_at
         end
     end
-    append!(result, [union_same_event(line, interp=interp)])
+    push!(result, union_same_event(line, interp=interp))
     result
 end
 
@@ -228,7 +242,7 @@ The function adaptively adds points to maintain:
 
 If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
 """
-@inline function ns_addpoints!(tmap, p, d, dsmin, oldcurve,
+@inline function ns_addpoints!(tmap, distance_f, p, d, dsmin, oldcurve,
     newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ, flawpoints) where {N,T}
     n = length(newu)
     i = 1
@@ -252,7 +266,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                     if δ1 <= d && α <= αmax
                         i = i + 1
                         dd = newpara[end]
-                        append!(newpara, [dd + δ1])
+                        push!(newpara, dd + δ1)
                     else
                         if olds[i+1] - olds[i] > dsmin
                             s0 = olds[i]
@@ -264,9 +278,9 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                             n = n + 1
                         else
                             i = i + 1
-                            append!(flawpoints, [FlawPoint(u0.state, α, δ1)])
+                            push!(flawpoints, FlawPoint(u0.state, α, δ1))
                             dd = newpara[end]
-                            append!(newpara, [dd + δ1])
+                            push!(newpara, dd + δ1)
                         end
                     end
                 end
@@ -275,7 +289,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                 if δ <= d
                     i = i + 1
                     dd = newpara[end]
-                    append!(newpara, [dd + δ])
+                    push!(newpara, dd + δ)
                 else
                     if olds[i+1] - olds[i] > dsmin
                         s0 = olds[i]
@@ -287,18 +301,18 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                         n = n + 1
                     else
                         i = i + 1
-                        append!(flawpoints, [FlawPoint(u0.state, T(0), δ)])
+                        push!(flawpoints, FlawPoint(u0.state, T(0), δ))
                         dd = newpara[end]
-                        append!(newpara, [dd + δ])
+                        push!(newpara, dd + δ)
                     end
                 end
             elseif u0.event_at == u1.event_at[1:end-1]
                 idx = u1.event_at[end]
-                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
                     i = i + 1
                     dd = newpara[end]
-                    append!(newpara, [dd + ϵ0])
+                    push!(newpara, dd + ϵ0)
                 else
                     if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
@@ -314,11 +328,11 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                 end
             elseif u0.event_at[1:end-1] == u1.event_at
                 idx = u0.event_at[end]
-                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
                     i = i + 1
                     dd = newpara[end]
-                    append!(newpara, [dd + ϵ0])
+                    push!(newpara, dd + ϵ0)
                 else
                     if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
@@ -353,7 +367,7 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                 if δ <= d
                     i = i + 1
                     dd = newpara[end]
-                    append!(newpara, [dd + δ])
+                    push!(newpara, dd + δ)
                 else
                     if olds[i+1] - olds[i] > dsmin
                         s0 = olds[i]
@@ -365,18 +379,18 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                         n = n + 1
                     else
                         i = i + 1
-                        append!(flawpoints, [FlawPoint(u0.state, T(0), δ)])
+                        push!(flawpoints, FlawPoint(u0.state, T(0), δ))
                         dd = newpara[end]
-                        append!(newpara, [dd + δ])
+                        push!(newpara, dd + δ)
                     end
                 end
             elseif u0.event_at == u1.event_at[1:end-1]
                 idx = u1.event_at[end]
-                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
                     i = i + 1
                     dd = newpara[end]
-                    append!(newpara, [dd + ϵ0])
+                    push!(newpara, dd + ϵ0)
                 else
                     if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
@@ -392,11 +406,11 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                 end
             elseif u0.event_at[1:end-1] == u1.event_at
                 idx = u0.event_at[end]
-                ϵ0 = max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
+                ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
                     i = i + 1
                     dd = newpara[end]
-                    append!(newpara, [dd + ϵ0])
+                    push!(newpara, dd + ϵ0)
                 else
                     if olds[i+1] - olds[i] > 10eps()
                         s0 = olds[i]
@@ -432,6 +446,7 @@ end
 function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; interp=QuadraticInterpolation, event=Int[]) where {N,T}
     parameters = prob.para
     tmap = prob.f.timetmap
+    distance_f = prob.distance_f
     d = prob.d
     αmax = prob.amax
     tend = prob.f.timespan[end]
@@ -452,7 +467,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
     end
     oldcurve = result[1][1]
     olds = copy(oldcurve.t)
-    ns_addpoints!(tmap, parameters, d, dsmin, oldcurve,
+    ns_addpoints!(tmap, distance_f, parameters, d, dsmin, oldcurve,
         image, olds, αmax, tend, hypers, ϵ, flawpoints)
     if ispartitioned(image) == false
         error("The initial curve has to be chosen more small")
@@ -467,13 +482,14 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
     first_iteration_curve = image[j:end]
     event = copy(first_iteration_curve[1].event_at)
     prepend!(first_iteration_curve, [NSState(pn.state, event)])
-    append!(result, [[paramise(first_iteration_curve, interp=interp)]])
+    push!(result, [paramise(first_iteration_curve, interp=interp)])
     NSOneDManifold(prob, result, flawpoints)
 end
 
-function grow!(manifold::NSOneDManifold{F,S,N,T}; interp=QuadraticInterpolation) where {F,S,N,T}
+function grow!(manifold::NSOneDManifold{F1,F2,S,N,T}; interp=QuadraticInterpolation) where {F1,F2,S,N,T}
     αmax = manifold.prob.amax
     d = manifold.prob.d
+    distance_f = manifold.prob.distance_f
     v = manifold.prob.f
     ϵ = manifold.prob.ϵ
     dsmin = manifold.prob.dsmin
@@ -494,12 +510,12 @@ function grow!(manifold::NSOneDManifold{F,S,N,T}; interp=QuadraticInterpolation)
             ic2_states[k] = tmap(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap, para, d, dsmin, curve,
+        newpara = ns_addpoints!(tmap,distance_f, para, d, dsmin, curve,
             ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end
-    append!(data, [union_lines(result, interp=interp)])
+    push!(data, union_lines(result, interp=interp))
 end
 
 function growmanifold(prob::NSOneDManifoldProblem, segment, N; interp=QuadraticInterpolation)

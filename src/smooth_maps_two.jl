@@ -176,7 +176,7 @@ function gen_disk(p::Saddle{N,T,S}; times=1, n=150, d=0.0002, r=0.01, circles=2)
                 circle[j] = pcurve(para[j])
             end
             welldistributedpoints!(pcurve, circle, para, d)
-            append!(result, [circle])
+            push!(result, circle)
         end
         result
     else
@@ -196,7 +196,7 @@ function gen_disk(p::Saddle{N,T,S}; times=1, n=150, d=0.0002, r=0.01, circles=2)
                 circle[j] = saddle + c1 * cospi(para[j]) * newv1 +
                             c2 * sinpi(para[j]) * newv2
             end
-            append!(result, [circle])
+            push!(result, circle)
         end
         result
     end
@@ -308,7 +308,7 @@ function grow!(manifold::TwoDManifold; interp=QuadraticInterpolation)
     data = manifold.data
     circles = data[end]
     newcircles = addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=interp)
-    append!(data, [newcircles])
+    push!(data, newcircles)
     manifold
 end
 

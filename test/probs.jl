@@ -24,9 +24,13 @@ end
 
 @testset "NSOneDManifoldProblem" begin
     # Create a simple NSSetUp for testing
-    f(x, p, t) = SA[x[2], -x[1]]
+    f1(x, p, t) = SA[x[2], -x[1]]
+    f2(x, p, t) = SA[x[2], x[1]]
     hyper(x, p, t) = x[1]
-    setup = NSSetUp(f, (0.0, 1.0), x -> x)
+    region1(x, p, t) = x[1]>0
+    region2(x, p, t) = x[1]<0
+    vectorfield = PiecewiseV((f1,f2),(region1,region2),(hyper,))
+    setup = NSSetUp(vectorfield, (0.0, 1.0), x -> x)
 
     # Test default constructor
     prob1 = NSOneDManifoldProblem(setup)
@@ -102,9 +106,13 @@ end
 
 @testset "NSVTwoDManifoldProblem" begin
     # Create a simple NSSetUp for testing
-    f(x, p, t) = SA[x[2], -x[1]]
+    f1(x, p, t) = SA[x[2], -x[1]]
+    f2(x, p, t) = SA[x[2], x[1]]
     hyper(x, p, t) = x[1]
-    setup = NSSetUp(f, (0.0, 1.0), x -> x)
+    region1(x, p, t) = x[1]>0
+    region2(x, p, t) = x[1]<0
+    vectorfield = PiecewiseV((f1,f2),(region1,region2),(hyper,))
+    setup = NSSetUp(vectorfield, (0.0, 1.0), x -> x)
 
     # Test default constructor
     prob1 = NSVTwoDManifoldProblem(setup)
