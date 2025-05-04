@@ -134,7 +134,7 @@ function initialize(prob::NSVTwoDManifoldProblem, disk::Vector{Vector{SVector{N,
     NSVTwoDManifold(prob, circles, flawpoints)
 end
 
-function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation) where {F,S,N,T}
+function grow!(manifold::NSVTwoDManifold{F1,F2,S,N,T}; interp=QuadraticInterpolation) where {F1,F2,S,N,T}
     αmax = manifold.prob.amax
     d = manifold.prob.d
     v = manifold.prob.f
