@@ -18,7 +18,7 @@ function lorenz(x, p, t)
         ρ*x[1]-x[2]-x[1]*x[3],
         x[1]*x[2]-β*x[3]
     ]
-    v / sqrt(0.1 + norm(v)^2)
+    -v / sqrt(0.1 + norm(v)^2)
 end
 ```
 Unlike the previous example, we will introduce the following non-smooth factor: when $z=\xi$, $(x,y,z)\rightarrow(x,-y,z)$.
@@ -31,7 +31,7 @@ vectorfield =BilliardV(lorenz, (hyper,),(rule,))
 
 Then, as in the previous example, we need to encapsulate the specific information for solving this differential equation into [`NSSetUp`](@ref), which requires using the `setmap` function:
 ```@repl non_smooth_two
-setup = setmap(vectorfield, (0.0, -1.0), Tsit5(), abstol=1e-8)
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)
 ```
 
 Next, we need to generate a local manifold:
@@ -75,12 +75,12 @@ function lorenz(x, p, t)
         ρ*x[1]-x[2]-x[1]*x[3],
         x[1]*x[2]-β*x[3]
     ]
-    v / sqrt(0.1 + norm(v)^2)
+    -v / sqrt(0.1 + norm(v)^2)
 end
 hyper(x,p,t) = x[3]-p[4]
 rule(x,p,t) = SA[x[1], -x[2], x[3]]
 vectorfield =BilliardV(lorenz, (hyper,),(rule,))
-setup = setmap(vectorfield, (0.0, -1.0), Tsit5(), abstol=1e-8)
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)
 para = [10.0, 28.0, 8/3, 10.0]
 function eigenv(p)
     σ, ρ, β = p
