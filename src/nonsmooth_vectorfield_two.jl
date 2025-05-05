@@ -4,7 +4,6 @@
 `NSVTwoDManifoldProblemVTwoDManifoldProblem` is a struct to contain the main information for continuing the two-dimensional manifold of an autonomous vector field.
 # Fields
 - `f` the `NSSetUp` of a nonsmooth vector field;
-- `distance_f` the distance function between two points with different events. This function should be the form `distance_f(idx, u0, u1)`, where `idx` is the index of the hypersurface, `u0` and `u1` are the points before and after the cross. The default is `max(abs(hypers[idx](u0, para, tend)), abs(hypers[idx](u1, para, tend)))`, where `para` is the parameters of the system, `tend` is the end of the time-``T``-map.
 - `para` the parameters of the time flow map;
 - `amax` the maximum angle between points when continuing the manifold;
 - `d` the maximum distance between points when continuing the manifold;
@@ -13,9 +12,8 @@
 
 Convenient consturctors are `NSVTwoDManifoldProblem(f)` and `NSVTwoDManifoldProblem(f,para)`
 """
-struct NSVTwoDManifoldProblem{F1,F2,T}
-    f::F1
-    distance_f::F2
+struct NSVTwoDManifoldProblem{F,T}
+    f::F
     para::Vector{T}
     amax::T
     d::T
@@ -24,24 +22,13 @@ struct NSVTwoDManifoldProblem{F1,F2,T}
 end
 
 function NSVTwoDManifoldProblem(f; amax=0.5, d=1e-3, ϵ=1e-5, dsmin=1e-6)
-    hypers = f.f.hypers
-    tend = f.timespan[end]
-    function distance_f(idx, u0, u1)
-        p=Float64[]
-        max(abs(hypers[idx](u0, p, tend)), abs(hypers[idx](u1, p, tend)))
-    end
-    NSVTwoDManifoldProblem(f, distance_f, Float64[], amax, d, ϵ, dsmin)
+    NSVTwoDManifoldProblem(f, Float64[], amax, d, ϵ, dsmin)
 end
 
 
 function NSVTwoDManifoldProblem(f, para::AbstractVector{T};
     amax=T(0.5), d=T(1e-3), ϵ=T(1e-5), dsmin=T(1e-6)) where {T}
-    hypers = f.f.hypers
-    tend = f.timespan[end]
-    function distance_f(idx, u0, u1)
-        max(abs(hypers[idx](u0, para, tend)), abs(hypers[idx](u1, para, tend)))
-    end
-    NSVTwoDManifoldProblem(f, distance_f, para, amax, d, ϵ, dsmin)
+    NSVTwoDManifoldProblem(f, para, amax, d, ϵ, dsmin)
 end
 
 function show(io::IO, m::MIME"text/plain", A::NSVTwoDManifoldProblem)
@@ -75,8 +62,8 @@ end
 - `data` the numerical data that should be `Vector{Vector{S}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
 """
-mutable struct NSVTwoDManifold{F1,F2,S,N,T}
-    prob::NSVTwoDManifoldProblem{F1,F2,T}
+mutable struct NSVTwoDManifold{F,S,N,T}
+    prob::NSVTwoDManifoldProblem{F,T}
     data::Vector{Vector{S}}
     flawpoints::Vector{FlawPoint{N,T}}
 end
@@ -128,7 +115,7 @@ function initialize(prob::NSVTwoDManifoldProblem, disk::Vector{Vector{SVector{N,
         for j in eachindex(points)
             points[j] = NSState(disk[i][j])
         end
-        push!(newdisk, points)
+        append!(newdisk, [points])
     end
     circles = [[paramise(newdisk[i], interp=interp)] for i in eachindex(newdisk)]
     NSVTwoDManifold(prob, circles, flawpoints)
@@ -139,7 +126,6 @@ function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation
     d = manifold.prob.d
     v = manifold.prob.f
     ϵ = manifold.prob.ϵ
-    distance_f = manifold.prob.distance_f
     dsmin = manifold.prob.dsmin
     para = manifold.prob.para
     tmap = v.timetmap
@@ -158,7 +144,7 @@ function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation
             ic2_states[k] = tmap(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap,distance_f, para, d, dsmin, curve,
+        newpara = ns_addpoints!(tmap, para, d, dsmin, curve,
             ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)

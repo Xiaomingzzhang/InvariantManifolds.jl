@@ -44,7 +44,7 @@ function setmap(v::PiecewiseV, timespan::Tuple{T,T}, alg;
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
         integrator.f.f.n = i
-        push!(event_at, idx)
+        append!(event_at, [idx])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -106,9 +106,9 @@ function ns_solver(v::PiecewiseV, timespan, alg, N, T;
         u0 = integrator.sol(t0)
         i = region_detect(v.regions, u0, p, t0)
         integrator.f.f.n = i
-        push!(event_at, idx)
-        push!(event_state, integrator.u)
-        push!(event_t, integrator.t)
+        append!(event_at, [idx])
+        append!(event_state, [integrator.u])
+        append!(event_t, [integrator.t])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)

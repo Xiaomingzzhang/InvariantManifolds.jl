@@ -6,7 +6,7 @@ function setmap(v::BilliardV, timespan, alg; repeat_nudge=1 // 100, extra...)
         u0 = integrator.u
         t0 = integrator.t
         integrator.u = v.rules[idx](u0, p0, t0)
-        push!(event_at, idx)
+        append!(event_at, [idx])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
@@ -37,9 +37,9 @@ function ns_solver(v::BilliardV, timespan, alg, N, T; repeat_nudge=1 // 100, ext
         p0 = integrator.p
         u0 = integrator.u
         integrator.u = v.rules[idx](u0, p0, integrator.t)
-        push!(event_at, idx)
-        push!(event_state, integrator.u)
-        push!(event_t, integrator.t)
+        append!(event_at, [idx])
+        append!(event_state, [integrator.u])
+        append!(event_t, [integrator.t])
     end
     function condition(out, u, t, integrator)
         for i in eachindex(v.hypers)
