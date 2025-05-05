@@ -5,12 +5,12 @@
                ρ*x[1]-x[2]-x[1]*x[3],
                x[1]*x[2]-β*x[3]
            ]
-           v / sqrt(0.1 + norm(v)^2)
+           -v / sqrt(0.1 + norm(v)^2)
        end</code><code class="nohighlight hljs ansi" style="display:block;">lorenz (generic function with 1 method)</code></pre><p>Unlike the previous example, we will introduce the following non-smooth factor: when <span>$z=\xi$</span>, <span>$(x,y,z)\rightarrow(x,-y,z)$</span>. Therefore, we need to define a vector field with a collision factor:</p><pre><code class="language-julia hljs">hyper(x,p,t) = x[3]-p[4]
 rule(x,p,t) = SA[x[1], -x[2], x[3]]
-vectorfield =BilliardV(lorenz, (hyper,),(rule,))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BilliardV{typeof(Main.lorenz), Tuple{typeof(Main.hyper)}, Tuple{typeof(Main.rule)}}(Main.lorenz, (Main.hyper,), (Main.rule,))</code></pre><p>Then, as in the previous example, we need to encapsulate the specific information for solving this differential equation into <a href="../api/#InvariantManifolds.NSSetUp"><code>NSSetUp</code></a>, which requires using the <code>setmap</code> function:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; setup = setmap(vectorfield, (0.0, -1.0), Tsit5(), abstol=1e-8)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSSetUp:</span>
+vectorfield =BilliardV(lorenz, (hyper,),(rule,))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">BilliardV{typeof(Main.lorenz), Tuple{typeof(Main.hyper)}, Tuple{typeof(Main.rule)}}(Main.lorenz, (Main.hyper,), (Main.rule,))</code></pre><p>Then, as in the previous example, we need to encapsulate the specific information for solving this differential equation into <a href="../api/#InvariantManifolds.NSSetUp"><code>NSSetUp</code></a>, which requires using the <code>setmap</code> function:</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)</code><code class="nohighlight hljs ansi" style="display:block;"><span class="sgr36">NSSetUp:</span>
 f: BilliardV{typeof(Main.lorenz), Tuple{typeof(Main.hyper)}, Tuple{typeof(Main.rule)}}(Main.lorenz, (Main.hyper,), (Main.rule,))
-timespan: (0.0, -1.0)</code></pre><p>Next, we need to generate a local manifold:</p><pre><code class="language-julia hljs">para = [10.0, 28.0, 8/3, 10.0]
+timespan: (0.0, 1.0)</code></pre><p>Next, we need to generate a local manifold:</p><pre><code class="language-julia hljs">para = [10.0, 28.0, 8/3, 10.0]
 function eigenv(p)
     σ, ρ, β = p
     [SA[0.0, 0.0, 1.0], SA[-(-1 + σ + sqrt(1 - 2 * σ + 4 * ρ * σ + σ^2))/(2*ρ), 1, 0]]
@@ -24,7 +24,7 @@ para: [10.0, 28.0, 2.6666666666666665, 10.0]
 amax: 0.5
 d: 0.5
 ϵ: 0.2
-dsmin: 0.001</code></pre><p>Finally, calculate the manifold and plot the image:</p><pre><code class="language- hljs">manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
+dsmin: 0.001</code></pre><p>Finally, calculate the manifold and plot the image:</p><pre><code class="language-julia hljs">manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
 function manifold_plot(annulus)
     fig = Figure()
     axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
@@ -37,19 +37,19 @@ function manifold_plot(annulus)
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie, DataInterpolations
+manifold_plot(manifold.data)</code></pre><img src="64b6f76e.png" alt="Example block output"/><p>Full codes without comments:</p><pre><code class="language-julia hljs">using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, CairoMakie, DataInterpolations
 function lorenz(x, p, t)
     σ, ρ, β = p
     v = SA[σ*(x[2]-x[1]),
         ρ*x[1]-x[2]-x[1]*x[3],
         x[1]*x[2]-β*x[3]
     ]
-    v / sqrt(0.1 + norm(v)^2)
+    -v / sqrt(0.1 + norm(v)^2)
 end
 hyper(x,p,t) = x[3]-p[4]
 rule(x,p,t) = SA[x[1], -x[2], x[3]]
 vectorfield =BilliardV(lorenz, (hyper,),(rule,))
-setup = setmap(vectorfield, (0.0, -1.0), Tsit5(), abstol=1e-8)
+setup = setmap(vectorfield, (0.0, 1.0), Tsit5(), abstol=1e-8)
 para = [10.0, 28.0, 8/3, 10.0]
 function eigenv(p)
     σ, ρ, β = p
@@ -71,4 +71,4 @@ function manifold_plot(annulus)
     end
     fig
 end
-manifold_plot(manifold.data)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../non_smooth_one/">« One-Dimensional Non-Smooth Manifolds</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.2 on <span class="colophon-date" title="Monday 5 May 2025 09:08">Monday 5 May 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+manifold_plot(manifold.data)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../non_smooth_one/">« One-Dimensional Non-Smooth Manifolds</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.2 on <span class="colophon-date" title="Monday 5 May 2025 22:50">Monday 5 May 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
