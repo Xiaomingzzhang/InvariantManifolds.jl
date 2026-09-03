@@ -179,6 +179,10 @@ The function iteratively processes points, adding new ones when:
 - The arc length is greater than `dsmin`
 
 If a point fails these criteria and the minimum arc length is reached, it's recorded as a flaw point.
+Before a curvature flaw is recorded, the scale-aware angle-times-length criterion
+`α*δ1 ≤ d*αmax/1000` (following Goodman and Wróbel 2011) is checked: a large raw angle
+on a segment more than one thousand times shorter than `d` does not contribute to the
+geometric error and is accepted instead.
 
 # Returns
 Vector of parameter values for the new points
@@ -217,10 +221,18 @@ Vector of parameter values for the new points
                         insert!(olds, i + 1, paras)
                         n = n + 1
                     else
-                        i = i + 1
-                        push!(flawpoints, FlawPoint(u0, α, δ1))
-                        dd = newpara[end]
-                        push!(newpara, dd + δ1)
+                        if δ1 <= d && α * δ1 <= _angle_distance_tolerance(d, αmax)
+                            # At this tiny length scale the raw angle is dominated by
+                            # round-off/noise; the angle-times-length control is satisfied.
+                            i = i + 1
+                            dd = newpara[end]
+                            push!(newpara, dd + δ1)
+                        else
+                            i = i + 1
+                            push!(flawpoints, FlawPoint(u0, α, δ1))
+                            dd = newpara[end]
+                            push!(newpara, dd + δ1)
+                        end
                     end
                 end
             end

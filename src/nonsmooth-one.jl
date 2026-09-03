@@ -241,6 +241,8 @@ The function adaptively adds points to maintain:
 3. Accuracy `ϵ` at hypersurface intersections
 
 If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
+The same scale-aware `α*δ ≤ d*αmax/1000` criterion as in [`addpoints!`](@ref) is used
+before a curvature flaw is recorded.
 """
 @inline function ns_addpoints!(tmap, distance_f, p, d, dsmin, oldcurve,
     newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ, flawpoints) where {N,T}
@@ -277,10 +279,18 @@ If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
                             insert!(olds, i + 1, paras)
                             n = n + 1
                         else
-                            i = i + 1
-                            push!(flawpoints, FlawPoint(u0.state, α, δ1))
-                            dd = newpara[end]
-                            push!(newpara, dd + δ1)
+                            if δ1 <= d && α * δ1 <= _angle_distance_tolerance(d, αmax)
+                                # Raw angle on a length scale far below d is not
+                                # geometrically significant; angle-times-length is OK.
+                                i = i + 1
+                                dd = newpara[end]
+                                push!(newpara, dd + δ1)
+                            else
+                                i = i + 1
+                                push!(flawpoints, FlawPoint(u0.state, α, δ1))
+                                dd = newpara[end]
+                                push!(newpara, dd + δ1)
+                            end
                         end
                     end
                 end

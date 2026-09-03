@@ -21,6 +21,19 @@ Points that are equal give the angle `0`.
     2asin(clamp(x, -one(x), one(x)))
 end
 
+"""
+    InvariantManifolds._angle_distance_tolerance(d, αmax)
+
+Scale below which a large local turning angle over an extremely short segment is
+treated as numerically/geometrically not resolvable, following the angle-times-length
+control used in the adaptive methods of Goodman and Wróbel (2011).  A segment with
+`α*d ≤ tolerance` has no meaningful contribution to the polygonal curve error even
+if the raw angle exceeds `αmax`, so it is not recorded as a [`FlawPoint`](@ref).
+"""
+function _angle_distance_tolerance(d, αmax)
+    max(d * αmax / 1000, 100eps(float(αmax * d)))
+end
+
 function _thin_curve_pass(points::Vector{P}, amax, d) where {P}
     n = length(points)
     keep = trues(n)
