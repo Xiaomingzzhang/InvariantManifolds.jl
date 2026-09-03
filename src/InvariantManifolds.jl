@@ -18,9 +18,12 @@ export gen_segment, gen_disk, initialize
 
 export grow!, growmanifold, Saddle, findsaddle, iscontact
 
+export thin_curve, ns_monodromy
+
 
 include("nsstate_construction.jl")
 include("basic_constructors.jl")
+include("curve_thinning.jl")
 
 # the algorithm for smooth nonlinear maps' one dimensional manifolds
 include("smooth-one.jl")
@@ -35,6 +38,7 @@ include("smooth_vectorfield_two.jl")
 include("piecewise.jl")
 include("impact.jl")
 include("piecewise_impact.jl")
+include("monodromy.jl")
 
 # non-smooth manifold algorithm
 include("nonsmooth-one.jl")

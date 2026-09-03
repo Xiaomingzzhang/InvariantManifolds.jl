@@ -22,7 +22,7 @@ function setmap(v::BilliardV, timespan, alg; repeat_nudge=1 // 100, extra...)
         newv_event_at = copy(event_at)
         append!(event, newv_event_at)
         empty!(event_at)
-        NSState(sol[end], event)
+        NSState(sol.u[end], event)
     end
     NSSetUp(v, timespan, tmap)
 end

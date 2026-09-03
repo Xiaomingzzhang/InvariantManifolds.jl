@@ -234,6 +234,39 @@ end
 manifold_plot(manifold.data)
 ```
 
+### Locating saddle periodic orbits that collide with an impact surface
+
+The example above uses `findsaddle(f, df, ...)` because the saddle periodic orbit
+does not reach the walls.  If the saddle periodic orbit itself has impacts, the
+finite-difference derivative of the whole time map becomes inaccurate, and one
+should instead evaluate the derivative of the time map by solving the variational
+equation together with the saltation (jump) matrix at every event.  This is
+implemented in [`ns_monodromy`](@ref), and the Newton method
+`findsaddle(v::BilliardV, dv, timespan, x, p)` uses it automatically:
+
+```julia
+timespan = (0.0, 2pi / para[3])
+initialguess = SA[0.33105712454153, -0.27958638934207]
+saddle = findsaddle(vectorfield, df, timespan, initialguess, para,
+                    abstol=1e-11, reltol=1e-9, dtmax=0.01)
+```
+
+For [`PiecewiseV`](@ref) and [`PiecewiseImpactV`](@ref), the derivative argument of
+`findsaddle` and `ns_monodromy` must be a tuple containing the derivatives of all
+vector fields in `fs`.
+
+### Removing over-resolved points after a continuation step
+
+`grow!` and `growmanifold` accept the keyword `thinning=true`.  When enabled, the
+layer computed by a continuation step is coarsened by deleting points that are
+almost collinear with their neighbours, following the classical idea in Parker and
+Chua (1989).  Genuinely sharp turns and the endpoints of every smooth component are
+never deleted, and the deletion needs no additional time map evaluation.
+
+```julia
+manifold = growmanifold(prob, segment, 11, thinning=true)
+```
+
 
 
 ## Combined Piecewise Smooth and Impact ODE Systems
@@ -372,5 +405,4 @@ function manifold_plot(data)
 end
 manifold_plot(manifold.data)
 ```
-
 

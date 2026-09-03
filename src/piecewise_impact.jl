@@ -28,7 +28,7 @@ function setmap(v::PiecewiseImpactV, timespan, alg;
         newv_event_at = copy(event_at)
         append!(event, newv_event_at)
         empty!(event_at)
-        NSState(sol[end], newv_event_at)
+        NSState(sol.u[end], newv_event_at)
     end
     NSSetUp(v, timespan, tmap)
 end

@@ -6,4 +6,5 @@ using Test
     include("ns_vector_field_constructors.jl")
     include("gen_seg_disk.jl")
     include("probs.jl")
+    include("thinning_monodromy.jl")
 end

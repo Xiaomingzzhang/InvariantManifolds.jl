@@ -261,8 +261,10 @@ One time iteration to grow the manifold.
 - `manifold` the manifold struct.
 # Keyword argument
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
+- `thinning` whether to remove over-resolved, almost straight points from the new
+  layer after one continuation step; default to be `false`. See [`thin_curve`](@ref).
 """
-function grow!(manifold::OneDManifold; interp=QuadraticInterpolation)
+function grow!(manifold::OneDManifold; interp=QuadraticInterpolation, thinning=false)
     αmax = manifold.prob.amax
     d = manifold.prob.d
     f = manifold.prob.f
@@ -281,6 +283,9 @@ function grow!(manifold::OneDManifold; interp=QuadraticInterpolation)
     end
     newpara = addpoints!(f, para, d, curve, ic2, olds, Δsmin, αmax, flawpoints)
     newintep = interp(ic2, newpara)
+    if thinning
+        newintep = thin_curve(newintep; amax=αmax, d=d, interp=interp)
+    end
     push!(data, newintep)
     manifold
 end
@@ -327,6 +332,8 @@ This is a function to initialize the continuation process. Its output is a manif
 
 # Keyword argument
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
+- `thinning` whether to apply the postprocessing thinning step after each
+  continuation step; default to be `false`. See [`thin_curve`](@ref).
 """
 function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}}; interp=QuadraticInterpolation) where {N,T}
     parameters = prob.para
@@ -372,10 +379,11 @@ This is the mani function to continuate the numerical manifolds. Its output is a
 # Keyword argument
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 """
-function growmanifold(prob::OneDManifoldProblem, points, N; interp=QuadraticInterpolation)
+function growmanifold(prob::OneDManifoldProblem, points, N;
+    interp=QuadraticInterpolation, thinning=false)
     manifold = initialize(prob, points, interp=interp)
     for i in 1:N
-        grow!(manifold, interp=interp)
+        grow!(manifold, interp=interp, thinning=thinning)
     end
     manifold
 end

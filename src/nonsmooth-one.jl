@@ -486,7 +486,8 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
     NSOneDManifold(prob, result, flawpoints)
 end
 
-function grow!(manifold::NSOneDManifold{F1,F2,S,N,T}; interp=QuadraticInterpolation) where {F1,F2,S,N,T}
+function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
+    interp=QuadraticInterpolation, thinning=false) where {F1,F2,S,N,T}
     αmax = manifold.prob.amax
     d = manifold.prob.d
     distance_f = manifold.prob.distance_f
@@ -515,13 +516,18 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T}; interp=QuadraticInterpolat
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end
-    push!(data, union_lines(result, interp=interp))
+    newlayer = union_lines(result, interp=interp)
+    if thinning
+        newlayer = [thin_curve(curve; amax=αmax, d=d, interp=interp) for curve in newlayer]
+    end
+    push!(data, newlayer)
 end
 
-function growmanifold(prob::NSOneDManifoldProblem, segment, N; interp=QuadraticInterpolation)
+function growmanifold(prob::NSOneDManifoldProblem, segment, N;
+    interp=QuadraticInterpolation, thinning=false)
     manifold = initialize(prob, segment, interp=interp)
     for i in 1:N
-        grow!(manifold, interp=interp)
+        grow!(manifold, interp=interp, thinning=thinning)
     end
     manifold
 end

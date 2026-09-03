@@ -14,6 +14,19 @@ This package is designed to compute the invariant manifolds of dynamical systems
   - Computing one-dimensional manifolds of saddles for non-smooth mappings: these mappings are time-T maps of non-smooth ODE systems, such as impact systems, piecewise smooth systems, and their combinations;
   - Computing two-dimensional manifolds of saddles for non-smooth autonomous vector fields.
 
+Two useful options are worth mentioning:
+
+  - `growmanifold(prob, segment, N; thinning=true)` (or `grow!(...; thinning=true)`)
+    removes over-resolved, nearly straight points after every continuation step,
+    following the classical idea in Parker & Chua (1989). No map evaluation is
+    needed in this step.
+  - `ns_monodromy(v, dv, timespan, x, p)` computes the derivative of the time-T-map
+    of a non-smooth ODE by solving the variational equation together with the
+    saltation (jump) matrices at every impact/switching event. The Newton method
+    `findsaddle(v, dv, timespan, x, p)` uses this monodromy matrix, which is more
+    accurate than finite-differencing the whole time-T-map when the periodic orbit
+    has collisions.
+
 To use this package, first install [Julia](https://julialang.org/), then run:
 
 ```julia
