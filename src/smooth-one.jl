@@ -277,16 +277,19 @@ One time iteration to grow the manifold.
 # Keyword argument
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 - `thinning` whether to remove over-resolved, almost straight points from the new
-  layer after one continuation step; default to be `false`. See [`thin_curve`](@ref).
+  layer after one continuation step; default to be `true`. See [`thin_curve`](@ref).
+- `adbnd` angle-times-length bound, default `d*αmax/10`. The bound is imposed in
+  every refinement step as in the Goodman–Wróbel style acceptance condition.
 """
 function grow!(manifold::OneDManifold; interp=QuadraticInterpolation,
-    thinning=false, adbnd=nothing)
+    thinning=true, adbnd=nothing)
     αmax = manifold.prob.amax
     d = manifold.prob.d
     f = manifold.prob.f
     para = manifold.prob.para
     Δsmin = manifold.prob.dsmin
     flawpoints = manifold.flawpoints
+    adbnd = _resolve_adbnd(adbnd, d, αmax)
     data = manifold.data
     curve = data[end]
     ic1 = copy(curve.u)
@@ -350,12 +353,11 @@ This is a function to initialize the continuation process. Its output is a manif
 # Keyword argument
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 - `thinning` whether to apply the postprocessing thinning step after each
-  continuation step; default to be `false`. See [`thin_curve`](@ref).
+  continuation step; default to be `true`. See [`thin_curve`](@ref).
 - `adbnd` optional angle-times-length bound. When a positive number is supplied,
   the scale-aware acceptance `α*δ1 ≤ adbnd` is imposed in every refinement step,
-  corresponding to the two-sided angle control in Goodman and Wróbel (2011).
-  The default `nothing` keeps the scale-aware test only when a curvature flaw
-  would otherwise be recorded.
+  corresponding to the two-sided angle control in Goodman and Wróbel (2011). The
+  default `nothing` resolves to `d*αmax/10`.
 """
 function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}};
     interp=QuadraticInterpolation, adbnd=nothing) where {N,T}
@@ -403,11 +405,12 @@ This is the mani function to continuate the numerical manifolds. Its output is a
 # Keyword argument
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 - `thinning` whether to apply the postprocessing thinning step after each
-  continuation step; default to be `false`. See [`thin_curve`](@ref).
+  continuation step; default to be `true`. See [`thin_curve`](@ref).
 - `adbnd` optional angle-times-length acceptance bound; see [`initialize`](@ref).
 """
 function growmanifold(prob::OneDManifoldProblem, points, N;
-    interp=QuadraticInterpolation, thinning=false, adbnd=nothing)
+    interp=QuadraticInterpolation, thinning=true, adbnd=nothing)
+    adbnd = _resolve_adbnd(adbnd, prob.d, prob.amax)
     manifold = initialize(prob, points, interp=interp, adbnd=adbnd)
     for i in 1:N
         grow!(manifold, interp=interp, thinning=thinning, adbnd=adbnd)

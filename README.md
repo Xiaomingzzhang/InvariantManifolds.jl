@@ -16,10 +16,12 @@ This package is designed to compute the invariant manifolds of dynamical systems
 
 Two useful options are worth mentioning:
 
-  - `growmanifold(prob, segment, N; thinning=true)` (or `grow!(...; thinning=true)`)
-    removes over-resolved, nearly straight points after every continuation step,
-    following the classical idea in Parker & Chua (1989). No map evaluation is
-    needed in this step.
+  - Thinning is enabled by default: `growmanifold` removes over-resolved, nearly
+    straight points after every continuation step, following the classical idea in
+    Parker & Chua (1989). No map evaluation is needed in this step. Set
+    `thinning=false` to disable it.
+  - The default refinement criterion uses the Goodman–Wróbel style angle-times-length
+    bound `α*δ ≤ d*αmax/10` at every refinement step.
   - `ns_monodromy(v, dv, timespan, x, p)` computes the derivative of the time-T-map
     of a non-smooth ODE by solving the variational equation together with the
     saltation (jump) matrices at every impact/switching event. The Newton method

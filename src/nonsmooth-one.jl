@@ -241,8 +241,9 @@ The function adaptively adds points to maintain:
 3. Accuracy `ϵ` at hypersurface intersections
 
 If constraints cannot be satisfied within `dsmin`, points are marked as flaws.
-The same scale-aware `α*δ ≤ d*αmax/1000` criterion as in [`addpoints!`](@ref) is used
-before a curvature flaw is recorded.
+The Goodman–Wróbel style scale-aware bound `α*δ ≤ d*αmax/10` is imposed during
+refinement.  At the smallest allowed arc length a curvature flaw is recorded only
+when this bound is still violated.
 """
 @inline function ns_addpoints!(tmap, distance_f, p, d, dsmin, oldcurve,
     newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ,
@@ -502,7 +503,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
 end
 
 function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
-    interp=QuadraticInterpolation, thinning=false, adbnd=nothing) where {F1,F2,S,N,T}
+    interp=QuadraticInterpolation, thinning=true, adbnd=nothing) where {F1,F2,S,N,T}
     αmax = manifold.prob.amax
     d = manifold.prob.d
     distance_f = manifold.prob.distance_f
@@ -514,6 +515,7 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
     tend = v.timespan[end]
     hypers = v.f.hypers
     data = manifold.data
+    adbnd = _resolve_adbnd(adbnd, d, αmax)
     nic = data[end]
     flawpoints = manifold.flawpoints
     n = length(manifold.data) + 1
@@ -539,7 +541,8 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
 end
 
 function growmanifold(prob::NSOneDManifoldProblem, segment, N;
-    interp=QuadraticInterpolation, thinning=false, adbnd=nothing)
+    interp=QuadraticInterpolation, thinning=true, adbnd=nothing)
+    adbnd = _resolve_adbnd(adbnd, prob.d, prob.amax)
     manifold = initialize(prob, segment, interp=interp, adbnd=adbnd)
     for i in 1:N
         grow!(manifold, interp=interp, thinning=thinning, adbnd=adbnd)

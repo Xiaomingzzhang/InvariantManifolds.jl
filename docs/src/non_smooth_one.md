@@ -257,15 +257,19 @@ vector fields in `fs`.
 
 ### Removing over-resolved points after a continuation step
 
-`grow!` and `growmanifold` accept the keyword `thinning=true`.  When enabled, the
-layer computed by a continuation step is coarsened by deleting points that are
+Thinning is enabled by default.  After every continuation step the newly computed
+layer is coarsened by deleting points that are
 almost collinear with their neighbours, following the classical idea in Parker and
 Chua (1989).  Genuinely sharp turns and the endpoints of every smooth component are
 never deleted, and the deletion needs no additional time map evaluation.
 
 ```julia
-manifold = growmanifold(prob, segment, 11, thinning=true)
+manifold = growmanifold(prob, segment, 11)
 ```
+
+The default refinement criterion is also scale-aware: every accepted segment must
+satisfy `α*δ ≤ d*αmax/10`, which is the angle-times-length control of Goodman and
+Wróbel (2011).  It can be changed with `adbnd=...`.
 
 
 
@@ -405,4 +409,3 @@ function manifold_plot(data)
 end
 manifold_plot(manifold.data)
 ```
-

@@ -34,6 +34,17 @@ function _angle_distance_tolerance(d, αmax)
     max(d * αmax / 1000, 100eps(float(αmax * d)))
 end
 
+"""
+    InvariantManifolds._resolve_adbnd(adbnd, d, αmax)
+
+Resolve the angle-times-length bound used by the continuation.  The default
+`nothing` means the Goodman–Wróbel style bound `d*αmax/10`, which is enforced in
+every refinement step.  A user supplied positive number overrides it.
+"""
+function _resolve_adbnd(adbnd, d, αmax)
+    adbnd === nothing ? d * αmax / 10 : adbnd
+end
+
 function _thin_curve_pass(points::Vector{P}, amax, d) where {P}
     n = length(points)
     keep = trues(n)
