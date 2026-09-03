@@ -188,7 +188,7 @@ geometric error and is accepted instead.
 Vector of parameter values for the new points
 """
 @inline function addpoints!(f, p, d, oldcurve, newu::Vector{SVector{N,T}}, olds::Vector{T},
-    dsmin, αmax, flawpoints) where {N,T}
+    dsmin, αmax, flawpoints; adbnd=nothing) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
@@ -207,7 +207,8 @@ Vector of parameter values for the new points
             else
                 baru0 = u1 + (u1 - u2) * δ1 / δ2
                 α = 2 * newasin(norm(baru0 - u0) / (2 * δ1))
-                if δ1 <= d && α <= αmax
+                scale_ok = adbnd === nothing || α * δ1 <= adbnd
+                if δ1 <= d && α <= αmax && scale_ok
                     i = i + 1
                     dd = newpara[end]
                     push!(newpara, dd + δ1)
@@ -221,7 +222,9 @@ Vector of parameter values for the new points
                         insert!(olds, i + 1, paras)
                         n = n + 1
                     else
-                        if δ1 <= d && α * δ1 <= _angle_distance_tolerance(d, αmax)
+                        if δ1 <= d &&
+                            (adbnd === nothing ? α * δ1 <= _angle_distance_tolerance(d, αmax) :
+                                                α * δ1 <= adbnd)
                             # At this tiny length scale the raw angle is dominated by
                             # round-off/noise; the angle-times-length control is satisfied.
                             i = i + 1
@@ -276,7 +279,8 @@ One time iteration to grow the manifold.
 - `thinning` whether to remove over-resolved, almost straight points from the new
   layer after one continuation step; default to be `false`. See [`thin_curve`](@ref).
 """
-function grow!(manifold::OneDManifold; interp=QuadraticInterpolation, thinning=false)
+function grow!(manifold::OneDManifold; interp=QuadraticInterpolation,
+    thinning=false, adbnd=nothing)
     αmax = manifold.prob.amax
     d = manifold.prob.d
     f = manifold.prob.f
@@ -293,7 +297,8 @@ function grow!(manifold::OneDManifold; interp=QuadraticInterpolation, thinning=f
     Threads.@threads for i in eachindex(ic1)
         ic2[i] = f(ic1[i], para)
     end
-    newpara = addpoints!(f, para, d, curve, ic2, olds, Δsmin, αmax, flawpoints)
+    newpara = addpoints!(f, para, d, curve, ic2, olds, Δsmin, αmax, flawpoints;
+        adbnd=adbnd)
     newintep = interp(ic2, newpara)
     if thinning
         newintep = thin_curve(newintep; amax=αmax, d=d, interp=interp)
@@ -346,8 +351,14 @@ This is a function to initialize the continuation process. Its output is a manif
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
 - `thinning` whether to apply the postprocessing thinning step after each
   continuation step; default to be `false`. See [`thin_curve`](@ref).
+- `adbnd` optional angle-times-length bound. When a positive number is supplied,
+  the scale-aware acceptance `α*δ1 ≤ adbnd` is imposed in every refinement step,
+  corresponding to the two-sided angle control in Goodman and Wróbel (2011).
+  The default `nothing` keeps the scale-aware test only when a curvature flaw
+  would otherwise be recorded.
 """
-function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}}; interp=QuadraticInterpolation) where {N,T}
+function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}};
+    interp=QuadraticInterpolation, adbnd=nothing) where {N,T}
     parameters = prob.para
     map = prob.f
     αmax = prob.amax
@@ -363,7 +374,8 @@ function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}}; int
     end
     curve = paramise(points)
     olds = copy(curve.t)
-    addpoints!(map, parameters, d, curve, data, olds, Δsmin, αmax, flawpoints)
+    addpoints!(map, parameters, d, curve, data, olds, Δsmin, αmax, flawpoints;
+        adbnd=adbnd)
     p0 = first(points)
     pn = last(points)
     j = 1
@@ -390,12 +402,15 @@ This is the mani function to continuate the numerical manifolds. Its output is a
 
 # Keyword argument
 - `interp` the interpolation method used, default to be `QuadraticInterpolation`.
+- `thinning` whether to apply the postprocessing thinning step after each
+  continuation step; default to be `false`. See [`thin_curve`](@ref).
+- `adbnd` optional angle-times-length acceptance bound; see [`initialize`](@ref).
 """
 function growmanifold(prob::OneDManifoldProblem, points, N;
-    interp=QuadraticInterpolation, thinning=false)
-    manifold = initialize(prob, points, interp=interp)
+    interp=QuadraticInterpolation, thinning=false, adbnd=nothing)
+    manifold = initialize(prob, points, interp=interp, adbnd=adbnd)
     for i in 1:N
-        grow!(manifold, interp=interp, thinning=thinning)
+        grow!(manifold, interp=interp, thinning=thinning, adbnd=adbnd)
     end
     manifold
 end

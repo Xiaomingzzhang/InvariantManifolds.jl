@@ -245,7 +245,8 @@ The same scale-aware `α*δ ≤ d*αmax/1000` criterion as in [`addpoints!`](@re
 before a curvature flaw is recorded.
 """
 @inline function ns_addpoints!(tmap, distance_f, p, d, dsmin, oldcurve,
-    newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ, flawpoints) where {N,T}
+    newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ,
+    flawpoints; adbnd=nothing) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
@@ -265,7 +266,8 @@ before a curvature flaw is recorded.
                 else
                     baru0 = u1 + (u1 - u2) * δ1 / δ2
                     α = 2 * newasin(norm(baru0 - u0) / (2 * δ1))
-                    if δ1 <= d && α <= αmax
+                    scale_ok = adbnd === nothing || α * δ1 <= adbnd
+                    if δ1 <= d && α <= αmax && scale_ok
                         i = i + 1
                         dd = newpara[end]
                         push!(newpara, dd + δ1)
@@ -279,7 +281,9 @@ before a curvature flaw is recorded.
                             insert!(olds, i + 1, paras)
                             n = n + 1
                         else
-                            if δ1 <= d && α * δ1 <= _angle_distance_tolerance(d, αmax)
+                            if δ1 <= d &&
+                                (adbnd === nothing ? α * δ1 <= _angle_distance_tolerance(d, αmax) :
+                                                    α * δ1 <= adbnd)
                                 # Raw angle on a length scale far below d is not
                                 # geometrically significant; angle-times-length is OK.
                                 i = i + 1
@@ -453,7 +457,8 @@ before a curvature flaw is recorded.
 end
 
 
-function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; interp=QuadraticInterpolation, event=Int[]) where {N,T}
+function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
+    interp=QuadraticInterpolation, event=Int[], adbnd=nothing) where {N,T}
     parameters = prob.para
     tmap = prob.f.timetmap
     distance_f = prob.distance_f
@@ -478,7 +483,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
     oldcurve = result[1][1]
     olds = copy(oldcurve.t)
     ns_addpoints!(tmap, distance_f, parameters, d, dsmin, oldcurve,
-        image, olds, αmax, tend, hypers, ϵ, flawpoints)
+        image, olds, αmax, tend, hypers, ϵ, flawpoints; adbnd=adbnd)
     if ispartitioned(image) == false
         error("The initial curve has to be chosen more small")
     end
@@ -497,7 +502,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}}; inte
 end
 
 function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
-    interp=QuadraticInterpolation, thinning=false) where {F1,F2,S,N,T}
+    interp=QuadraticInterpolation, thinning=false, adbnd=nothing) where {F1,F2,S,N,T}
     αmax = manifold.prob.amax
     d = manifold.prob.d
     distance_f = manifold.prob.distance_f
@@ -522,7 +527,7 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
         end
         olds = copy(curve.t)
         newpara = ns_addpoints!(tmap,distance_f, para, d, dsmin, curve,
-            ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
+            ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints; adbnd=adbnd)
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end
@@ -534,10 +539,10 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
 end
 
 function growmanifold(prob::NSOneDManifoldProblem, segment, N;
-    interp=QuadraticInterpolation, thinning=false)
-    manifold = initialize(prob, segment, interp=interp)
+    interp=QuadraticInterpolation, thinning=false, adbnd=nothing)
+    manifold = initialize(prob, segment, interp=interp, adbnd=adbnd)
     for i in 1:N
-        grow!(manifold, interp=interp, thinning=thinning)
+        grow!(manifold, interp=interp, thinning=thinning, adbnd=adbnd)
     end
     manifold
 end
