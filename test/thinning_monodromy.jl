@@ -1,3 +1,14 @@
+# thinning_monodromy.jl
+#
+# Tests for the two new features introduced in this development branch:
+#   1. `thin_curve` must remove redundant points while retaining genuine corners;
+#   2. `ns_monodromy` must reproduce the derivative of a non-smooth time-T-map and
+#      `findsaddle` must converge to the known impact-periodic solution.
+#
+# The monodromy tests cover both a BilliardV (impact) system and a PiecewiseV
+# (switching) system; in both cases the saltation-matrix result is compared with a
+# finite-difference Jacobian of the full time map.
+
 using InvariantManifolds, LinearAlgebra, StaticArrays, OrdinaryDiffEq, FiniteDiff
 
 @testset "thin_curve" begin

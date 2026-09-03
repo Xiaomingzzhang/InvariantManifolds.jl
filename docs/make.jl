@@ -21,6 +21,7 @@ makedocs(;
         "Two-Dimensional Smooth Manifolds"=>"smooth_two.md",
         "One-Dimensional Non-Smooth Manifolds"=>"non_smooth_one.md",
         "Two-dimensional Non-Smooth Manifolds"=>"non_smooth_two.md",
+        "Curve thinning and saltation matrices"=>"extensions.md",
         "API"=>"api.md"
     ]
 )

@@ -1,3 +1,32 @@
+# curve_thinning.jl
+#
+# Purpose
+# -------
+# This file implements the optional post-processing step that removes
+# over-resolved points from a numerically continued invariant curve.  It is used
+# after every continuation step by `grow!`/`growmanifold` when the keyword
+# `thinning=true` (the default) is selected.
+#
+# Main idea
+# ---------
+# The classical continuation strategy of Parker & Chua (1989) adds points when the
+# distance or the turning angle violates its tolerance, but it does not remove
+# points that later become unnecessary.  After a sharp turn has been refined, many
+# almost collinear points may remain.  Deleting those points requires no evaluation
+# of the map.
+#
+# A point is deleted only if:
+#   1. its distance to the chord connecting its two neighbours is below the
+#      flatness tolerance `d*amax/8`, i.e. the removed point is locally redundant;
+#   2. deletion does not create a local turning angle larger than `amax`;
+#   3. it is not an endpoint of the current smooth component.
+#
+# The file also contains the internal helpers used by the continuation:
+# - `_curve_angle`: the local turning angle of three consecutive points;
+# - `_angle_distance_tolerance`: legacy round-off floor used by direct calls;
+# - `_resolve_adbnd`: resolves the user-facing Goodman-Wrobel angle-times-length
+#   bound `adbnd`, whose default value is `d*amax/10`.
+
 """
     InvariantManifolds._curve_angle(p0, p1, p2)
 

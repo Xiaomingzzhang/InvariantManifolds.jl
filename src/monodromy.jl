@@ -1,3 +1,33 @@
+# monodromy.jl
+#
+# Purpose
+# -------
+# This file implements the derivative (monodromy matrix) of the time-T-map of a
+# non-smooth ODE and uses it to locate saddle-type periodic orbits by Newton's
+# method.  It backs the exported functions `ns_monodromy` and the non-smooth
+# overloads of `findsaddle`.
+#
+# Main idea
+# ---------
+# A naive finite-difference derivative of the whole time-T-map is inaccurate near
+# impacts or switching events.  Instead, we integrate an augmented system whose
+# state is `(x, X)`, where `X` is the fundamental matrix of the variational
+# equation `X' = DV(x,t) X`.  Whenever the flow hits a hypersurface transversally,
+# the matrix part is multiplied from the left by the saltation (jump) matrix `S`.
+#
+# Two types of saltation matrices are implemented:
+# - pure switching between two smooth vector fields: `S = I + (f_+ - f_-)∇Hᵀ/D`;
+# - impact with reset map `g`: `S = Dg + (f_+ - Dg f_- - g_t)∇Hᵀ/D`,
+# where `D = ∇H·f_- + H_t` is the transversal crossing speed.
+#
+# The returned monodromy matrix `X(T)` is then used by Newton's method
+# `x -> x - (X(T)-I)^{-1}(F(x)-x)`.  Event times are stored in
+# `NSMonodromyData` and can be inspected for validation.
+#
+# The gradients of `H`, the derivatives of the reset maps, and the derivatives of
+# the smooth vector fields are obtained from user supplied Jacobians; for `H` and
+# reset maps finite-difference fallbacks are used internally.
+
 """
     NSMonodromyData{N,T}
 
