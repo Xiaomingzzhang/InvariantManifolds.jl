@@ -56,11 +56,13 @@ end
 - `prob` the problem [`VTwoDManifoldProblem`](@ref);
 - `data` the numerical data that should be `Vector{S}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
+- `map_calls` the total number of time-flow-map evaluations used by the algorithm.
 """
 mutable struct VTwoDManifold{F,S,N,T}
     prob::VTwoDManifoldProblem{F,T}
     data::Vector{S}
     flawpoints::Vector{FlawPoint{N,T}}
+    map_calls::Int
 end
 
 
@@ -77,6 +79,8 @@ function Base.show(io::IO, A::VTwoDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
+    printstyled(io, "Map calls: "; color=:cyan)
+    println(io, "$(A.map_calls)")
     if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
@@ -107,7 +111,7 @@ function initialize(prob::VTwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}
     dsmin = prob.dsmin
     flawpoints = FlawPoint{N,T}[]
     circles = [paramise(disk[i], interp=interp) for i in eachindex(disk)]
-    VTwoDManifold(prob, circles, flawpoints)
+    VTwoDManifold(prob, circles, flawpoints, 0)
 end
 
 function grow!(manifold::VTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation) where {F,S,N,T}
@@ -124,12 +128,16 @@ function grow!(manifold::VTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation) 
     olds = copy(circle.t)
     newcircle = Vector{SVector{N,T}}(undef, length(olds))
     points = circle.u
+    counter = _new_map_counter()
     Threads.@threads for i in eachindex(newcircle)
+        _count_map_call!(counter)
         newcircle[i] = f(points[i], para)
     end
-    newpara = addpoints!(f, para, d, circle, newcircle, olds, dsmin, αmax, flawpoints)
+    newpara = addpoints!(f, para, d, circle, newcircle, olds, dsmin, αmax, flawpoints;
+        counter=counter)
     finalnewcircle = interp(newcircle, newpara)
     push!(data, finalnewcircle)
+    manifold.map_calls += counter[]
     manifold
 end
 

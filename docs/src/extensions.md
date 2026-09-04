@@ -24,6 +24,11 @@ A point is deleted only when it is sufficiently close to the chord connecting it
 neighbours and when deleting it does not increase the local turning angle beyond
 `amax`. Endpoints of smooth components and genuine sharp turns are kept.
 
+Every manifold struct (`OneDManifold`, `TwoDManifold`, `VTwoDManifold`,
+`NSOneDManifold` and `NSVTwoDManifold`) stores the total number of map/time-map
+evaluations in the field `map_calls`, so no external wrapper is needed to measure
+the computational cost.
+
 ## Boundary errors of non-smooth manifolds
 
 When a numerical manifold crosses a switching or impact hypersurface, the two

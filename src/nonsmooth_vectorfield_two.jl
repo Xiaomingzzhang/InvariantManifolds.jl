@@ -74,11 +74,13 @@ end
 - `prob` the problem [`NSVTwoDManifoldProblem`](@ref);
 - `data` the numerical data that should be `Vector{Vector{S}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
+- `map_calls` the total number of time-flow-map evaluations used by the algorithm.
 """
 mutable struct NSVTwoDManifold{F1,F2,S,N,T}
     prob::NSVTwoDManifoldProblem{F1,F2,T}
     data::Vector{Vector{S}}
     flawpoints::Vector{FlawPoint{N,T}}
+    map_calls::Int
 end
 
 
@@ -98,6 +100,8 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSVTwoDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
+    printstyled(io, "Map calls: "; color=:cyan)
+    println(io, "$(A.map_calls)")
     if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
@@ -131,7 +135,7 @@ function initialize(prob::NSVTwoDManifoldProblem, disk::Vector{Vector{SVector{N,
         push!(newdisk, points)
     end
     circles = [[paramise(newdisk[i], interp=interp)] for i in eachindex(newdisk)]
-    NSVTwoDManifold(prob, circles, flawpoints)
+    NSVTwoDManifold(prob, circles, flawpoints, 0)
 end
 
 function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation) where {F,S,N,T}
@@ -148,6 +152,8 @@ function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation
     data = manifold.data
     nic = data[end]
     flawpoints = manifold.flawpoints
+    counter = _new_map_counter()
+    tmapc = _counting_map(tmap, counter)
     n = length(manifold.data) + 1
     result = empty(manifold.data[1])
     @inbounds for j in eachindex(nic)
@@ -155,15 +161,16 @@ function grow!(manifold::NSVTwoDManifold{F,S,N,T}; interp=QuadraticInterpolation
         n = length(curve.u)
         ic2_states = Vector{NSState{N,T}}(undef, n)
         for k in eachindex(ic2_states)
-            ic2_states[k] = tmap(curve.u[k], para)
+            ic2_states[k] = tmapc(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap,distance_f, para, d, dsmin, curve,
+        newpara = ns_addpoints!(tmapc,distance_f, para, d, dsmin, curve,
             ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints)
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end
     append!(data, [union_lines(result, interp=interp)])
+    manifold.map_calls += counter[]
     manifold
 end
 
@@ -174,4 +181,3 @@ function growmanifold(prob::NSVTwoDManifoldProblem, disk, N; interp=QuadraticInt
     end
     manifold
 end
-

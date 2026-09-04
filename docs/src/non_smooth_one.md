@@ -10,8 +10,10 @@ The manifolds in both cases are invariant manifolds of saddle points. The former
 
 We use the Callback functionality from [OrdinaryDiffEq.jl](https://github.com/SciML/OrdinaryDiffEq.jl) to compute time mappings. The following three examples will demonstrate the methods for computing invariant manifolds of these three types of non-smooth systems.
 
-!!! warning 
-    The computation of non-smooth manifolds heavily depends on the ODE solving algorithm and precision. When the solution fails or performs poorly, try changing the algorithm, increasing the ODE solving precision, or reducing the values of parameters `ϵ`, `d`, `amax` in [`NSOneDManifoldProblem`](@ref).
+The examples below use the default continuation settings: `thinning=true` and the
+Goodman--Wróbel angle-times-length bound `d*amax/10`. The solver and tolerances can
+be changed through the keywords of [`NSOneDManifoldProblem`](@ref) and
+[`setmap`](@ref).
 
 
 ## Piecewise Smooth Systems

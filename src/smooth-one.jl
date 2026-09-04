@@ -7,9 +7,15 @@
 - `para` the parameters of the nonlinear map;
 - `amax` the maximum angle between points when continuing the manifold;
 - `d` the maximum distance between points when continuing the manifold;
-- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
+- `dsmin` the minimum arc length allowed during bisection;
 
-Convenient consturctors are `OneDManifoldProblem(f)` and `OneDManifoldProblem(f,para)`
+By default the continuation also uses the Goodman--Wróbel-style angle-times-length
+bound `α*δ1 ≤ d*amax/10` (overridable with `adbnd` in `grow!`/`growmanifold`) and
+postprocessing thinning (`thinning=true`).  A curvature flaw is recorded only when
+the bound is still violated at `dsmin`.
+
+Convenient constructors are `OneDManifoldProblem(f)` and
+`OneDManifoldProblem(f, para)`.
 """
 struct OneDManifoldProblem{F,T}
     f::F
@@ -52,12 +58,17 @@ end
 """
     FlawPoint{N,T}
 
-`FlawPoint` is a struct to record the points that don't satisfy the angle and distance request while the 
-program has reached the minimum arc length.
+`FlawPoint` records a point that still violates the distance or the scale-aware
+angle-times-length control after the continuation has reached the minimum allowed
+arc length.
 # Fields
 - `point` flaw point in the process of continuation;
 - `α` the angle recorded;
 - `d` the distance recorded.
+
+With the default Goodman--Wróbel-style criterion, a curvature flaw is recorded
+only when `α*δ > d*αmax/10` at the smallest allowed arc length; distance flaws are
+recorded whenever the maximum distance is still exceeded.
 """
 struct FlawPoint{N,T}
     point::SVector{N,T}
@@ -72,13 +83,16 @@ end
 `OneDManifold` is a struct contains all the information of the one-dimensional numerical manifold.
 # Fields
 - `prob` the problem [`OneDManifoldProblem`](@ref);
-- `data` the numerical data that should be `Vector{Vector{S}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
+- `data` the numerical data, a `Vector{S}`, where `S` is the interpolation curve
+  (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
+- `map_calls` the total number of evaluations of the map used by the algorithm.
 """
 mutable struct OneDManifold{F,S,N,T}
     prob::OneDManifoldProblem{F,T}
     data::Vector{S}
     flawpoints::Vector{FlawPoint{N,T}}
+    map_calls::Int
 end
 
 function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
@@ -98,6 +112,8 @@ function Base.show(io::IO, m::MIME"text/plain", A::OneDManifold)
     println(io, "$m")
     printstyled(io, "Total arc length: "; color=:cyan)
     println(io, "$arclength")
+    printstyled(io, "Map calls: "; color=:cyan)
+    println(io, "$(A.map_calls)")
     if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
@@ -188,7 +204,7 @@ geometric error and is accepted instead.
 Vector of parameter values for the new points
 """
 @inline function addpoints!(f, p, d, oldcurve, newu::Vector{SVector{N,T}}, olds::Vector{T},
-    dsmin, αmax, flawpoints; adbnd=nothing) where {N,T}
+    dsmin, αmax, flawpoints; adbnd=nothing, counter=nothing) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
@@ -217,6 +233,7 @@ Vector of parameter values for the new points
                         s0 = olds[i]
                         s1 = olds[i+1]
                         paras = (s0 + s1) / 2
+                        _count_map_call!(counter)
                         addps = f(oldcurve(paras), p)
                         insert!(newu, i + 1, addps)
                         insert!(olds, i + 1, paras)
@@ -252,6 +269,7 @@ Vector of parameter values for the new points
                     s0 = olds[i]
                     s1 = olds[i+1]
                     paras = (s0 + s1) / 2
+                    _count_map_call!(counter)
                     addps = f(oldcurve(paras), p)
                     insert!(newu, i + 1, addps)
                     insert!(olds, i + 1, paras)
@@ -297,16 +315,19 @@ function grow!(manifold::OneDManifold; interp=QuadraticInterpolation,
     n = length(ic1)
     datatype = typeof(ic1[1])
     ic2 = Vector{datatype}(undef, n)
+    counter = _new_map_counter()
     Threads.@threads for i in eachindex(ic1)
+        _count_map_call!(counter)
         ic2[i] = f(ic1[i], para)
     end
     newpara = addpoints!(f, para, d, curve, ic2, olds, Δsmin, αmax, flawpoints;
-        adbnd=adbnd)
+        adbnd=adbnd, counter=counter)
     newintep = interp(ic2, newpara)
     if thinning
         newintep = thin_curve(newintep; amax=αmax, d=d, interp=interp)
     end
     push!(data, newintep)
+    manifold.map_calls += counter[]
     manifold
 end
 
@@ -367,17 +388,19 @@ function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}};
     d = prob.d
     Δsmin = prob.dsmin
     flawpoints = FlawPoint{N,T}[]
+    counter = _new_map_counter()
     Δsmin = prob.dsmin
     result = [paramise(points, interp=interp)]
     n = length(points)
     data = Vector{SVector{N,T}}(undef, n)
     for i in eachindex(data)
+        _count_map_call!(counter)
         data[i] = map(points[i], parameters)
     end
     curve = paramise(points)
     olds = copy(curve.t)
     addpoints!(map, parameters, d, curve, data, olds, Δsmin, αmax, flawpoints;
-        adbnd=adbnd)
+        adbnd=adbnd, counter=counter)
     p0 = first(points)
     pn = last(points)
     j = 1
@@ -389,7 +412,7 @@ function initialize(prob::OneDManifoldProblem, points::Vector{SVector{N,T}};
     data = data[j:end]
     prepend!(data, [pn])
     push!(result, paramise(data, interp=interp))
-    OneDManifold(prob, result, flawpoints)
+    OneDManifold(prob, result, flawpoints, counter[])
 end
 
 

@@ -49,13 +49,16 @@ end
 `TwoDManifold` is a struct contains all the information of the two-dimensional numerical manifold of a nonlinear map.
 # Fields
 - `prob` the problem [`TwoDManifoldProblem`](@ref);
-- `data` the numerical data that should be `Vector{S}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
+- `data` the numerical data, a `Vector{Vector{S}}`, where `S` is the interpolation
+  curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
+- `map_calls` the total number of evaluations of the map used by the algorithm.
 """
 mutable struct TwoDManifold{F,S,N,T}
     prob::TwoDManifoldProblem{F,T}
     data::Vector{Vector{S}}
     flawpoints::Vector{FlawPoint{N,T}}
+    map_calls::Int
 end
 
 function TwoDManifoldProblem(f; amax=0.5, d=1e-3, dcircle=1e-2, dsmin=1e-6)
@@ -85,6 +88,8 @@ function Base.show(io::IO, m::MIME"text/plain", A::TwoDManifold)
     println(io, "$n")
     printstyled(io, "Points number: "; color=:cyan)
     println(io, "$m")
+    printstyled(io, "Map calls: "; color=:cyan)
+    println(io, "$(A.map_calls)")
     if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
@@ -228,13 +233,15 @@ The function performs two main steps:
 
 Points are added to maintain proper spacing and curvature constraints specified by `d` and `αmax`.
 """
-function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=QuadraticInterpolation)
+function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints;
+    interp=QuadraticInterpolation, counter=nothing)
     newdata = deepcopy(circles)
     k = length(newdata)
     Threads.@threads for i in 1:k
         states = similar(circles[i].u)
         ss = copy(circles[i].t)
         for j in eachindex(circles[i].u)
+            _count_map_call!(counter)
             states[j] = f(circles[i].u[j], para)
         end
         newdata[i] = interp(states, ss)
@@ -244,7 +251,8 @@ function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; int
         ic = newdata[j].u
         olds = newdata[j].t
         oldcurve = circles[j]
-        newpara = addpoints!(f, para, d, oldcurve, ic, olds, dsmin, αmax, flawpoints)
+        newpara = addpoints!(f, para, d, oldcurve, ic, olds, dsmin, αmax, flawpoints;
+            counter=counter)
         olds .= newpara
     end
     # then interpolate between circles
@@ -261,11 +269,13 @@ function addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; int
                 number = nn(kd_tree, point)[1]
                 point2 = copydata[p].u[number]
                 pre_insert_circle[m] = (point + point2) / 2
+                _count_map_call!(counter)
                 insert_circle[m] = f((point + point2) / 2, para)
             end
             pre_curve = paramise(pre_insert_circle, interp=interp)
             insert_s = copy(pre_curve.t)
-            newpara = addpoints!(f, para, d, pre_curve, insert_circle, insert_s, dsmin, αmax, flawpoints)
+            newpara = addpoints!(f, para, d, pre_curve, insert_circle, insert_s,
+                dsmin, αmax, flawpoints; counter=counter)
             insert_curve = interp(insert_circle, newpara)
             insert!(newdata, p + 1, insert_curve)
             insert!(copydata, p + 1, pre_curve)
@@ -284,15 +294,21 @@ function initialize(prob::TwoDManifoldProblem, disk::Vector{Vector{SVector{N,T}}
     d = prob.d
     dsmin = prob.dsmin
     flawpoints = FlawPoint{N,T}[]
+    counter = _new_map_counter()
     dcircle = prob.dcircle
     circles = [paramise(disk[i], interp=interp) for i in eachindex(disk)]
     outercircle = last(disk)
     poutcircle = paramise(outercircle, interp=interp)
-    newoutcircle = [f(outercircle[i], para) for i in eachindex(outercircle)]
-    addpoints!(f, para, d, poutcircle, newoutcircle, copy(poutcircle.t), dsmin, αmax, flawpoints)
+    newoutcircle = Vector{SVector{N,T}}(undef, length(outercircle))
+    for i in eachindex(newoutcircle)
+        _count_map_call!(counter)
+        newoutcircle[i] = f(outercircle[i], para)
+    end
+    addpoints!(f, para, d, poutcircle, newoutcircle, copy(poutcircle.t), dsmin, αmax,
+        flawpoints; counter=counter)
     pnewoutcircle = paramise(newoutcircle, interp=interp)
     result = [circles, [poutcircle, pnewoutcircle]]
-    TwoDManifold(prob, result, flawpoints)
+    TwoDManifold(prob, result, flawpoints, counter[])
 end
 
 function grow!(manifold::TwoDManifold; interp=QuadraticInterpolation)
@@ -307,8 +323,11 @@ function grow!(manifold::TwoDManifold; interp=QuadraticInterpolation)
     dcircle = prob.dcircle
     data = manifold.data
     circles = data[end]
-    newcircles = addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints; interp=interp)
+    counter = _new_map_counter()
+    newcircles = addcircles!(f, para, d, circles, dsmin, αmax, dcircle, flawpoints;
+        interp=interp, counter=counter)
     push!(data, newcircles)
+    manifold.map_calls += counter[]
     manifold
 end
 

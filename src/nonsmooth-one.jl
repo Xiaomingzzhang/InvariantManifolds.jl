@@ -10,10 +10,17 @@ the time-T-map of a non-smooth ODE.
 - `para` the parameters of the nonlinear map;
 - `amax` the maximum angle between points when continuing the manifold;
 - `d` the maximum distance between points when continuing the manifold;
-- `ϵ` the max value of the following expression: ``\\max\\{|H(x_0,T)|,H(x_1,T)\\},`` where ``H(x,t)`` is the hypersurface the manifold cross, ``x_0`` and ``x_1`` are points before and after the cross, ``T`` is the end of the time-``T``-map (from 0 to ``T``).
-- `dsmin` the minimum arc length allowing; note that if in a continuation point, this value is achieved and the angle as well as the distance values are not achieved, then we will record this point as a [`FlawPoint`](@ref).
+- `ϵ` the upper bound for ``\\max\\{|H(x_0,T)|,H(x_1,T)\\},`` where ``H`` is the
+  switching/impact hypersurface and ``x_0,x_1`` are the two boundary points before
+  and after the crossing;
+- `dsmin` the minimum arc length allowed during bisection.
 
-Convenient consturctors are `NSOneDManifoldProblem(f)` and `NSOneDManifoldProblem(f,para)`
+Like [`OneDManifoldProblem`](@ref), the continuation defaults to the Goodman--Wróbel
+angle-times-length bound `d*amax/10` and to `thinning=true`; `adbnd` and `thinning`
+can be overridden in `grow!`/`growmanifold`.
+
+Convenient constructors are `NSOneDManifoldProblem(f)` and
+`NSOneDManifoldProblem(f, para)`.
 """
 struct NSOneDManifoldProblem{F1,F2,T}
     f::F1
@@ -75,17 +82,20 @@ end
 `NSOneDManifold` is a struct contains all the information of the non-smooth one-dimensional numerical manifold.
 # Fields
 - `prob` the problem [`NSOneDManifoldProblem`](@ref);
-- `data` the numerical data that should be `Vector{Vector{Vector{S}}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
+- `data` the numerical data, a `Vector{Vector{S}}`, where `S` is the interpolation
+  curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
 - `boundary_errors` the accepted values of `distance_f` for every pair of points
   that lie on the two sides of a switching/impact boundary.  Their average measures
   how accurately boundary points of the numerical manifold are resolved.
+- `map_calls` the total number of time-`T`-map evaluations used by the algorithm.
 """
 mutable struct NSOneDManifold{F1,F2,S,N,T}
     prob::NSOneDManifoldProblem{F1,F2,T}
     data::Vector{Vector{S}}
     flawpoints::Vector{FlawPoint{N,T}}
     boundary_errors::Vector{T}
+    map_calls::Int
 end
 
 function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
@@ -108,6 +118,8 @@ function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
     println(io, "$m")
     printstyled(io, "Total arc length: "; color=:cyan)
     println(io, "$arclength")
+    printstyled(io, "Map calls: "; color=:cyan)
+    println(io, "$(A.map_calls)")
     if k == 0
         printstyled(io, "Flaw points number: "; color=:cyan)
         print(io, "0")
@@ -479,6 +491,8 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
     ϵ = prob.ϵ
     flawpoints = FlawPoint{N,T}[]
     boundary_errors = T[]
+    counter = _new_map_counter()
+    tmapc = _counting_map(tmap, counter)
     n = length(seg)
     points = Vector{NSState{N,T}}(undef, n)
     for i in eachindex(points)
@@ -488,11 +502,11 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
     n = length(points)
     image = Vector{NSState{N,T}}(undef, n)
     for i in eachindex(image)
-        image[i] = tmap(points[i], parameters)
+        image[i] = tmapc(points[i], parameters)
     end
     oldcurve = result[1][1]
     olds = copy(oldcurve.t)
-    ns_addpoints!(tmap, distance_f, parameters, d, dsmin, oldcurve,
+    ns_addpoints!(tmapc, distance_f, parameters, d, dsmin, oldcurve,
         image, olds, αmax, tend, hypers, ϵ, flawpoints;
         adbnd=adbnd, boundary_errors=boundary_errors)
     if ispartitioned(image) == false
@@ -509,7 +523,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
     event = copy(first_iteration_curve[1].event_at)
     prepend!(first_iteration_curve, [NSState(pn.state, event)])
     push!(result, [paramise(first_iteration_curve, interp=interp)])
-    NSOneDManifold(prob, result, flawpoints, boundary_errors)
+    NSOneDManifold(prob, result, flawpoints, boundary_errors, counter[])
 end
 
 function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
@@ -527,6 +541,8 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
     data = manifold.data
     adbnd = _resolve_adbnd(adbnd, d, αmax)
     boundary_errors = manifold.boundary_errors
+    counter = _new_map_counter()
+    tmapc = _counting_map(tmap, counter)
     nic = data[end]
     flawpoints = manifold.flawpoints
     n = length(manifold.data) + 1
@@ -536,10 +552,10 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
         n = length(curve.u)
         ic2_states = Vector{NSState{N,T}}(undef, n)
         for k in eachindex(ic2_states)
-            ic2_states[k] = tmap(curve.u[k], para)
+            ic2_states[k] = tmapc(curve.u[k], para)
         end
         olds = copy(curve.t)
-        newpara = ns_addpoints!(tmap,distance_f, para, d, dsmin, curve,
+        newpara = ns_addpoints!(tmapc,distance_f, para, d, dsmin, curve,
             ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints;
             adbnd=adbnd, boundary_errors=boundary_errors)
         _result = partition(ic2_states, newpara, interp=interp)
@@ -550,6 +566,7 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
         newlayer = [thin_curve(curve; amax=αmax, d=d, interp=interp) for curve in newlayer]
     end
     push!(data, newlayer)
+    manifold.map_calls += counter[]
 end
 
 function growmanifold(prob::NSOneDManifoldProblem, segment, N;

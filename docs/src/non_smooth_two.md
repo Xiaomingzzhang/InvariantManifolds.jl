@@ -50,7 +50,7 @@ prob = NSVTwoDManifoldProblem(setup, para, amax=0.5, d=0.5, ϵ=0.2, dsmin=1e-3)
 ```
 Finally, calculate the manifold and plot the image:
 ```@example non_smooth_two
-manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
+manifold = growmanifold(prob, disk, 90; interp=LinearInterpolation)
 function manifold_plot(annulus)
     fig = Figure()
     axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))
@@ -89,7 +89,7 @@ end
 saddle = Saddle(SA[0, 0, 0.0], eigenv(para), [1.0, 1.0])
 disk = gen_disk(saddle, r=1.0, d=0.1)
 prob = NSVTwoDManifoldProblem(setup, para, amax=0.5, d=0.5, ϵ=0.2, dsmin=1e-3)
-manifold = growmanifold(prob, disk, 90, interp=LinearInterpolation)
+manifold = growmanifold(prob, disk, 90; interp=LinearInterpolation)
 function manifold_plot(annulus)
     fig = Figure()
     axes = LScene(fig[1, 1], show_axis=false, scenekw=(backgroundcolor=:white, clear=true))

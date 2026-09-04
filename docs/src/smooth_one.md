@@ -88,7 +88,9 @@ unstable_direction = eigen(jacobian(fixedpoints([1.4, 0.3])[2], [1.4, 0.3])).vec
 segment = gen_segment(saddle, unstable_direction)
 ```
 
-Under default keyword arguments, this function will generate a local manifold starting at the saddle point, with a length of 150 units and a step size of 0.01. Now let's use this local manifold to compute the smooth manifold:
+Under default keyword arguments, this function generates a local manifold starting
+at the saddle point, with 50 points over a total length of 0.01. Now let's use this
+local manifold to compute the smooth manifold:
 
 ```@repl smooth_one
 manifold = growmanifold(prob, segment, 8)

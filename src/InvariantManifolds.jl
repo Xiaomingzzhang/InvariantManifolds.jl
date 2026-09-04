@@ -25,6 +25,20 @@ include("nsstate_construction.jl")
 include("basic_constructors.jl")
 include("curve_thinning.jl")
 
+# internal helpers for counting map/time-T-map calls
+@inline function _count_map_call!(counter)
+    counter === nothing || Threads.atomic_add!(counter, 1)
+    nothing
+end
+
+function _new_map_counter()
+    Threads.Atomic{Int}(0)
+end
+
+function _counting_map(f, counter)
+    (x, p) -> (Threads.atomic_add!(counter, 1); f(x, p))
+end
+
 # the algorithm for smooth nonlinear maps' one dimensional manifolds
 include("smooth-one.jl")
 
