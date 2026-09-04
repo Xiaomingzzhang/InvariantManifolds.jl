@@ -24,6 +24,14 @@ A point is deleted only when it is sufficiently close to the chord connecting it
 neighbours and when deleting it does not increase the local turning angle beyond
 `amax`. Endpoints of smooth components and genuine sharp turns are kept.
 
+## Boundary errors of non-smooth manifolds
+
+When a numerical manifold crosses a switching or impact hypersurface, the two
+neighbouring smooth components are separated at the event sequence level.  For every
+accepted boundary pair the continuation stores the quantity
+`ε = max(|H(y₋,T)|,|H(y₊,T)|)` in `manifold.boundary_errors`.  Its mean over all
+accepted pairs is the average boundary distance reported in the paper tables.
+
 ## Scale-aware angle-times-length criterion
 
 The default acceptance rule uses the Goodman–Wróbel style condition

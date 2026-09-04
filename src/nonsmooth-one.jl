@@ -77,11 +77,15 @@ end
 - `prob` the problem [`NSOneDManifoldProblem`](@ref);
 - `data` the numerical data that should be `Vector{Vector{Vector{S}}}`, where `S` is the interpolation curve (we use `DataInterpolation` in this package);
 - `flawpoints` the flaw points generated during continuation.
+- `boundary_errors` the accepted values of `distance_f` for every pair of points
+  that lie on the two sides of a switching/impact boundary.  Their average measures
+  how accurately boundary points of the numerical manifold are resolved.
 """
 mutable struct NSOneDManifold{F1,F2,S,N,T}
     prob::NSOneDManifoldProblem{F1,F2,T}
     data::Vector{Vector{S}}
     flawpoints::Vector{FlawPoint{N,T}}
+    boundary_errors::Vector{T}
 end
 
 function Base.show(io::IO, m::MIME"text/plain", A::NSOneDManifold)
@@ -247,7 +251,7 @@ when this bound is still violated.
 """
 @inline function ns_addpoints!(tmap, distance_f, p, d, dsmin, oldcurve,
     newu::Vector{NSState{N,T}}, olds::Vector{T}, αmax, tend, hypers, ϵ,
-    flawpoints; adbnd=nothing) where {N,T}
+    flawpoints; adbnd=nothing, boundary_errors=nothing) where {N,T}
     n = length(newu)
     i = 1
     newpara = T[0]
@@ -325,6 +329,7 @@ when this bound is still violated.
                 idx = u1.event_at[end]
                 ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
+                    boundary_errors !== nothing && push!(boundary_errors, ϵ0)
                     i = i + 1
                     dd = newpara[end]
                     push!(newpara, dd + ϵ0)
@@ -345,6 +350,7 @@ when this bound is still violated.
                 idx = u0.event_at[end]
                 ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
+                    boundary_errors !== nothing && push!(boundary_errors, ϵ0)
                     i = i + 1
                     dd = newpara[end]
                     push!(newpara, dd + ϵ0)
@@ -403,6 +409,7 @@ when this bound is still violated.
                 idx = u1.event_at[end]
                 ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
+                    boundary_errors !== nothing && push!(boundary_errors, ϵ0)
                     i = i + 1
                     dd = newpara[end]
                     push!(newpara, dd + ϵ0)
@@ -423,6 +430,7 @@ when this bound is still violated.
                 idx = u0.event_at[end]
                 ϵ0 = distance_f(idx, u0.state, u1.state)
                 if ϵ0 <= ϵ
+                    boundary_errors !== nothing && push!(boundary_errors, ϵ0)
                     i = i + 1
                     dd = newpara[end]
                     push!(newpara, dd + ϵ0)
@@ -470,6 +478,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
     dsmin = prob.dsmin
     ϵ = prob.ϵ
     flawpoints = FlawPoint{N,T}[]
+    boundary_errors = T[]
     n = length(seg)
     points = Vector{NSState{N,T}}(undef, n)
     for i in eachindex(points)
@@ -484,7 +493,8 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
     oldcurve = result[1][1]
     olds = copy(oldcurve.t)
     ns_addpoints!(tmap, distance_f, parameters, d, dsmin, oldcurve,
-        image, olds, αmax, tend, hypers, ϵ, flawpoints; adbnd=adbnd)
+        image, olds, αmax, tend, hypers, ϵ, flawpoints;
+        adbnd=adbnd, boundary_errors=boundary_errors)
     if ispartitioned(image) == false
         error("The initial curve has to be chosen more small")
     end
@@ -499,7 +509,7 @@ function initialize(prob::NSOneDManifoldProblem, seg::Vector{SVector{N,T}};
     event = copy(first_iteration_curve[1].event_at)
     prepend!(first_iteration_curve, [NSState(pn.state, event)])
     push!(result, [paramise(first_iteration_curve, interp=interp)])
-    NSOneDManifold(prob, result, flawpoints)
+    NSOneDManifold(prob, result, flawpoints, boundary_errors)
 end
 
 function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
@@ -516,6 +526,7 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
     hypers = v.f.hypers
     data = manifold.data
     adbnd = _resolve_adbnd(adbnd, d, αmax)
+    boundary_errors = manifold.boundary_errors
     nic = data[end]
     flawpoints = manifold.flawpoints
     n = length(manifold.data) + 1
@@ -529,7 +540,8 @@ function grow!(manifold::NSOneDManifold{F1,F2,S,N,T};
         end
         olds = copy(curve.t)
         newpara = ns_addpoints!(tmap,distance_f, para, d, dsmin, curve,
-            ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints; adbnd=adbnd)
+            ic2_states, olds, αmax, tend, hypers, ϵ, flawpoints;
+            adbnd=adbnd, boundary_errors=boundary_errors)
         _result = partition(ic2_states, newpara, interp=interp)
         append!(result, _result)
     end
